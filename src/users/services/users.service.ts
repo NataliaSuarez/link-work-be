@@ -1,22 +1,23 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { from, Observable } from 'rxjs';
 import { Repository } from 'typeorm';
-import { UserEntity } from '../models/user.entity';
-import { UserI } from '../models/user.interface';
+
+//import { from, Observable } from 'rxjs';
+
+import { User } from '../entities/user.entity';
 
 @Injectable()
-export class UserService {
+export class UsersService {
   constructor(
-    @InjectRepository(UserEntity)
-    private userRepository: Repository<UserEntity>,
+    @InjectRepository(User)
+    private userRepository: Repository<User>,
   ) {}
 
-  add(user: UserI): Observable<UserI> {
+  /* add(user: UserI): Observable<UserI> {
     return from(this.userRepository.save(user));
   }
 
   findAll(): Observable<UserI[]> {
     return from(this.userRepository.find());
-  }
+  }*/
 }
