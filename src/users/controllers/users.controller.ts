@@ -1,22 +1,31 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
-import { Observable } from 'rxjs';
-import { CreateUserDto } from '../dtos/users.dto';
-import { User } from '../entities/user.entity';
+import {
+  Get,
+  Post,
+  Controller,
+  Body,
+  ParseIntPipe,
+  Param,
+} from '@nestjs/common';
 
+import { CreateUserDto } from '../dtos/users.dto';
 import { UsersService } from '../services/users.service';
 
 @Controller('users')
 export class UsersController {
   constructor(private usersService: UsersService) {}
 
-  @Post()
-  add(@Body() user: CreateUserDto): Observable<User> {
-    console.log('user');
-    return this.usersService.add(user);
+  @Get()
+  findAll() {
+    return this.usersService.findAll();
   }
 
-  @Get()
-  findAll(): Observable<User[]> {
-    return this.usersService.findAll();
+  @Get(':id')
+  get(@Param('id', ParseIntPipe) id: number) {
+    return this.usersService.findOne(id);
+  }
+
+  @Post()
+  create(@Body() payload: CreateUserDto) {
+    return this.usersService.create(payload);
   }
 }

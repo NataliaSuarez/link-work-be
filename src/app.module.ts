@@ -15,6 +15,7 @@ import { typeOrmAsyncConfig } from './config/typeorm.module';
     UsersModule,
   ],
   controllers: [AppController],
+
   providers: [AppService],
 })
 export class AppModule {}
