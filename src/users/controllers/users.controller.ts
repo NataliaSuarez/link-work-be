@@ -17,7 +17,6 @@ export class UsersController {
 
   @Get()
   findAll(): Observable<User[]> {
-    console.log('something');
     return this.usersService.findAll();
   }
 }
