@@ -39,6 +39,16 @@ $ npm install
 
 `docker-compose up`
 
+Another usefully commands `docker-compose down -v` to down container, `docker images` and `docker ps`  to check images and containers which are running.
+
+- API: `localhost:8080` also you can check `localhost:8080/users` 
+- [Pgadmin](https://www.pgadmin.org/): `localhost:5050`
+  Settings:
+    - Add new server
+    - Complete General section with some Name
+    - Connection with Host: Run `docker inspect link-work-be_postgres` and check 'IPAddress'
+    - Port, password and user in docker-compose file
+
 
 ## Running the app with Docker image
 
@@ -71,17 +81,3 @@ $ npm run test:e2e
 # test coverage
 $ npm run test:cov
 ```
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://kamilmysliwiec.com)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](LICENSE).

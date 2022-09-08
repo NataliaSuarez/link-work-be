@@ -1,8 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { CreateUserDto } from '../dtos/users.dto';
 
-//import { from, Observable } from 'rxjs';
+import { from, Observable } from 'rxjs';
 
 import { User } from '../entities/user.entity';
 
@@ -13,11 +14,11 @@ export class UsersService {
     private userRepository: Repository<User>,
   ) {}
 
-  /* add(user: UserI): Observable<UserI> {
+  add(user: CreateUserDto): Observable<User> {
     return from(this.userRepository.save(user));
   }
 
-  findAll(): Observable<UserI[]> {
+  findAll(): Observable<User[]> {
     return from(this.userRepository.find());
-  }*/
+  }
 }
