@@ -15,14 +15,8 @@ export class Employer {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ type: 'varchar', length: 255 })
-  firstName: string;
-
-  @Column({ type: 'varchar', length: 255 })
-  lastName: string;
-
   @Column({ type: 'int' })
-  age: number;
+  businessCode: number;
 
   @Column({ type: 'varchar', length: 255 })
   businessName: string;
@@ -39,7 +33,10 @@ export class Employer {
   })
   updateAt: Date;
 
-  @OneToOne(() => Users, (user) => user.employer)
+  @OneToOne(() => Users, (user) => user.employer, {
+    cascade: true,
+    eager: true,
+  })
   @JoinColumn({ name: 'userId' })
   user: Users;
 }

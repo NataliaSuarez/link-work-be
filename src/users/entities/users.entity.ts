@@ -16,6 +16,12 @@ export class Users {
   id: number;
 
   @Column({ type: 'varchar', length: 255 })
+  firstName: string;
+
+  @Column({ type: 'varchar', length: 255 })
+  lastName: string;
+
+  @Column({ type: 'varchar', length: 255 })
   address: string;
 
   @Column({ type: 'varchar', length: 255 })
@@ -24,7 +30,7 @@ export class Users {
   @Column({ type: 'varchar', length: 255 })
   state: string;
 
-  @Column({ type: 'varchar', length: 255 })
+  @Column({ type: 'varchar', unique: true, length: 255 })
   email: string;
 
   @Column({ type: 'varchar', length: 255 })
@@ -48,9 +54,13 @@ export class Users {
   })
   updateAt: Date;
 
-  @OneToOne(() => Worker, (worker) => worker.user, { nullable: true })
+  @OneToOne(() => Worker, (worker) => worker.user, {
+    nullable: true,
+  })
   worker: Worker;
 
-  @OneToOne(() => Employer, (employer) => employer.user, { nullable: true })
+  @OneToOne(() => Employer, (employer) => employer.user, {
+    nullable: true,
+  })
   employer: Employer;
 }

@@ -1,17 +1,20 @@
 import { IsString, IsNumber, IsNotEmpty, IsPositive } from 'class-validator';
-import { PartialType } from '@nestjs/swagger';
+import { ApiProperty, PartialType } from '@nestjs/swagger';
 
 export class CreateWorkerDto {
   @IsString()
   @IsNotEmpty()
-  readonly firstName: string;
-
-  @IsString()
-  @IsNotEmpty()
-  readonly lastName: string;
+  @ApiProperty()
+  readonly workPlace: string;
 
   @IsNumber()
   @IsNotEmpty()
+  @ApiProperty()
+  readonly workingTime: number;
+
+  @IsNumber()
+  @IsNotEmpty()
+  @ApiProperty()
   readonly age: number;
 
   @IsPositive()

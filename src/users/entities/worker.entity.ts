@@ -16,10 +16,10 @@ export class Worker {
   id: number;
 
   @Column({ type: 'varchar', length: 255 })
-  firstName: string;
+  workPlace: string;
 
-  @Column({ type: 'varchar', length: 255 })
-  lastName: string;
+  @Column({ type: 'int' })
+  workingTime: number;
 
   @Column({ type: 'int' })
   age: number;
@@ -36,7 +36,10 @@ export class Worker {
   })
   updateAt: Date;
 
-  @OneToOne(() => Users, (user) => user.worker)
+  @OneToOne(() => Users, (user) => user.worker, {
+    cascade: true,
+    eager: true,
+  })
   @JoinColumn({ name: 'userId' })
   user: Users;
 }
