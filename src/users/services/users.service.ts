@@ -1,8 +1,12 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, Equal, FindOptionsWhere } from 'typeorm';
 
-import { CreateUserDto, UpdateUserDto } from '../dtos/users.dto';
+import {
+  CreateUserDto,
+  FilterUsersDto,
+  UpdateUserDto,
+} from '../dtos/users.dto';
 import { Users } from '../entities/users.entity';
 
 @Injectable()
@@ -12,7 +16,20 @@ export class UsersService {
     private userRepository: Repository<Users>,
   ) {}
 
-  findAll() {
+  findAll(params?: FilterUsersDto) {
+    if (params) {
+      const where: FindOptionsWhere<Users> = {};
+      const { limit, offset } = params;
+      const { role } = params;
+      if (role) {
+        where.role = Equal(role);
+      }
+      return this.userRepository.find({
+        where,
+        take: limit,
+        skip: offset,
+      });
+    }
     return this.userRepository.find();
   }
 

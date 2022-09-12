@@ -7,10 +7,15 @@ import {
   Param,
   Put,
   Delete,
+  Query,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 
-import { CreateUserDto, UpdateUserDto } from '../dtos/users.dto';
+import {
+  CreateUserDto,
+  FilterUsersDto,
+  UpdateUserDto,
+} from '../dtos/users.dto';
 import { UsersService } from '../services/users.service';
 
 @ApiTags('users')
@@ -19,8 +24,8 @@ export class UsersController {
   constructor(private usersService: UsersService) {}
 
   @Get()
-  findAll() {
-    return this.usersService.findAll();
+  getUsers(@Query() params: FilterUsersDto) {
+    return this.usersService.findAll(params);
   }
 
   @Get(':id')
