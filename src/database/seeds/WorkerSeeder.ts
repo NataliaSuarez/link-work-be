@@ -62,6 +62,42 @@ export class WorkerSeeder implements Seeder {
       },
     };
 
+    const data4 = {
+      age: 32,
+      stars: 5,
+      totalReviews: 7,
+      user: {
+        id: 7,
+        firstName: 'Christian',
+        lastName: 'Davids',
+        address: '321 Privet Park',
+        city: 'Miami',
+        state: 'Florida',
+        email: 'tj4ds4@rediff.com',
+        password: '1XfFsmtfdPzsZG',
+        profileImg: 'http://dummyimage.com/123x120.png/ff4444/ffffff',
+        role: 2,
+      },
+    };
+
+    const data5 = {
+      age: 22,
+      stars: 4,
+      totalReviews: 4,
+      user: {
+        id: 8,
+        firstName: 'Thomas',
+        lastName: 'Jones',
+        address: '44 Douglas Street',
+        city: 'Miami',
+        state: 'Florida',
+        email: 'tdasj44@rediff.com',
+        password: '1XfFsmtfPzsZG',
+        profileImg: 'http://dummyimage.com/123x120.png/ff4444/ffffff',
+        role: 2,
+      },
+    };
+
     const new1 = workerRepository.create(data1);
     await workerRepository.save(new1);
 
@@ -70,5 +106,11 @@ export class WorkerSeeder implements Seeder {
 
     const new3 = workerRepository.create(data3);
     await workerRepository.save(new3);
+
+    const new4 = workerRepository.create(data4);
+    await workerRepository.save(new4);
+
+    const new5 = workerRepository.create(data5);
+    await workerRepository.save(new5);
   }
 }

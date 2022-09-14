@@ -79,6 +79,30 @@ export class UserSeeder implements Seeder {
       role: 2,
     };
 
+    const userData7 = {
+      firstName: 'Christian',
+      lastName: 'Davids',
+      address: '321 Privet Park',
+      city: 'Miami',
+      state: 'Florida',
+      email: 'tj4ds4@rediff.com',
+      password: '1XfFsmtfdPzsZG',
+      profileImg: 'http://dummyimage.com/123x120.png/ff4444/ffffff',
+      role: 2,
+    };
+
+    const userData8 = {
+      firstName: 'Thomas',
+      lastName: 'Jones',
+      address: '44 Douglas Street',
+      city: 'Miami',
+      state: 'Florida',
+      email: 'tdasj44@rediff.com',
+      password: '1XfFsmtfPzsZG',
+      profileImg: 'http://dummyimage.com/123x120.png/ff4444/ffffff',
+      role: 2,
+    };
+
     const newUser1 = userRepository.create(userData1);
     await userRepository.save(newUser1);
 
@@ -96,5 +120,11 @@ export class UserSeeder implements Seeder {
 
     const newUser6 = userRepository.create(userData6);
     await userRepository.save(newUser6);
+
+    const newUser7 = userRepository.create(userData7);
+    await userRepository.save(newUser7);
+
+    const newUser8 = userRepository.create(userData8);
+    await userRepository.save(newUser8);
   }
 }
