@@ -10,7 +10,7 @@ import {
 import { Worker } from './worker.entity';
 import { Employer } from './employer.entity';
 
-@Entity()
+@Entity('users')
 export class Users {
   @PrimaryGeneratedColumn()
   id: number;
@@ -56,11 +56,13 @@ export class Users {
 
   @OneToOne(() => Worker, (worker) => worker.user, {
     nullable: true,
+    onDelete: 'CASCADE',
   })
   worker: Worker;
 
   @OneToOne(() => Employer, (employer) => employer.user, {
     nullable: true,
+    onDelete: 'CASCADE',
   })
   employer: Employer;
 }

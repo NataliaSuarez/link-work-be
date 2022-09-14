@@ -1,8 +1,12 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, FindOptionsWhere } from 'typeorm';
 
-import { CreateWorkerDto, UpdateWorkerDto } from '../dtos/workers.dto';
+import {
+  CreateWorkerDto,
+  FilterWorkersDto,
+  UpdateWorkerDto,
+} from '../dtos/workers.dto';
 import { Worker } from '../entities/worker.entity';
 import { UsersService } from './users.service';
 
@@ -14,7 +18,16 @@ export class WorkersService {
     private usersService: UsersService,
   ) {}
 
-  findAll() {
+  findAll(params?: FilterWorkersDto) {
+    if (params) {
+      const where: FindOptionsWhere<Worker> = {};
+      const { limit, offset } = params;
+      return this.workerRepository.find({
+        where,
+        take: limit,
+        skip: offset,
+      });
+    }
     return this.workerRepository.find();
   }
 

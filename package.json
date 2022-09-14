@@ -23,7 +23,8 @@
     "migrations:generate": "npm run typeorm -- migration:generate -d ./src/database/data-source.ts",
     "migrations:run": "npm run typeorm -- migration:run -d ./src/database/data-source.ts",
     "migrations:show": "npm run typeorm -- migration:show -d ./src/database/data-source.ts",
-    "migrations:revert": "npm run typeorm -- migration:revert -d ./src/database/data-source.ts"
+    "migrations:revert": "npm run typeorm -- migration:revert -d ./src/database/data-source.ts",
+    "seed": "ts-node ./node_modules/typeorm-extension/dist/cli/index.js seed -d ./src/database/data-source.ts"
   },
   "dependencies": {
     "@nestjs/common": "^9.0.0",
@@ -40,9 +41,12 @@
     "reflect-metadata": "^0.1.13",
     "rimraf": "^3.0.2",
     "rxjs": "^7.5.6",
-    "typeorm": "^0.3.9"
+    "typeorm": "^0.3.9",
+    "typeorm-extension": "^2.1.10"
   },
   "devDependencies": {
+    "@concepta/typeorm-seeding": "^4.0.0-beta.0",
+    "@faker-js/faker": "^7.5.0",
     "@nestjs/cli": "^9.0.0",
     "@nestjs/schematics": "^9.0.0",
     "@nestjs/testing": "^9.0.0",

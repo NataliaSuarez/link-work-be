@@ -1,8 +1,12 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, FindOptionsWhere } from 'typeorm';
 
-import { CreateEmployerDto, UpdateEmployerDto } from '../dtos/employers.dto';
+import {
+  CreateEmployerDto,
+  FilterEmployersDto,
+  UpdateEmployerDto,
+} from '../dtos/employers.dto';
 import { Employer } from '../entities/employer.entity';
 import { UsersService } from './users.service';
 
@@ -14,7 +18,16 @@ export class EmployersService {
     private usersService: UsersService,
   ) {}
 
-  findAll() {
+  findAll(params?: FilterEmployersDto) {
+    if (params) {
+      const where: FindOptionsWhere<Employer> = {};
+      const { limit, offset } = params;
+      return this.employerRepository.find({
+        where,
+        take: limit,
+        skip: offset,
+      });
+    }
     return this.employerRepository.find();
   }
 

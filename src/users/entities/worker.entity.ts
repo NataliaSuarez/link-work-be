@@ -6,23 +6,28 @@ import {
   UpdateDateColumn,
   OneToOne,
   JoinColumn,
+  ManyToMany,
+  JoinTable,
+  OneToMany,
 } from 'typeorm';
 
 import { Users } from './users.entity';
+import { Offers } from '../../offers/entities/offers.entity';
+import { Shift } from '../../offers/entities/shift.entity';
 
-@Entity()
+@Entity('worker')
 export class Worker {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ type: 'varchar', length: 255 })
-  workPlace: string;
-
-  @Column({ type: 'int' })
-  workingTime: number;
-
   @Column({ type: 'int' })
   age: number;
+
+  @Column({ type: 'int' })
+  stars: number;
+
+  @Column({ type: 'int' })
+  totalReviews: number;
 
   @CreateDateColumn({
     type: 'timestamptz',
@@ -39,7 +44,22 @@ export class Worker {
   @OneToOne(() => Users, (user) => user.worker, {
     cascade: true,
     eager: true,
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE',
   })
   @JoinColumn({ name: 'userId' })
   user: Users;
+
+  @ManyToMany(() => Offers, (offers) => offers.applicants, {
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE',
+  })
+  @JoinTable()
+  offers: Offers[];
+
+  @OneToMany(() => Shift, (shift) => shift.worker, {
+    nullable: true,
+    onDelete: 'CASCADE',
+  })
+  shifts: Shift[];
 }

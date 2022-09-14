@@ -6,11 +6,13 @@ import {
   UpdateDateColumn,
   OneToOne,
   JoinColumn,
+  OneToMany,
 } from 'typeorm';
 
 import { Users } from './users.entity';
+import { Offers } from '../../offers/entities/offers.entity';
 
-@Entity()
+@Entity('employer')
 export class Employer {
   @PrimaryGeneratedColumn()
   id: number;
@@ -20,6 +22,9 @@ export class Employer {
 
   @Column({ type: 'varchar', length: 255 })
   businessName: string;
+
+  @Column({ type: 'text' })
+  description: string;
 
   @CreateDateColumn({
     type: 'timestamptz',
@@ -36,7 +41,12 @@ export class Employer {
   @OneToOne(() => Users, (user) => user.employer, {
     cascade: true,
     eager: true,
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE',
   })
   @JoinColumn({ name: 'userId' })
   user: Users;
+
+  @OneToMany(() => Offers, (offers) => offers.employer)
+  offers: Offers[];
 }
