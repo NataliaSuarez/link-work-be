@@ -8,6 +8,7 @@ import {
   Put,
   Delete,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 
@@ -17,6 +18,7 @@ import {
   UpdateUserDto,
 } from '../dtos/users.dto';
 import { UsersService } from '../services/users.service';
+import { AccessTokenGuard } from 'src/common/guards/accessToken.guard';
 
 @ApiTags('users')
 @Controller('users')
@@ -38,6 +40,7 @@ export class UsersController {
     return this.usersService.create(payload);
   }
 
+  @UseGuards(AccessTokenGuard)
   @Put(':id')
   update(@Param('id') id: number, @Body() payload: UpdateUserDto) {
     return this.usersService.update(id, payload);

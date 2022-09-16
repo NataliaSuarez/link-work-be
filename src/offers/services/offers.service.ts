@@ -9,12 +9,14 @@ import {
 } from '../dtos/offers.dto';
 import { Offers } from '../entities/offers.entity';
 import { Worker } from '../../users/entities/worker.entity';
+import { Employer } from '../../users/entities/employer.entity';
 
 @Injectable()
 export class OffersService {
   constructor(
     @InjectRepository(Offers) private offerRepo: Repository<Offers>,
     @InjectRepository(Worker) private workerRepo: Repository<Worker>,
+    @InjectRepository(Employer) private employerRepo: Repository<Employer>,
   ) {}
 
   findAll(params?: FilterOffersDto) {
@@ -60,6 +62,23 @@ export class OffersService {
       throw new NotFoundException(`Offer #${offerId} not found`);
     }
     return offer.applicants;
+  }
+
+  async findByEmployer(employerId: number): Promise<Offers[]> {
+    const offers = await this.offerRepo.find({
+      relations: {
+        employer: true,
+      },
+      where: {
+        employer: {
+          id: employerId,
+        },
+      },
+    });
+    if (!offers) {
+      throw new NotFoundException(`Employer #${employerId} has not any offer`);
+    }
+    return offers;
   }
 
   create(data: CreateOfferDto) {

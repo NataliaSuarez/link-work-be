@@ -54,6 +54,9 @@ export class Users {
   })
   updateAt: Date;
 
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  refreshToken: string;
+
   @OneToOne(() => Worker, (worker) => worker.user, {
     nullable: true,
     onDelete: 'CASCADE',

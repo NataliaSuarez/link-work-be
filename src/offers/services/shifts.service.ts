@@ -50,6 +50,72 @@ export class ShiftsService {
     return shift;
   }
 
+  async findByWorker(workerId: number) {
+    const activeShifts = await this.shiftRepo.find({
+      relations: {
+        offer: true,
+        worker: true,
+      },
+      where: {
+        worker: {
+          id: workerId,
+        },
+        status: 1,
+      },
+    });
+    const acceptedShifts = await this.shiftRepo.find({
+      relations: {
+        offer: true,
+        worker: true,
+      },
+      where: {
+        worker: {
+          id: workerId,
+        },
+        status: 0,
+      },
+    });
+
+    const shifts = {
+      activeShifts: activeShifts,
+      acceptedShifts: acceptedShifts,
+    };
+    return shifts;
+  }
+
+  async findByEmployer(employerId: number) {
+    const offers = await this.offerService.findByEmployer(employerId);
+    const activeShifts = [];
+    const acceptedShifts = [];
+
+    for (const object of offers) {
+      const shift = await this.shiftRepo.find({
+        relations: {
+          offer: true,
+          worker: true,
+        },
+        where: {
+          offer: {
+            id: object.id,
+          },
+        },
+      });
+      if (shift[0]) {
+        if (shift[0].status === 0) {
+          acceptedShifts.push(shift);
+        } else if (shift[0].status === 1) {
+          activeShifts.push(shift);
+        }
+      }
+    }
+
+    const shifts = {
+      activeShifts: activeShifts,
+      acceptedShifts: acceptedShifts,
+    };
+    return shifts;
+  }
+
   async create(data: CreateShiftDto) {
     const offer = await this.offerRepo.findOneBy({
       id: data.offerId,

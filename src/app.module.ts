@@ -7,6 +7,7 @@ import { ConfigModule } from '@nestjs/config';
 import { DatabaseModule } from './database/database.module';
 import { typeOrmAsyncConfig } from './config/typeorm.module';
 import { OffersModule } from './offers/offers.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { OffersModule } from './offers/offers.module';
     TypeOrmModule.forRootAsync(typeOrmAsyncConfig),
     UsersModule,
     OffersModule,
+    AuthModule,
   ],
   controllers: [AppController],
 

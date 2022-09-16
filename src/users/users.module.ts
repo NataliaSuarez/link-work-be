@@ -20,5 +20,6 @@ import { Shift } from 'src/offers/entities/shift.entity';
   imports: [TypeOrmModule.forFeature([Users, Worker, Employer, Offers, Shift])],
   controllers: [UsersController, EmployersController, WorkersController],
   providers: [UsersService, EmployersService, WorkersService],
+  exports: [UsersService],
 })
 export class UsersModule {}

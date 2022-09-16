@@ -58,6 +58,9 @@ export class CreateUserDto {
   @Max(2)
   @ApiProperty()
   readonly role: number;
+
+  @ApiProperty()
+  refreshToken: string;
 }
 
 export class UpdateUserDto extends PartialType(CreateUserDto) {}
