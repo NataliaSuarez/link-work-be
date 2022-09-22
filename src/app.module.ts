@@ -8,6 +8,7 @@ import { DatabaseModule } from './database/database.module';
 import { typeOrmAsyncConfig } from './config/typeorm.module';
 import { OffersModule } from './offers/offers.module';
 import { AuthModule } from './auth/auth.module';
+import { StripeModule } from './stripe/stripe.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { AuthModule } from './auth/auth.module';
     UsersModule,
     OffersModule,
     AuthModule,
+    StripeModule,
   ],
   controllers: [AppController],
 

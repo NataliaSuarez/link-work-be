@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
 import { Request } from 'express';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 
 import { CreateUserDto } from '../users/dtos/users.dto';
 import { AuthService } from './auth.service';
@@ -12,24 +12,28 @@ import { RefreshTokenGuard } from 'src/common/guards/refreshToken.guard';
 export class AuthController {
   constructor(private authService: AuthService) {}
 
-  @Post('signup')
+  @Post('sign-up')
+  @ApiOperation({ summary: 'Create a new user account' })
   signup(@Body() createUserDto: CreateUserDto) {
     return this.authService.signUp(createUserDto);
   }
 
-  @Post('signin')
+  @Post('sign-in')
+  @ApiOperation({ summary: 'Sign in an existing user' })
   signin(@Body() data: AuthDto) {
     return this.authService.signIn(data);
   }
 
   @UseGuards(AccessTokenGuard)
-  @Get('logout')
+  @Get('log-out')
+  @ApiOperation({ summary: 'Log out an existing user' })
   logout(@Req() req: Request) {
     this.authService.logout(req.user['sub']);
   }
 
   @UseGuards(RefreshTokenGuard)
   @Get('refresh')
+  @ApiOperation({ summary: 'Refresh auth tokens' })
   refreshTokens(@Req() req: Request) {
     const userId = req.user['sub'];
     const refreshToken = req.user['refreshToken'];

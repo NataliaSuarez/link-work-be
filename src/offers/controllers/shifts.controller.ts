@@ -28,12 +28,12 @@ export class ShiftsController {
     return this.shiftService.findAll(params);
   }
 
-  @Get('/byworker/:workerId')
+  @Get('/by-worker/:workerId')
   getByWorker(@Param('workerId', ParseIntPipe) workerId: number) {
     return this.shiftService.findByWorker(workerId);
   }
 
-  @Get('byemployer/:employerId')
+  @Get('by-employer/:employerId')
   getByEmployer(@Param('employerId', ParseIntPipe) employerId: number) {
     return this.shiftService.findByEmployer(employerId);
   }
