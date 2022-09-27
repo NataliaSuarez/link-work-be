@@ -21,20 +21,14 @@ export class Users {
   @Column({ type: 'varchar', length: 255 })
   lastName: string;
 
-  @Column({ type: 'varchar', length: 255 })
-  address: string;
-
-  @Column({ type: 'varchar', length: 255 })
-  city: string;
-
-  @Column({ type: 'varchar', length: 255 })
-  state: string;
-
   @Column({ type: 'varchar', unique: true, length: 255 })
   email: string;
 
   @Column({ type: 'varchar', length: 255 })
   password: string; // encript
+
+  @Column({ type: 'bool' })
+  verified: boolean;
 
   @Column({ type: 'varchar', length: 255 })
   profileImg: string;

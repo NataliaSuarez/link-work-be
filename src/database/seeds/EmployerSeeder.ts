@@ -11,64 +11,88 @@ export class EmployerSeeder implements Seeder {
     const employerRepository = dataSource.getRepository(Employer);
 
     const data1 = {
+      address: '546 Douglas Street',
+      city: 'Miami',
+      state: 'Florida',
       businessName: 'Jacobi Group',
       businessCode: 9,
       description: 'Lorem ipsum lorem ipsum lorem ipsum',
+      stars: 4,
+      totalReviews: 15,
+      customerId: '',
       user: {
         id: 3,
         firstName: 'Atalanta',
         lastName: 'Pitts',
-        address: '362 Oxford Alley',
-        city: 'Oakland',
-        state: 'California',
         email: 'apitts2@uiuc.edu',
         password: 'Ng5AUZ',
+        verified: true,
         profileImg: 'http://dummyimage.com/147x100.png/5fa2dd/ffffff',
         role: 1,
       },
     };
+
     const data2 = {
+      address: '44 Douglas Street',
+      city: 'Miami',
+      state: 'Florida',
       businessName: 'Wilkinson Group',
       businessCode: 7,
       description: 'Lorem ipsum lorem ipsum lorem ipsum',
+      stars: 3,
+      totalReviews: 50,
+      customerId: '',
       user: {
         id: 4,
         firstName: 'Chester',
         lastName: 'Sussems',
-        address: '1 Algoma Park',
-        city: 'Raleigh',
-        state: 'North Carolina',
         email: 'csussems3@nifty.com',
         password: '1TBZtiRo',
+        verified: false,
         profileImg: 'http://dummyimage.com/176x100.png/dddddd/000000',
         role: 1,
       },
     };
+
     const data3 = {
+      address: '321 Privet Drive',
+      city: 'Miami',
+      state: 'Florida',
       businessName: 'Carroll Inc',
       businessCode: 1,
       description: 'Lorem ipsum lorem ipsum lorem ipsum',
+      stars: 5,
+      totalReviews: 2,
+      customerId: '',
       user: {
         id: 5,
         firstName: 'Timofei',
         lastName: 'Dawks',
-        address: '69 Dennis Drive',
-        city: 'Newark',
-        state: 'New Jersey',
         email: 'tdawks4@rediff.com',
         password: '1xNfXFmtPzZG',
+        verified: true,
         profileImg: 'http://dummyimage.com/113x100.png/ff4444/ffffff',
         role: 1,
       },
     };
 
-    const new1 = employerRepository.create(data1);
-    await employerRepository.save(new1);
+    const register1 = await employerRepository.findOneBy({ id: 1 });
+    const register2 = await employerRepository.findOneBy({ id: 2 });
+    const register3 = await employerRepository.findOneBy({ id: 3 });
 
-    const new2 = employerRepository.create(data2);
-    await employerRepository.save(new2);
+    if (!register1) {
+      const new1 = employerRepository.create(data1);
+      await employerRepository.save(new1);
+    }
 
-    const new3 = employerRepository.create(data3);
-    await employerRepository.save(new3);
+    if (!register2) {
+      const new2 = employerRepository.create(data2);
+      await employerRepository.save(new2);
+    }
+
+    if (!register3) {
+      const new3 = employerRepository.create(data3);
+      await employerRepository.save(new3);
+    }
   }
 }

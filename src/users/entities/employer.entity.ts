@@ -17,6 +17,15 @@ export class Employer {
   @PrimaryGeneratedColumn()
   id: number;
 
+  @Column({ type: 'varchar', length: 255 })
+  address: string;
+
+  @Column({ type: 'varchar', length: 255 })
+  city: string;
+
+  @Column({ type: 'varchar', length: 255 })
+  state: string;
+
   @Column({ type: 'int' })
   businessCode: number;
 
@@ -25,6 +34,15 @@ export class Employer {
 
   @Column({ type: 'text' })
   description: string;
+
+  @Column({ type: 'int' })
+  stars: number;
+
+  @Column({ type: 'int' })
+  totalReviews: number;
+
+  @Column({ type: 'varchar', length: 255 })
+  customerId: string;
 
   @CreateDateColumn({
     type: 'timestamptz',

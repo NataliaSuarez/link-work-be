@@ -6,6 +6,7 @@ import { WorkerSeeder } from './WorkerSeeder';
 import { EmployerSeeder } from './EmployerSeeder';
 import { OfferSeeder } from './OfferSeeder';
 import { ShiftSeeder } from './ShiftSeeder';
+import { ExperienceSeeder } from './ExperienceSeeder';
 
 export class MainSeeder implements Seeder {
   async run(
@@ -15,6 +16,7 @@ export class MainSeeder implements Seeder {
     await runSeeder(dataSource, UserSeeder);
     await runSeeder(dataSource, WorkerSeeder);
     await runSeeder(dataSource, EmployerSeeder);
+    await runSeeder(dataSource, ExperienceSeeder);
     await runSeeder(dataSource, OfferSeeder);
     await runSeeder(dataSource, ShiftSeeder);
   }

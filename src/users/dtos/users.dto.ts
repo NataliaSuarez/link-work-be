@@ -8,6 +8,7 @@ import {
   Max,
   IsOptional,
   IsPositive,
+  IsBoolean,
 } from 'class-validator';
 import { ApiProperty, PartialType } from '@nestjs/swagger';
 
@@ -22,21 +23,6 @@ export class CreateUserDto {
   @ApiProperty()
   readonly lastName: string;
 
-  @IsString()
-  @IsNotEmpty()
-  @ApiProperty()
-  readonly address: string;
-
-  @IsString()
-  @IsNotEmpty()
-  @ApiProperty()
-  readonly city: string;
-
-  @IsString()
-  @IsNotEmpty()
-  @ApiProperty()
-  readonly state: string;
-
   @IsEmail()
   @IsNotEmpty()
   @ApiProperty()
@@ -46,6 +32,10 @@ export class CreateUserDto {
   @IsNotEmpty()
   @ApiProperty()
   readonly password: string;
+
+  @IsBoolean()
+  @ApiProperty()
+  readonly verified: boolean;
 
   @IsUrl()
   @IsNotEmpty()
@@ -59,6 +49,7 @@ export class CreateUserDto {
   @ApiProperty()
   readonly role: number;
 
+  @IsString()
   @ApiProperty()
   refreshToken: string;
 }

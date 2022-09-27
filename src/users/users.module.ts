@@ -16,8 +16,19 @@ import { Worker } from './entities/worker.entity';
 import { Offers } from 'src/offers/entities/offers.entity';
 import { Shift } from 'src/offers/entities/shift.entity';
 
+import { Experience } from './entities/experience.entity';
+
 @Module({
-  imports: [TypeOrmModule.forFeature([Users, Worker, Employer, Offers, Shift])],
+  imports: [
+    TypeOrmModule.forFeature([
+      Users,
+      Worker,
+      Employer,
+      Offers,
+      Shift,
+      Experience,
+    ]),
+  ],
   controllers: [UsersController, EmployersController, WorkersController],
   providers: [UsersService, EmployersService, WorkersService],
   exports: [UsersService],

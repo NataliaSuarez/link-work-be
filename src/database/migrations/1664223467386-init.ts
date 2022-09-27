@@ -1,11 +1,11 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class init1663268020053 implements MigrationInterface {
-  name = 'init1663268020053';
+export class init1664223467386 implements MigrationInterface {
+  name = 'init1664223467386';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
-      `CREATE TABLE "employer" ("id" SERIAL NOT NULL, "businessCode" integer NOT NULL, "businessName" character varying(255) NOT NULL, "description" text NOT NULL, "createAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), "updateAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), "userId" integer, CONSTRAINT "REL_bf0894d837af561b2f63387499" UNIQUE ("userId"), CONSTRAINT "PK_74029e6b1f17a4c7c66d43cfd34" PRIMARY KEY ("id"))`,
+      `CREATE TABLE "employer" ("id" SERIAL NOT NULL, "address" character varying(255) NOT NULL, "city" character varying(255) NOT NULL, "state" character varying(255) NOT NULL, "businessCode" integer NOT NULL, "businessName" character varying(255) NOT NULL, "description" text NOT NULL, "stars" integer NOT NULL, "totalReviews" integer NOT NULL, "customerId" character varying(255) NOT NULL, "createAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), "updateAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), "userId" integer, CONSTRAINT "REL_bf0894d837af561b2f63387499" UNIQUE ("userId"), CONSTRAINT "PK_74029e6b1f17a4c7c66d43cfd34" PRIMARY KEY ("id"))`,
     );
     await queryRunner.query(
       `CREATE TABLE "shift" ("id" SERIAL NOT NULL, "createAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), "updateAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), "clockIn" boolean NOT NULL DEFAULT false, "clockOut" boolean NOT NULL DEFAULT false, "status" integer NOT NULL DEFAULT '0', "workerId" integer NOT NULL, "offerId" integer NOT NULL, CONSTRAINT "REL_62be1e0c53b77c2ec2a34ff525" UNIQUE ("offerId"), CONSTRAINT "PK_53071a6485a1e9dc75ec3db54b9" PRIMARY KEY ("id"))`,
@@ -14,10 +14,13 @@ export class init1663268020053 implements MigrationInterface {
       `CREATE TABLE "offer" ("id" SERIAL NOT NULL, "title" character varying(255) NOT NULL, "from" TIMESTAMP WITH TIME ZONE NOT NULL, "to" TIMESTAMP WITH TIME ZONE NOT NULL, "usdHour" integer NOT NULL, "usdTotal" integer NOT NULL, "category" integer NOT NULL, "description" text NOT NULL, "status" integer NOT NULL DEFAULT '0', "createAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), "updateAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), "employerId" integer NOT NULL, CONSTRAINT "PK_57c6ae1abe49201919ef68de900" PRIMARY KEY ("id"))`,
     );
     await queryRunner.query(
-      `CREATE TABLE "worker" ("id" SERIAL NOT NULL, "age" integer NOT NULL, "stars" integer NOT NULL, "totalReviews" integer NOT NULL, "createAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), "updateAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), "userId" integer, CONSTRAINT "REL_b4fc7927de11f45e2ecca71726" UNIQUE ("userId"), CONSTRAINT "PK_dc8175fa0e34ce7a39e4ec73b94" PRIMARY KEY ("id"))`,
+      `CREATE TABLE "work_experience" ("id" SERIAL NOT NULL, "description" text NOT NULL, "createAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), "updateAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), "workerId" integer, CONSTRAINT "PK_d4bef63ad6da7ec327515c121bd" PRIMARY KEY ("id"))`,
     );
     await queryRunner.query(
-      `CREATE TABLE "users" ("id" SERIAL NOT NULL, "firstName" character varying(255) NOT NULL, "lastName" character varying(255) NOT NULL, "address" character varying(255) NOT NULL, "city" character varying(255) NOT NULL, "state" character varying(255) NOT NULL, "email" character varying(255) NOT NULL, "password" character varying(255) NOT NULL, "profileImg" character varying(255) NOT NULL, "role" integer NOT NULL, "createAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), "updateAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), "refreshToken" character varying(255), CONSTRAINT "UQ_97672ac88f789774dd47f7c8be3" UNIQUE ("email"), CONSTRAINT "PK_a3ffb1c0c8416b9fc6f907b7433" PRIMARY KEY ("id"))`,
+      `CREATE TABLE "worker" ("id" SERIAL NOT NULL, "address" character varying(255) NOT NULL, "city" character varying(255) NOT NULL, "state" character varying(255) NOT NULL, "age" integer NOT NULL, "gender" integer NOT NULL, "description" text NOT NULL, "ssn" integer NOT NULL, "stars" integer NOT NULL, "totalReviews" integer NOT NULL, "stripeId" character varying(255) NOT NULL, "createAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), "updateAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), "userId" integer, CONSTRAINT "REL_b4fc7927de11f45e2ecca71726" UNIQUE ("userId"), CONSTRAINT "PK_dc8175fa0e34ce7a39e4ec73b94" PRIMARY KEY ("id"))`,
+    );
+    await queryRunner.query(
+      `CREATE TABLE "users" ("id" SERIAL NOT NULL, "firstName" character varying(255) NOT NULL, "lastName" character varying(255) NOT NULL, "email" character varying(255) NOT NULL, "password" character varying(255) NOT NULL, "verified" boolean NOT NULL, "profileImg" character varying(255) NOT NULL, "role" integer NOT NULL, "createAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), "updateAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), "refreshToken" character varying(255), CONSTRAINT "UQ_97672ac88f789774dd47f7c8be3" UNIQUE ("email"), CONSTRAINT "PK_a3ffb1c0c8416b9fc6f907b7433" PRIMARY KEY ("id"))`,
     );
     await queryRunner.query(
       `CREATE TABLE "worker_offers_offer" ("workerId" integer NOT NULL, "offerId" integer NOT NULL, CONSTRAINT "PK_7e960b1fe254d49c5668d9a60a6" PRIMARY KEY ("workerId", "offerId"))`,
@@ -41,6 +44,9 @@ export class init1663268020053 implements MigrationInterface {
       `ALTER TABLE "offer" ADD CONSTRAINT "FK_1e20b6aea6a5df9f872fa8ceba9" FOREIGN KEY ("employerId") REFERENCES "employer"("id") ON DELETE CASCADE ON UPDATE NO ACTION`,
     );
     await queryRunner.query(
+      `ALTER TABLE "work_experience" ADD CONSTRAINT "FK_e7066309f1ec345e6e65271c3f3" FOREIGN KEY ("workerId") REFERENCES "worker"("id") ON DELETE CASCADE ON UPDATE NO ACTION`,
+    );
+    await queryRunner.query(
       `ALTER TABLE "worker" ADD CONSTRAINT "FK_b4fc7927de11f45e2ecca71726b" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE`,
     );
     await queryRunner.query(
@@ -60,6 +66,9 @@ export class init1663268020053 implements MigrationInterface {
     );
     await queryRunner.query(
       `ALTER TABLE "worker" DROP CONSTRAINT "FK_b4fc7927de11f45e2ecca71726b"`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "work_experience" DROP CONSTRAINT "FK_e7066309f1ec345e6e65271c3f3"`,
     );
     await queryRunner.query(
       `ALTER TABLE "offer" DROP CONSTRAINT "FK_1e20b6aea6a5df9f872fa8ceba9"`,
@@ -82,6 +91,7 @@ export class init1663268020053 implements MigrationInterface {
     await queryRunner.query(`DROP TABLE "worker_offers_offer"`);
     await queryRunner.query(`DROP TABLE "users"`);
     await queryRunner.query(`DROP TABLE "worker"`);
+    await queryRunner.query(`DROP TABLE "work_experience"`);
     await queryRunner.query(`DROP TABLE "offer"`);
     await queryRunner.query(`DROP TABLE "shift"`);
     await queryRunner.query(`DROP TABLE "employer"`);

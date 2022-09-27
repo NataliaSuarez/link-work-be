@@ -19,21 +19,16 @@ export class ShiftSeeder implements Seeder {
       status: 0,
       worker: {
         id: 4,
+        address: '69 Dennis Drive',
+        city: 'Newark',
+        state: 'New Jersey',
         age: 32,
+        gender: 2,
+        description: 'Lorem ipsum lorem ipsum lorem ipsum',
+        ssn: 2752777,
         stars: 5,
         totalReviews: 7,
-        user: {
-          id: 7,
-          firstName: 'Christian',
-          lastName: 'Davids',
-          address: '321 Privet Park',
-          city: 'Miami',
-          state: 'Florida',
-          email: 'tj4ds4@rediff.com',
-          password: '1XfFsmtfdPzsZG',
-          profileImg: 'http://dummyimage.com/123x120.png/ff4444/ffffff',
-          role: 2,
-        },
+        stripeId: '',
       },
       offer: {
         id: 4,
@@ -84,9 +79,15 @@ export class ShiftSeeder implements Seeder {
         ],
         employer: {
           id: 2,
+          address: '44 Douglas Street',
+          city: 'Miami',
+          state: 'Florida',
           businessName: 'Wilkinson Group',
           businessCode: 7,
           description: 'Lorem ipsum lorem ipsum lorem ipsum',
+          stars: 3,
+          totalReviews: 50,
+          customerId: '',
         },
         from: fecha1,
         to: fecha2,
@@ -98,21 +99,16 @@ export class ShiftSeeder implements Seeder {
       status: 0,
       worker: {
         id: 5,
+        address: '41879 Mosinee Place',
+        city: 'Fresno',
+        state: 'California',
         age: 22,
+        gender: 2,
+        description: 'Lorem ipsum lorem ipsum lorem ipsum',
+        ssn: 87734538,
         stars: 4,
         totalReviews: 4,
-        user: {
-          id: 8,
-          firstName: 'Thomas',
-          lastName: 'Jones',
-          address: '44 Douglas Street',
-          city: 'Miami',
-          state: 'Florida',
-          email: 'tdasj44@rediff.com',
-          password: '1XfFsmtfPzsZG',
-          profileImg: 'http://dummyimage.com/123x120.png/ff4444/ffffff',
-          role: 2,
-        },
+        stripeId: '',
       },
       offer: {
         id: 5,
@@ -163,19 +159,32 @@ export class ShiftSeeder implements Seeder {
         ],
         employer: {
           id: 1,
+          address: '546 Douglas Street',
+          city: 'Miami',
+          state: 'Florida',
           businessName: 'Jacobi Group',
           businessCode: 9,
           description: 'Lorem ipsum lorem ipsum lorem ipsum',
+          stars: 4,
+          totalReviews: 15,
+          customerId: '',
         },
         from: fecha1,
         to: fecha2,
       },
     };
 
-    const new1 = shiftRepository.create(data1);
-    await shiftRepository.save(new1);
+    const register1 = await shiftRepository.findOneBy({ id: 1 });
+    const register2 = await shiftRepository.findOneBy({ id: 2 });
 
-    const new2 = shiftRepository.create(data2);
-    await shiftRepository.save(new2);
+    if (!register1) {
+      const new1 = shiftRepository.create(data1);
+      await shiftRepository.save(new1);
+    }
+
+    if (!register2) {
+      const new2 = shiftRepository.create(data2);
+      await shiftRepository.save(new2);
+    }
   }
 }
