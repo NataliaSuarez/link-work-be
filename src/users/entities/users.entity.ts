@@ -6,9 +6,21 @@ import {
   UpdateDateColumn,
   OneToOne,
 } from 'typeorm';
+import { Exclude } from 'class-transformer';
 
 import { Worker } from './worker.entity';
 import { Employer } from './employer.entity';
+
+export enum RegisterType {
+  MAIL_AND_PASSWORD = 0,
+  GOOGLE = 1,
+  APPLE = 2,
+}
+
+export enum Role {
+  EMPLOYER = 1,
+  WORKER = 2,
+}
 
 @Entity('users')
 export class Users {
@@ -24,17 +36,28 @@ export class Users {
   @Column({ type: 'varchar', unique: true, length: 255 })
   email: string;
 
-  @Column({ type: 'varchar', length: 255 })
-  password: string; // encript
+  @Column({ nullable: true })
+  @Exclude()
+  password?: string;
 
-  @Column({ type: 'bool' })
+  @Column({
+    type: 'enum',
+    enum: RegisterType,
+    default: RegisterType.MAIL_AND_PASSWORD,
+  })
+  registerType: RegisterType;
+
+  @Column({ type: 'bool', default: false })
   verified: boolean;
 
-  @Column({ type: 'varchar', length: 255 })
-  profileImg: string;
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  profileImg?: string;
 
-  @Column({ type: 'int' })
-  role: number;
+  @Column({
+    type: 'enum',
+    enum: Role,
+  })
+  role: Role;
 
   @CreateDateColumn({
     type: 'timestamptz',

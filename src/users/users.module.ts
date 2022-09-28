@@ -31,6 +31,6 @@ import { Experience } from './entities/experience.entity';
   ],
   controllers: [UsersController, EmployersController, WorkersController],
   providers: [UsersService, EmployersService, WorkersService],
-  exports: [UsersService],
+  exports: [UsersService, EmployersService, WorkersService],
 })
 export class UsersModule {}

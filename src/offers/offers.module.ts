@@ -11,11 +11,14 @@ import { ShiftsController } from './controllers/shifts.controller';
 
 import { Worker } from '../users/entities/worker.entity';
 import { Employer } from '../users/entities/employer.entity';
+import { EmployersService } from '../users/services/employers.service';
+import { UsersService } from '../users/services/users.service';
+import { Users } from '../users/entities/users.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Offers, Shift, Worker, Employer])],
+  imports: [TypeOrmModule.forFeature([Offers, Shift, Worker, Employer, Users])],
   controllers: [OffersController, ShiftsController],
-  providers: [OffersService, ShiftsService],
+  providers: [OffersService, ShiftsService, UsersService, EmployersService],
   exports: [OffersService, ShiftsService, TypeOrmModule],
 })
 export class OffersModule {}

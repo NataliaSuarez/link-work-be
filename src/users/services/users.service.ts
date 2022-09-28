@@ -51,6 +51,20 @@ export class UsersService {
     return this.userRepository.save(newUser);
   }
 
+  async createWithGoogle(data: CreateUserDto) {
+    const { email, firstName, lastName, role } = data;
+    const newUser = await this.userRepository.create({
+      email,
+      firstName,
+      lastName,
+      registerType: 1,
+      verified: true,
+      role,
+    });
+    await this.userRepository.save(newUser);
+    return newUser;
+  }
+
   async update(id: number, changes: UpdateUserDto) {
     const user = await this.userRepository.findOneBy({ id: id });
     if (!user) {

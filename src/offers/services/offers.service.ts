@@ -10,6 +10,7 @@ import {
 import { Offers } from '../entities/offers.entity';
 import { Worker } from '../../users/entities/worker.entity';
 import { Employer } from '../../users/entities/employer.entity';
+import { EmployersService } from '../../users/services/employers.service';
 
 @Injectable()
 export class OffersService {
@@ -17,6 +18,7 @@ export class OffersService {
     @InjectRepository(Offers) private offerRepo: Repository<Offers>,
     @InjectRepository(Worker) private workerRepo: Repository<Worker>,
     @InjectRepository(Employer) private employerRepo: Repository<Employer>,
+    private employerServices: EmployersService,
   ) {}
 
   findAll(params?: FilterOffersDto) {
@@ -81,8 +83,10 @@ export class OffersService {
     return offers;
   }
 
-  create(data: CreateOfferDto) {
+  async create(data: CreateOfferDto) {
     const newOffer = this.offerRepo.create(data);
+    const employer = await this.employerServices.findOne(data.employerId);
+    newOffer.employer = employer;
     return this.offerRepo.save(newOffer);
   }
 

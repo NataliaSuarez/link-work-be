@@ -29,18 +29,26 @@ export class CreateUserDto {
   readonly email: string;
 
   @IsString()
-  @IsNotEmpty()
+  @IsOptional()
   @ApiProperty()
-  readonly password: string;
+  readonly password?: string;
+
+  @IsNumber()
+  @IsNotEmpty()
+  @Min(0)
+  @Max(2)
+  @ApiProperty()
+  readonly registerType: number;
 
   @IsBoolean()
+  @IsOptional()
   @ApiProperty()
-  readonly verified: boolean;
+  readonly verified?: boolean;
 
   @IsUrl()
-  @IsNotEmpty()
+  @IsOptional()
   @ApiProperty()
-  readonly profileImg: string;
+  readonly profileImg?: string;
 
   @IsNumber()
   @IsNotEmpty()
@@ -50,8 +58,14 @@ export class CreateUserDto {
   readonly role: number;
 
   @IsString()
+  @IsOptional()
   @ApiProperty()
-  refreshToken: string;
+  readonly refreshToken?: string;
+
+  @IsString()
+  @IsOptional()
+  @ApiProperty()
+  readonly googleToken?: string;
 }
 
 export class UpdateUserDto extends PartialType(CreateUserDto) {}

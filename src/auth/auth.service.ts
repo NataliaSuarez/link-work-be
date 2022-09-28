@@ -24,6 +24,15 @@ export class AuthService {
       throw new BadRequestException('User already exists');
     }
 
+    if (createUserDto.registerType === 1) {
+      const newUser = await this.usersService.createWithGoogle(createUserDto);
+      const tokens = await this.getTokens(newUser.id, newUser.email);
+      await this.updateRefreshToken(newUser.id, tokens.refreshToken);
+      return tokens;
+    }
+    if (!createUserDto.password) {
+      throw new BadRequestException('Password invalid');
+    }
     // Hash password
     const hash = await this.hashData(createUserDto.password);
     const newUser = await this.usersService.create({
@@ -38,9 +47,15 @@ export class AuthService {
   async signIn(data: AuthDto) {
     const user = await this.usersService.findByEmail(data.email);
     if (!user) throw new BadRequestException('User does not exist');
-    const passwordMatches = await argon2.verify(user.password, data.password);
-    if (!passwordMatches)
-      throw new BadRequestException('Password is incorrect');
+    if (data.password) {
+      const passwordMatches = await argon2.verify(user.password, data.password);
+      if (!passwordMatches)
+        throw new BadRequestException('Password is incorrect');
+    } else {
+      if (user.registerType === 0) {
+        throw new BadRequestException('User already exists');
+      }
+    }
     const tokens = await this.getTokens(user.id, user.email);
     await this.updateRefreshToken(user.id, tokens.refreshToken);
     return tokens;

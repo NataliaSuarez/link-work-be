@@ -1,7 +1,7 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class init1664223467386 implements MigrationInterface {
-  name = 'init1664223467386';
+export class init1664389860234 implements MigrationInterface {
+  name = 'init1664389860234';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
@@ -20,7 +20,13 @@ export class init1664223467386 implements MigrationInterface {
       `CREATE TABLE "worker" ("id" SERIAL NOT NULL, "address" character varying(255) NOT NULL, "city" character varying(255) NOT NULL, "state" character varying(255) NOT NULL, "age" integer NOT NULL, "gender" integer NOT NULL, "description" text NOT NULL, "ssn" integer NOT NULL, "stars" integer NOT NULL, "totalReviews" integer NOT NULL, "stripeId" character varying(255) NOT NULL, "createAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), "updateAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), "userId" integer, CONSTRAINT "REL_b4fc7927de11f45e2ecca71726" UNIQUE ("userId"), CONSTRAINT "PK_dc8175fa0e34ce7a39e4ec73b94" PRIMARY KEY ("id"))`,
     );
     await queryRunner.query(
-      `CREATE TABLE "users" ("id" SERIAL NOT NULL, "firstName" character varying(255) NOT NULL, "lastName" character varying(255) NOT NULL, "email" character varying(255) NOT NULL, "password" character varying(255) NOT NULL, "verified" boolean NOT NULL, "profileImg" character varying(255) NOT NULL, "role" integer NOT NULL, "createAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), "updateAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), "refreshToken" character varying(255), CONSTRAINT "UQ_97672ac88f789774dd47f7c8be3" UNIQUE ("email"), CONSTRAINT "PK_a3ffb1c0c8416b9fc6f907b7433" PRIMARY KEY ("id"))`,
+      `CREATE TYPE "public"."users_registertype_enum" AS ENUM('0', '1', '2')`,
+    );
+    await queryRunner.query(
+      `CREATE TYPE "public"."users_role_enum" AS ENUM('1', '2')`,
+    );
+    await queryRunner.query(
+      `CREATE TABLE "users" ("id" SERIAL NOT NULL, "firstName" character varying(255) NOT NULL, "lastName" character varying(255) NOT NULL, "email" character varying(255) NOT NULL, "password" character varying, "registerType" "public"."users_registertype_enum" NOT NULL DEFAULT '0', "verified" boolean NOT NULL DEFAULT false, "profileImg" character varying(255), "role" "public"."users_role_enum" NOT NULL, "createAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), "updateAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), "refreshToken" character varying(255), CONSTRAINT "UQ_97672ac88f789774dd47f7c8be3" UNIQUE ("email"), CONSTRAINT "PK_a3ffb1c0c8416b9fc6f907b7433" PRIMARY KEY ("id"))`,
     );
     await queryRunner.query(
       `CREATE TABLE "worker_offers_offer" ("workerId" integer NOT NULL, "offerId" integer NOT NULL, CONSTRAINT "PK_7e960b1fe254d49c5668d9a60a6" PRIMARY KEY ("workerId", "offerId"))`,
@@ -90,6 +96,8 @@ export class init1664223467386 implements MigrationInterface {
     );
     await queryRunner.query(`DROP TABLE "worker_offers_offer"`);
     await queryRunner.query(`DROP TABLE "users"`);
+    await queryRunner.query(`DROP TYPE "public"."users_role_enum"`);
+    await queryRunner.query(`DROP TYPE "public"."users_registertype_enum"`);
     await queryRunner.query(`DROP TABLE "worker"`);
     await queryRunner.query(`DROP TABLE "work_experience"`);
     await queryRunner.query(`DROP TABLE "offer"`);

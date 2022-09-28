@@ -8,6 +8,7 @@ import {
   Delete,
   Body,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import {
@@ -16,6 +17,7 @@ import {
   UpdateOfferDto,
 } from '../dtos/offers.dto';
 import { OffersService } from '../services/offers.service';
+import { AccessTokenGuard } from '../../common/guards/accessToken.guard';
 
 @ApiTags('offers')
 @Controller('offers')
@@ -37,6 +39,7 @@ export class OffersController {
     return this.offerService.findApplicants(id);
   }
 
+  @UseGuards(AccessTokenGuard)
   @Post()
   create(@Body() payload: CreateOfferDto) {
     return this.offerService.create(payload);

@@ -35,10 +35,10 @@ export class UsersController {
     return this.usersService.findOne(id);
   }
 
-  @Post()
-  create(@Body() payload: CreateUserDto) {
-    return this.usersService.create(payload);
-  }
+  // @Post()
+  // create(@Body() payload: CreateUserDto) {
+  //   return this.usersService.create(payload);
+  // }
 
   @UseGuards(AccessTokenGuard)
   @Put(':id')
@@ -46,6 +46,7 @@ export class UsersController {
     return this.usersService.update(id, payload);
   }
 
+  @UseGuards(AccessTokenGuard)
   @Delete(':id')
   delete(@Param('id') id: number) {
     return this.usersService.remove(id);

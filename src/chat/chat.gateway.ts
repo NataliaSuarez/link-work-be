@@ -59,19 +59,9 @@ export class ChatGateway
     this.server.to(`room_${room}`).emit('new_message', message);
   }
 
-  // @SubscribeMessage('event_message') //TODO Backend
-  // handleIncommingMessage(
-  //   client: Socket,
-  //   payload: { room: string; message: string },
-  // ) {
-  //   const { room, message } = payload;
-  //   console.log(payload);
-  //   this.server.to(`room_${room}`).emit('new_message', message);
-  // }
-
   @SubscribeMessage('event_leave')
   handleRoomLeave(client: Socket, room: string) {
-    console.log(`chao room_${room}`);
+    console.log(`salida de sala: ${room}`);
     client.leave(`room_${room}`);
   }
 }
