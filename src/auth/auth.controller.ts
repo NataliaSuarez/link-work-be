@@ -1,4 +1,13 @@
-import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  Req,
+  UseGuards,
+  ClassSerializerInterceptor,
+  UseInterceptors,
+} from '@nestjs/common';
 import { Request } from 'express';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 
@@ -7,15 +16,24 @@ import { AuthService } from './auth.service';
 import { AuthDto } from './dto/auth.dto';
 import { AccessTokenGuard } from '../common/guards/accessToken.guard';
 import { RefreshTokenGuard } from 'src/common/guards/refreshToken.guard';
+import { GoogleAuthenticationService } from './googleAuthentication.service';
 @ApiTags('auth')
 @Controller('auth')
+@UseInterceptors(ClassSerializerInterceptor)
 export class AuthController {
-  constructor(private authService: AuthService) {}
+  constructor(
+    private authService: AuthService,
+    private readonly googleAuthenticationService: GoogleAuthenticationService,
+  ) {}
 
   @Post('sign-up')
-  @ApiOperation({ summary: 'Create a new user account' })
+  @ApiOperation({ summary: 'Sign up an user account' })
   signup(@Body() createUserDto: CreateUserDto) {
-    return this.authService.signUp(createUserDto);
+    if (createUserDto.registerType == 0) {
+      return this.authService.signUp(createUserDto);
+    } else if (createUserDto.registerType === 1) {
+      return this.googleAuthenticationService.authenticate(createUserDto);
+    }
   }
 
   @Post('sign-in')

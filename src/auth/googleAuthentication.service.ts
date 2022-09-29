@@ -1,4 +1,8 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  Injectable,
+  UnauthorizedException,
+  BadRequestException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { google, Auth } from 'googleapis';
 
@@ -45,6 +49,9 @@ export class GoogleAuthenticationService {
     try {
       const tokenInfo = await this.oauthClient.getTokenInfo(data.googleToken);
       const email = tokenInfo.email;
+      if (email != data.email) {
+        throw new BadRequestException("Email doesn't match");
+      }
       const user = await this.usersService.findByEmail(email);
       if (user) {
         return this.authenticationService.signIn({

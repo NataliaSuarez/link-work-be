@@ -8,20 +8,14 @@ import { RefreshTokenStrategy } from './strategies/refreshToken.strategy';
 import { UsersModule } from '../users/users.module';
 
 import { GoogleController } from './google.controller';
-import { GoogleAuthenticationController } from './googleAuthentication.controller';
-
 import { GoogleService } from './google.service';
-import { GoogleAuthenticationService } from './googleAuthentication.service';
 
+import { GoogleAuthenticationService } from './googleAuthentication.service';
 import { GoogleStrategy } from './strategies/google.strategy';
 
 @Module({
   imports: [UsersModule, JwtModule],
-  controllers: [
-    AuthController,
-    GoogleController,
-    GoogleAuthenticationController,
-  ],
+  controllers: [AuthController, GoogleController],
   providers: [
     AuthService,
     JwtService,
