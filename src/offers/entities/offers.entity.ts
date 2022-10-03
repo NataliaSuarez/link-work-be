@@ -13,6 +13,21 @@ import { Worker } from '../../users/entities/worker.entity';
 import { Employer } from '../../users/entities/employer.entity';
 import { Shift } from './shift.entity';
 
+export enum Status {
+  CREATED = 0,
+  ACCEPTED = 1,
+  DONE = 2,
+  CANCELLED = 3,
+}
+
+export enum Category {
+  LIMPIEZA = 0,
+  MESERO = 1,
+  RECEPCION = 2,
+  TECNICO = 3,
+  OTHER = 4,
+}
+
 @Entity('offer')
 export class Offers {
   @PrimaryGeneratedColumn()
@@ -33,14 +48,21 @@ export class Offers {
   @Column({ type: 'int' })
   usdTotal: number;
 
-  @Column({ type: 'int' })
-  category: number;
+  @Column({
+    type: 'enum',
+    enum: Category,
+  })
+  category: Category;
 
   @Column({ type: 'text' })
   description: string;
 
-  @Column({ type: 'int', default: 0 })
-  status: number;
+  @Column({
+    type: 'enum',
+    enum: Status,
+    default: Status.CREATED,
+  })
+  status: Status;
 
   @CreateDateColumn({
     type: 'timestamptz',

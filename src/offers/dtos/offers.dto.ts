@@ -84,3 +84,8 @@ export class FilterOffersDto {
   @Min(0)
   status: number;
 }
+
+export class ApplyDto {
+  @IsNumber()
+  workerId: number;
+}

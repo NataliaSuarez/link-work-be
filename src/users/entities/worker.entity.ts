@@ -16,6 +16,12 @@ import { Offers } from '../../offers/entities/offers.entity';
 import { Shift } from '../../offers/entities/shift.entity';
 import { Experience } from './experience.entity';
 
+export enum Gender {
+  FEMALE = 0,
+  MALE = 1,
+  OTHER = 2,
+}
+
 @Entity('worker')
 export class Worker {
   @PrimaryGeneratedColumn()
@@ -33,8 +39,11 @@ export class Worker {
   @Column({ type: 'int' })
   age: number;
 
-  @Column({ type: 'int' })
-  gender: number;
+  @Column({
+    type: 'enum',
+    enum: Gender,
+  })
+  gender: Gender;
 
   @Column({ type: 'text' })
   description: string;

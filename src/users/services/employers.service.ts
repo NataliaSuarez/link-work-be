@@ -9,6 +9,7 @@ import {
 } from '../dtos/employers.dto';
 import { Employer } from '../entities/employer.entity';
 import { UsersService } from './users.service';
+import { StripeService } from '../../stripe/stripe.service';
 
 @Injectable()
 export class EmployersService {
@@ -16,6 +17,7 @@ export class EmployersService {
     @InjectRepository(Employer)
     private employerRepository: Repository<Employer>,
     private usersService: UsersService,
+    private stripeService: StripeService,
   ) {}
 
   findAll(params?: FilterEmployersDto) {
@@ -40,8 +42,40 @@ export class EmployersService {
   }
 
   async create(data: CreateEmployerDto) {
-    const newEmployer = this.employerRepository.create(data);
+    const { number, exp_month, exp_year, cvc } = data;
     const user = await this.usersService.findOne(data.userId);
+    if (!user) {
+      throw new NotFoundException(`User #${data.userId} not found`);
+    }
+    const fullName = user.firstName + ' ' + user.lastName;
+    const customerData = {
+      email: user.email,
+      name: fullName,
+      description: data.businessName,
+    };
+    const customer = await this.stripeService.createCustomer(customerData);
+    const card = {
+      number: number,
+      exp_month: exp_month,
+      exp_year: exp_year,
+      cvc: cvc,
+    };
+    const paymentMethod = await this.stripeService.createPaymentMethod(
+      customer.id,
+      card,
+    );
+    const employer = {
+      address: data.address,
+      city: data.city,
+      state: data.state,
+      businessCode: data.businessCode,
+      businessName: data.businessName,
+      description: data.description,
+      stars: 0,
+      totalReviews: 0,
+      customerId: customer.id,
+    };
+    const newEmployer = this.employerRepository.create(employer);
     newEmployer.user = user;
     return this.employerRepository.save(newEmployer);
   }

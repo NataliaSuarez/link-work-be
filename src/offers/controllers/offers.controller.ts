@@ -12,6 +12,7 @@ import {
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import {
+  ApplyDto,
   CreateOfferDto,
   FilterOffersDto,
   UpdateOfferDto,
@@ -39,7 +40,7 @@ export class OffersController {
     return this.offerService.findApplicants(id);
   }
 
-  @UseGuards(AccessTokenGuard)
+  //@UseGuards(AccessTokenGuard)
   @Post()
   create(@Body() payload: CreateOfferDto) {
     return this.offerService.create(payload);
@@ -61,5 +62,10 @@ export class OffersController {
     @Param('applicantId') applicantId: number,
   ) {
     return this.offerService.removeApplicant(id, applicantId);
+  }
+
+  @Post(':id/apply')
+  apply(@Param('id') id: number, @Body() payload: ApplyDto) {
+    return this.offerService.apply(id, payload);
   }
 }

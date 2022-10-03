@@ -12,6 +12,13 @@ import {
 import { Offers } from './offers.entity';
 import { Worker } from '../../users/entities/worker.entity';
 
+export enum Status {
+  ACCEPTED = 0,
+  ACTIVE = 1,
+  DONE = 2,
+  CANCELLED = 3,
+}
+
 @Entity('shift')
 export class Shift {
   @PrimaryGeneratedColumn()
@@ -35,8 +42,12 @@ export class Shift {
   @Column({ type: 'bool', default: false })
   clockOut: boolean;
 
-  @Column({ type: 'int', default: 0 })
-  status: number;
+  @Column({
+    type: 'enum',
+    enum: Status,
+    default: Status.ACCEPTED,
+  })
+  status: Status;
 
   @ManyToOne(() => Worker, (worker) => worker.shifts, {
     nullable: false,

@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import {
+  CardDto,
   CreateCustomerDto,
   CreateTransferDto,
   CreateUserAccDto,
@@ -7,6 +8,8 @@ import {
   UpdateCustomerDto,
   UpdateUserAccDto,
 } from './stripe.dto';
+import * as dotenv from 'dotenv';
+dotenv.config();
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
@@ -55,7 +58,7 @@ export class StripeService {
     return deleted;
   }
 
-  async createPaymentMethod(customerId: string, data: any) {
+  async createPaymentMethod(customerId: string, data: CardDto) {
     const customer = await stripe.customers.retrieve(customerId);
     const paymentMethod = await stripe.paymentMethods.create({
       type: 'card',

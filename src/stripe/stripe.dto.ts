@@ -105,10 +105,9 @@ export class CreateCustomerDto {
   @ApiProperty()
   readonly description: string;
 
-  @IsString()
   @IsOptional()
   @ApiProperty()
-  readonly payment_method: string;
+  readonly payment_method?: string;
 }
 
 export class UpdateCustomerDto extends PartialType(CreateCustomerDto) {}

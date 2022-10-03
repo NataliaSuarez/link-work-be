@@ -1,23 +1,38 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class init1664389860234 implements MigrationInterface {
-  name = 'init1664389860234';
+export class init1664829237002 implements MigrationInterface {
+  name = 'init1664829237002';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
-      `CREATE TABLE "employer" ("id" SERIAL NOT NULL, "address" character varying(255) NOT NULL, "city" character varying(255) NOT NULL, "state" character varying(255) NOT NULL, "businessCode" integer NOT NULL, "businessName" character varying(255) NOT NULL, "description" text NOT NULL, "stars" integer NOT NULL, "totalReviews" integer NOT NULL, "customerId" character varying(255) NOT NULL, "createAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), "updateAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), "userId" integer, CONSTRAINT "REL_bf0894d837af561b2f63387499" UNIQUE ("userId"), CONSTRAINT "PK_74029e6b1f17a4c7c66d43cfd34" PRIMARY KEY ("id"))`,
+      `CREATE TYPE "public"."employer_businesscode_enum" AS ENUM('0', '1', '2')`,
     );
     await queryRunner.query(
-      `CREATE TABLE "shift" ("id" SERIAL NOT NULL, "createAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), "updateAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), "clockIn" boolean NOT NULL DEFAULT false, "clockOut" boolean NOT NULL DEFAULT false, "status" integer NOT NULL DEFAULT '0', "workerId" integer NOT NULL, "offerId" integer NOT NULL, CONSTRAINT "REL_62be1e0c53b77c2ec2a34ff525" UNIQUE ("offerId"), CONSTRAINT "PK_53071a6485a1e9dc75ec3db54b9" PRIMARY KEY ("id"))`,
+      `CREATE TABLE "employer" ("id" SERIAL NOT NULL, "address" character varying(255) NOT NULL, "city" character varying(255) NOT NULL, "state" character varying(255) NOT NULL, "businessCode" "public"."employer_businesscode_enum" NOT NULL, "businessName" character varying(255) NOT NULL, "description" text NOT NULL, "stars" integer NOT NULL, "totalReviews" integer NOT NULL, "customerId" character varying(255) NOT NULL, "createAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), "updateAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), "userId" integer, CONSTRAINT "REL_bf0894d837af561b2f63387499" UNIQUE ("userId"), CONSTRAINT "PK_74029e6b1f17a4c7c66d43cfd34" PRIMARY KEY ("id"))`,
     );
     await queryRunner.query(
-      `CREATE TABLE "offer" ("id" SERIAL NOT NULL, "title" character varying(255) NOT NULL, "from" TIMESTAMP WITH TIME ZONE NOT NULL, "to" TIMESTAMP WITH TIME ZONE NOT NULL, "usdHour" integer NOT NULL, "usdTotal" integer NOT NULL, "category" integer NOT NULL, "description" text NOT NULL, "status" integer NOT NULL DEFAULT '0', "createAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), "updateAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), "employerId" integer NOT NULL, CONSTRAINT "PK_57c6ae1abe49201919ef68de900" PRIMARY KEY ("id"))`,
+      `CREATE TYPE "public"."shift_status_enum" AS ENUM('0', '1', '2', '3')`,
+    );
+    await queryRunner.query(
+      `CREATE TABLE "shift" ("id" SERIAL NOT NULL, "createAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), "updateAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), "clockIn" boolean NOT NULL DEFAULT false, "clockOut" boolean NOT NULL DEFAULT false, "status" "public"."shift_status_enum" NOT NULL DEFAULT '0', "workerId" integer NOT NULL, "offerId" integer NOT NULL, CONSTRAINT "REL_62be1e0c53b77c2ec2a34ff525" UNIQUE ("offerId"), CONSTRAINT "PK_53071a6485a1e9dc75ec3db54b9" PRIMARY KEY ("id"))`,
+    );
+    await queryRunner.query(
+      `CREATE TYPE "public"."offer_category_enum" AS ENUM('0', '1', '2', '3', '4')`,
+    );
+    await queryRunner.query(
+      `CREATE TYPE "public"."offer_status_enum" AS ENUM('0', '1', '2', '3')`,
+    );
+    await queryRunner.query(
+      `CREATE TABLE "offer" ("id" SERIAL NOT NULL, "title" character varying(255) NOT NULL, "from" TIMESTAMP WITH TIME ZONE NOT NULL, "to" TIMESTAMP WITH TIME ZONE NOT NULL, "usdHour" integer NOT NULL, "usdTotal" integer NOT NULL, "category" "public"."offer_category_enum" NOT NULL, "description" text NOT NULL, "status" "public"."offer_status_enum" NOT NULL DEFAULT '0', "createAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), "updateAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), "employerId" integer NOT NULL, CONSTRAINT "PK_57c6ae1abe49201919ef68de900" PRIMARY KEY ("id"))`,
     );
     await queryRunner.query(
       `CREATE TABLE "work_experience" ("id" SERIAL NOT NULL, "description" text NOT NULL, "createAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), "updateAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), "workerId" integer, CONSTRAINT "PK_d4bef63ad6da7ec327515c121bd" PRIMARY KEY ("id"))`,
     );
     await queryRunner.query(
-      `CREATE TABLE "worker" ("id" SERIAL NOT NULL, "address" character varying(255) NOT NULL, "city" character varying(255) NOT NULL, "state" character varying(255) NOT NULL, "age" integer NOT NULL, "gender" integer NOT NULL, "description" text NOT NULL, "ssn" integer NOT NULL, "stars" integer NOT NULL, "totalReviews" integer NOT NULL, "stripeId" character varying(255) NOT NULL, "createAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), "updateAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), "userId" integer, CONSTRAINT "REL_b4fc7927de11f45e2ecca71726" UNIQUE ("userId"), CONSTRAINT "PK_dc8175fa0e34ce7a39e4ec73b94" PRIMARY KEY ("id"))`,
+      `CREATE TYPE "public"."worker_gender_enum" AS ENUM('0', '1', '2')`,
+    );
+    await queryRunner.query(
+      `CREATE TABLE "worker" ("id" SERIAL NOT NULL, "address" character varying(255) NOT NULL, "city" character varying(255) NOT NULL, "state" character varying(255) NOT NULL, "age" integer NOT NULL, "gender" "public"."worker_gender_enum" NOT NULL, "description" text NOT NULL, "ssn" integer NOT NULL, "stars" integer NOT NULL, "totalReviews" integer NOT NULL, "stripeId" character varying(255) NOT NULL, "createAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), "updateAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), "userId" integer, CONSTRAINT "REL_b4fc7927de11f45e2ecca71726" UNIQUE ("userId"), CONSTRAINT "PK_dc8175fa0e34ce7a39e4ec73b94" PRIMARY KEY ("id"))`,
     );
     await queryRunner.query(
       `CREATE TYPE "public"."users_registertype_enum" AS ENUM('0', '1', '2')`,
@@ -99,9 +114,14 @@ export class init1664389860234 implements MigrationInterface {
     await queryRunner.query(`DROP TYPE "public"."users_role_enum"`);
     await queryRunner.query(`DROP TYPE "public"."users_registertype_enum"`);
     await queryRunner.query(`DROP TABLE "worker"`);
+    await queryRunner.query(`DROP TYPE "public"."worker_gender_enum"`);
     await queryRunner.query(`DROP TABLE "work_experience"`);
     await queryRunner.query(`DROP TABLE "offer"`);
+    await queryRunner.query(`DROP TYPE "public"."offer_status_enum"`);
+    await queryRunner.query(`DROP TYPE "public"."offer_category_enum"`);
     await queryRunner.query(`DROP TABLE "shift"`);
+    await queryRunner.query(`DROP TYPE "public"."shift_status_enum"`);
     await queryRunner.query(`DROP TABLE "employer"`);
+    await queryRunner.query(`DROP TYPE "public"."employer_businesscode_enum"`);
   }
 }

@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+  ConflictException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Equal, FindOptionsWhere } from 'typeorm';
 
@@ -11,6 +16,8 @@ import {
   FilterShiftsDto,
   UpdateShiftDto,
 } from '../dtos/shift.dto';
+import { Employer } from '../../users/entities/employer.entity';
+import { StripeService } from '../../stripe/stripe.service';
 
 @Injectable()
 export class ShiftsService {
@@ -18,7 +25,9 @@ export class ShiftsService {
     @InjectRepository(Shift) private shiftRepo: Repository<Shift>,
     @InjectRepository(Offers) private offerRepo: Repository<Offers>,
     @InjectRepository(Worker) private workerRepo: Repository<Worker>,
+    @InjectRepository(Employer) private employerRepo: Repository<Employer>,
     private offerService: OffersService,
+    private stripeService: StripeService,
   ) {}
 
   findAll(params?: FilterShiftsDto) {
@@ -117,16 +126,24 @@ export class ShiftsService {
   }
 
   async create(data: CreateShiftDto) {
-    const offer = await this.offerRepo.findOneBy({
-      id: data.offerId,
+    const offer = await this.offerRepo.findOne({
+      relations: {
+        employer: true,
+      },
+      where: {
+        id: data.offerId,
+      },
     });
     const worker = await this.workerRepo.findOneBy({
       id: data.workerId,
     });
-    const applicants = await this.offerService.findApplicants(data.offerId);
     if (!offer) {
       throw new NotFoundException(`Offer #${data.offerId} not found`);
     }
+    const employer = await this.employerRepo.findOneBy({
+      id: offer.employer.id,
+    });
+    const applicants = await this.offerService.findApplicants(data.offerId);
     if (!worker) {
       throw new NotFoundException(`Worker #${data.workerId} not found`);
     }
@@ -141,12 +158,44 @@ export class ShiftsService {
         `Worker #${worker.id} is not an applicant of this offer`,
       );
     }
-    this.offerService.update(data.offerId, { status: 1 });
-    this.offerService.removeApplicant(data.offerId, data.workerId);
-    const newShift = this.shiftRepo.create(data);
-    newShift.worker = worker;
-    newShift.offer = offer;
-    return this.shiftRepo.save(newShift);
+    const valid = await this.offerService.validWorkerForShift(
+      worker.id,
+      offer.from,
+      offer.to,
+    );
+    if (valid === false) {
+      throw new ForbiddenException(
+        `Worker #${worker.id} is full of shift hours at this week`,
+      );
+    }
+    const paymentMethod = await this.stripeService.retrievePaymentMethod(
+      employer.customerId,
+    );
+    const amount = offer.usdTotal * 100;
+    const paymentData = {
+      amount: amount,
+      currency: 'usd',
+      customer: employer.customerId,
+      description: offer.title,
+      payment_method: paymentMethod.data[0].id,
+      confirm: true,
+    };
+    try {
+      const paymentIntent = await this.stripeService.createPaymentIntent(
+        paymentData,
+      );
+      if (paymentIntent.status != 'succeeded') {
+        throw new ConflictException('Payment intent not succeeded');
+      }
+      this.offerService.update(data.offerId, { status: 1 });
+      this.offerService.removeApplicant(data.offerId, data.workerId);
+      const newShift = this.shiftRepo.create(data);
+      newShift.worker = worker;
+      newShift.offer = offer;
+      return this.shiftRepo.save(newShift);
+    } catch (error) {
+      throw new ConflictException('Error with payment intent');
+    }
   }
 
   remove(id: number) {

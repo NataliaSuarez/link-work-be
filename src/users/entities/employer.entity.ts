@@ -12,6 +12,12 @@ import {
 import { Users } from './users.entity';
 import { Offers } from '../../offers/entities/offers.entity';
 
+export enum BusinessCode {
+  HOTEL = 0,
+  RESTAURANT = 1,
+  OTHER = 2,
+}
+
 @Entity('employer')
 export class Employer {
   @PrimaryGeneratedColumn()
@@ -26,8 +32,11 @@ export class Employer {
   @Column({ type: 'varchar', length: 255 })
   state: string;
 
-  @Column({ type: 'int' })
-  businessCode: number;
+  @Column({
+    type: 'enum',
+    enum: BusinessCode,
+  })
+  businessCode: BusinessCode;
 
   @Column({ type: 'varchar', length: 255 })
   businessName: string;

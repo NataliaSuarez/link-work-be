@@ -17,6 +17,7 @@ import { Offers } from 'src/offers/entities/offers.entity';
 import { Shift } from 'src/offers/entities/shift.entity';
 
 import { Experience } from './entities/experience.entity';
+import { StripeService } from '../stripe/stripe.service';
 
 @Module({
   imports: [
@@ -30,7 +31,7 @@ import { Experience } from './entities/experience.entity';
     ]),
   ],
   controllers: [UsersController, EmployersController, WorkersController],
-  providers: [UsersService, EmployersService, WorkersService],
+  providers: [UsersService, EmployersService, WorkersService, StripeService],
   exports: [UsersService, EmployersService, WorkersService],
 })
 export class UsersModule {}

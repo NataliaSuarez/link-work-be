@@ -1,8 +1,14 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Equal, FindOptionsWhere } from 'typeorm';
+import * as moment from 'moment';
 
 import {
+  ApplyDto,
   CreateOfferDto,
   FilterOffersDto,
   UpdateOfferDto,
@@ -11,6 +17,23 @@ import { Offers } from '../entities/offers.entity';
 import { Worker } from '../../users/entities/worker.entity';
 import { Employer } from '../../users/entities/employer.entity';
 import { EmployersService } from '../../users/services/employers.service';
+import { Shift } from '../entities/shift.entity';
+
+function getHoursDiff(startDate, endDate) {
+  const msInHour = 1000 * 60 * 60;
+  return Math.round(Math.abs(endDate - startDate) / msInHour);
+}
+function getDay0(date) {
+  const day = new Date(date).getDay();
+  const result = new Date(moment(date).subtract(day, 'd').format());
+  return result;
+}
+function getDay6(date) {
+  const day = new Date(date).getDay();
+  const add = 6 - day;
+  const result = new Date(moment(date).add(add, 'd').format());
+  return result;
+}
 
 @Injectable()
 export class OffersService {
@@ -18,6 +41,7 @@ export class OffersService {
     @InjectRepository(Offers) private offerRepo: Repository<Offers>,
     @InjectRepository(Worker) private workerRepo: Repository<Worker>,
     @InjectRepository(Employer) private employerRepo: Repository<Employer>,
+    @InjectRepository(Shift) private shiftRepo: Repository<Shift>,
     private employerServices: EmployersService,
   ) {}
 
@@ -104,6 +128,9 @@ export class OffersService {
     if (!offer) {
       throw new NotFoundException(`Offer #${id} not found`);
     }
+    if (offer.applicants.length != 0 && changes.status != 1) {
+      throw new ForbiddenException("Can't edit an offer with applicants");
+    }
     if (changes.applicantsIds) {
       const worker = await this.workerRepo.findOneBy({
         id: changes.applicantsIds[0],
@@ -130,5 +157,68 @@ export class OffersService {
       (item) => item.id != applicantId,
     );
     return this.offerRepo.save(offer);
+  }
+
+  async apply(offerId: number, data: ApplyDto) {
+    const applicantId = data.workerId;
+    const offer = await this.offerRepo.findOne({
+      where: {
+        id: offerId,
+      },
+      relations: ['applicants'],
+    });
+    if (!offer) {
+      throw new NotFoundException(`Offer #${offerId} not found`);
+    }
+    const worker = await this.workerRepo.findOneBy({ id: applicantId });
+    if (!worker) {
+      throw new NotFoundException(`Worker #${applicantId} not found`);
+    }
+    const valid = await this.validWorkerForShift(
+      data.workerId,
+      offer.from,
+      offer.to,
+    );
+    if (valid === false) {
+      throw new ForbiddenException(
+        `Worker #${applicantId} is full of shift hours at this week`,
+      );
+    }
+    offer.applicants.push(worker);
+    return this.offerRepo.save(offer);
+  }
+
+  async validWorkerForShift(workerId: number, offerFrom: Date, offerTo: Date) {
+    const shifts = await this.shiftRepo.find({
+      relations: {
+        offer: true,
+        worker: true,
+      },
+      where: [
+        { worker: { id: workerId }, status: 0 },
+        { worker: { id: workerId }, status: 1 },
+      ],
+    });
+
+    const weekDay0 = getDay0(offerFrom);
+    const weekDay6 = getDay6(offerFrom);
+    const offerHours = getHoursDiff(offerFrom, offerTo);
+    // console.log(moment(offerFrom).format('YYYY-MM-DD HH:mm:ss'));
+    // console.log(moment(offerTo).format('YYYY-MM-DD HH:mm:ss'));
+
+    let hoursWeek = 0;
+
+    for (const object of shifts) {
+      if (object.offer.from >= weekDay0 && object.offer.from <= weekDay6) {
+        const hoursDiff = getHoursDiff(object.offer.from, object.offer.to);
+        hoursWeek += hoursDiff;
+      }
+    }
+
+    const totalHours = hoursWeek + offerHours;
+    if (totalHours >= 40) {
+      return false;
+    }
+    return true;
   }
 }
