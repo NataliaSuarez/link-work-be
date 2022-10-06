@@ -17,6 +17,7 @@ export enum Status {
   ACTIVE = 1,
   DONE = 2,
   CANCELLED = 3,
+  UNCONFIRMED = 4,
 }
 
 @Entity('shift')
@@ -40,7 +41,16 @@ export class Shift {
   clockIn: boolean;
 
   @Column({ type: 'bool', default: false })
+  confirmedClockIn: boolean;
+
+  @Column({ type: 'bool', default: false })
   clockOut: boolean;
+
+  @Column({ type: 'bool', default: false })
+  confirmedClockOut: boolean;
+
+  @Column({ type: 'date', nullable: true })
+  autoConfirmed: Date;
 
   @Column({
     type: 'enum',

@@ -3,13 +3,21 @@ import {
   NotFoundException,
   ForbiddenException,
   ConflictException,
+  BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Equal, FindOptionsWhere } from 'typeorm';
+import {
+  Repository,
+  Equal,
+  FindOptionsWhere,
+  LessThanOrEqual,
+  UsingJoinColumnOnlyOnOneSideAllowedError,
+} from 'typeorm';
 
 import { Offers } from '../entities/offers.entity';
 import { OffersService } from './offers.service';
 import { Worker } from '../../users/entities/worker.entity';
+import { Users } from '../../users/entities/users.entity';
 import { Shift } from '../entities/shift.entity';
 import {
   CreateShiftDto,
@@ -26,9 +34,35 @@ export class ShiftsService {
     @InjectRepository(Offers) private offerRepo: Repository<Offers>,
     @InjectRepository(Worker) private workerRepo: Repository<Worker>,
     @InjectRepository(Employer) private employerRepo: Repository<Employer>,
+    @InjectRepository(Users) private userRepo: Repository<Users>,
     private offerService: OffersService,
     private stripeService: StripeService,
   ) {}
+
+  async findShifts(data) {
+    const user = await this.userRepo.findOne({
+      where: { email: data.email },
+      relations: ['employer', 'worker'],
+    });
+    if (!user) {
+      throw new NotFoundException(`User ${data.email} not found`);
+    }
+    if (user.role === 1) {
+      if (!user.employer) {
+        throw new NotFoundException(
+          `User ${data.email} employer profile not found`,
+        );
+      }
+      return this.findByEmployer(user.employer.id);
+    } else if (user.role === 2) {
+      if (!user.worker) {
+        throw new NotFoundException(
+          `User ${data.email} worker profile not found`,
+        );
+      }
+      return this.findByWorker(user.worker.id);
+    }
+  }
 
   findAll(params?: FilterShiftsDto) {
     if (params) {
@@ -163,7 +197,7 @@ export class ShiftsService {
       offer.from,
       offer.to,
     );
-    if (valid === false) {
+    if (!valid) {
       throw new ForbiddenException(
         `Worker #${worker.id} is full of shift hours at this week`,
       );
@@ -195,6 +229,114 @@ export class ShiftsService {
       return this.shiftRepo.save(newShift);
     } catch (error) {
       throw new ConflictException('Error with payment intent');
+    }
+  }
+
+  async clockInByEmployer(id: number) {
+    const shift = await this.shiftRepo.findOneBy({ id: id });
+    if (!shift) {
+      throw new NotFoundException(`Shift #${id} not found`);
+    }
+    shift.clockIn = true;
+    return this.shiftRepo.save(shift);
+  }
+
+  async clockInByWorker(id: number) {
+    const shift = await this.shiftRepo.findOneBy({ id: id });
+    if (!shift) {
+      throw new NotFoundException(`Shift #${id} not found`);
+    }
+    if (!shift.clockIn) {
+      throw new BadRequestException(
+        `Shift #${id} need clock in request by Employer`,
+      );
+    }
+    shift.confirmedClockIn = true;
+    return this.shiftRepo.save(shift);
+  }
+
+  async clockOutByWorker(id: number) {
+    const shift = await this.shiftRepo.findOneBy({ id: id });
+    if (!shift) {
+      throw new NotFoundException(`Shift #${id} not found`);
+    }
+    if (!shift.confirmedClockIn) {
+      throw new BadRequestException(`Shift #${id} need clock in confirm`);
+    }
+    shift.clockOut = true;
+    return this.shiftRepo.save(shift);
+  }
+
+  async confirmShift(id: number) {
+    try {
+      const shift = await this.shiftRepo.findOneBy({ id: id });
+      if (!shift) {
+        throw new NotFoundException(`Shift #${id} not found`);
+      }
+      if (!shift.clockOut) {
+        throw new BadRequestException(
+          `Shift #${id} need clock out request by Worker`,
+        );
+      }
+      const amount = shift.offer.usdTotal * 100;
+      const description = shift.offer.title + shift.offer.from + shift.offer.to;
+      const transferData = {
+        amount: amount,
+        currency: 'usd',
+        destination: shift.worker.stripeId,
+        description: description,
+      };
+      const transfer = await this.stripeService.createTransfer(transferData);
+      if (transfer.created) {
+        await this.offerService.update(shift.offer.id, { status: 2 });
+        return await this.update(shift.id, {
+          status: 2,
+          confirmedClockOut: true,
+        });
+      }
+    } catch (error) {
+      console.log(error);
+      throw new ConflictException(`Error with shift id #${id} confirmation`);
+    }
+  }
+
+  async autoConfirmShifts() {
+    const date = new Date();
+    const shifts = await this.shiftRepo.find({
+      where: {
+        status: 4,
+        autoConfirmed: LessThanOrEqual(date),
+      },
+      relations: ['worker'],
+    });
+    if (shifts.length > 0) {
+      for (const obj of shifts) {
+        try {
+          const amount = obj.offer.usdTotal * 100;
+          const description = obj.offer.title + obj.offer.from + obj.offer.to;
+          const transferData = {
+            amount: amount,
+            currency: 'usd',
+            destination: obj.worker.stripeId,
+            description: description,
+          };
+          const transfer = await this.stripeService.createTransfer(
+            transferData,
+          );
+          if (transfer.created) {
+            await this.update(obj.id, { status: 2 });
+            await this.offerService.update(obj.offer.id, { status: 2 });
+            console.log(transferData);
+          }
+        } catch (error) {
+          console.log(error);
+          throw new ConflictException(
+            `Error with shift id #${obj.id} auto-confirmation`,
+          );
+        }
+      }
+    } else {
+      console.log('Nothing to confirm');
     }
   }
 

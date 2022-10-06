@@ -1,7 +1,7 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class init1664829237002 implements MigrationInterface {
-  name = 'init1664829237002';
+export class init1664911557306 implements MigrationInterface {
+  name = 'init1664911557306';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
@@ -11,10 +11,10 @@ export class init1664829237002 implements MigrationInterface {
       `CREATE TABLE "employer" ("id" SERIAL NOT NULL, "address" character varying(255) NOT NULL, "city" character varying(255) NOT NULL, "state" character varying(255) NOT NULL, "businessCode" "public"."employer_businesscode_enum" NOT NULL, "businessName" character varying(255) NOT NULL, "description" text NOT NULL, "stars" integer NOT NULL, "totalReviews" integer NOT NULL, "customerId" character varying(255) NOT NULL, "createAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), "updateAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), "userId" integer, CONSTRAINT "REL_bf0894d837af561b2f63387499" UNIQUE ("userId"), CONSTRAINT "PK_74029e6b1f17a4c7c66d43cfd34" PRIMARY KEY ("id"))`,
     );
     await queryRunner.query(
-      `CREATE TYPE "public"."shift_status_enum" AS ENUM('0', '1', '2', '3')`,
+      `CREATE TYPE "public"."shift_status_enum" AS ENUM('0', '1', '2', '3', '4')`,
     );
     await queryRunner.query(
-      `CREATE TABLE "shift" ("id" SERIAL NOT NULL, "createAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), "updateAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), "clockIn" boolean NOT NULL DEFAULT false, "clockOut" boolean NOT NULL DEFAULT false, "status" "public"."shift_status_enum" NOT NULL DEFAULT '0', "workerId" integer NOT NULL, "offerId" integer NOT NULL, CONSTRAINT "REL_62be1e0c53b77c2ec2a34ff525" UNIQUE ("offerId"), CONSTRAINT "PK_53071a6485a1e9dc75ec3db54b9" PRIMARY KEY ("id"))`,
+      `CREATE TABLE "shift" ("id" SERIAL NOT NULL, "createAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), "updateAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), "clockIn" boolean NOT NULL DEFAULT false, "confirmedClockIn" boolean NOT NULL DEFAULT false, "clockOut" boolean NOT NULL DEFAULT false, "confirmedClockOut" boolean NOT NULL DEFAULT false, "autoConfirmed" date, "status" "public"."shift_status_enum" NOT NULL DEFAULT '0', "workerId" integer NOT NULL, "offerId" integer NOT NULL, CONSTRAINT "REL_62be1e0c53b77c2ec2a34ff525" UNIQUE ("offerId"), CONSTRAINT "PK_53071a6485a1e9dc75ec3db54b9" PRIMARY KEY ("id"))`,
     );
     await queryRunner.query(
       `CREATE TYPE "public"."offer_category_enum" AS ENUM('0', '1', '2', '3', '4')`,

@@ -128,7 +128,11 @@ export class OffersService {
     if (!offer) {
       throw new NotFoundException(`Offer #${id} not found`);
     }
-    if (offer.applicants.length != 0 && changes.status != 1) {
+    if (
+      offer.applicants.length != 0 &&
+      changes.status != 1 &&
+      changes.status != 2
+    ) {
       throw new ForbiddenException("Can't edit an offer with applicants");
     }
     if (changes.applicantsIds) {

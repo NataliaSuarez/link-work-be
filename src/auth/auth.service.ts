@@ -42,7 +42,14 @@ export class AuthService {
     });
     const tokens = await this.getTokens(newUser.id, newUser.email);
     await this.updateRefreshToken(newUser.id, tokens.refreshToken);
-    return tokens;
+    const objRta = {
+      tokens: tokens,
+      userData: {
+        id: newUser.id,
+        role: newUser.role,
+      },
+    };
+    return objRta;
   }
 
   async signIn(data: AuthDto) {
@@ -59,7 +66,14 @@ export class AuthService {
     }
     const tokens = await this.getTokens(user.id, user.email);
     await this.updateRefreshToken(user.id, tokens.refreshToken);
-    return tokens;
+    const objRta = {
+      tokens: tokens,
+      userData: {
+        id: user.id,
+        role: user.role,
+      },
+    };
+    return objRta;
   }
 
   async logout(userId: number) {

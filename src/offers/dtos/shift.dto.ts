@@ -14,7 +14,19 @@ export class CreateShiftDto {
 
   @IsOptional()
   @ApiProperty()
+  readonly confirmedClockIn?: boolean;
+
+  @IsOptional()
+  @ApiProperty()
   readonly clockOut?: boolean;
+
+  @IsOptional()
+  @ApiProperty()
+  readonly confirmedClockOut?: boolean;
+
+  @IsOptional()
+  @ApiProperty()
+  readonly autoConfirmed?: Date;
 
   @IsOptional()
   @ApiProperty()

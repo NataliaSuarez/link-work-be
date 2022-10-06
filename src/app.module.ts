@@ -3,6 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { typeOrmAsyncConfig } from './config/typeorm.module';
 import { TypegooseModule } from '@m8a/nestjs-typegoose';
 import { ConfigModule } from '@nestjs/config';
+import { ScheduleModule } from '@nestjs/schedule';
 
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -13,6 +14,7 @@ import { AuthModule } from './auth/auth.module';
 import { StripeModule } from './stripe/stripe.module';
 import { ChatModule } from './chat/chat.module';
 import { Chat } from './chat/chat.entity';
+import { TasksModule } from './tasks/tasks.module';
 import config from './config';
 
 @Module({
@@ -30,6 +32,8 @@ import config from './config';
     TypegooseModule.forRoot(process.env.MONGO_URI),
     TypegooseModule.forFeature([Chat]),
     ChatModule,
+    ScheduleModule.forRoot(),
+    TasksModule,
   ],
   controllers: [AppController],
 

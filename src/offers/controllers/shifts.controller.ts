@@ -7,9 +7,11 @@ import {
   Put,
   Delete,
   Body,
-  Query,
+  Req,
+  UseGuards,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
+import { Request } from 'express';
 
 import {
   CreateShiftDto,
@@ -17,25 +19,16 @@ import {
   UpdateShiftDto,
 } from '../dtos/shift.dto';
 import { ShiftsService } from '../services/shifts.service';
-
+import { AccessTokenGuard } from '../../common/guards/accessToken.guard';
+@UseGuards(AccessTokenGuard)
 @ApiTags('shifts')
 @Controller('shifts')
 export class ShiftsController {
   constructor(private shiftService: ShiftsService) {}
 
   @Get()
-  getShifts(@Query() params: FilterShiftsDto) {
-    return this.shiftService.findAll(params);
-  }
-
-  @Get('/by-worker/:workerId')
-  getByWorker(@Param('workerId', ParseIntPipe) workerId: number) {
-    return this.shiftService.findByWorker(workerId);
-  }
-
-  @Get('by-employer/:employerId')
-  getByEmployer(@Param('employerId', ParseIntPipe) employerId: number) {
-    return this.shiftService.findByEmployer(employerId);
+  getShifts(@Req() req: Request) {
+    return this.shiftService.findShifts(req.user);
   }
 
   @Get(':id')
