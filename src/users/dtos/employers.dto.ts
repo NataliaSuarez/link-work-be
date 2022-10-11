@@ -38,41 +38,45 @@ export class CreateEmployerDto {
   @ApiProperty()
   readonly description: string;
 
+  @IsNumber()
   @IsOptional()
   @ApiProperty()
   readonly stars?: number;
 
+  @IsNumber()
   @IsOptional()
   @ApiProperty()
   readonly totalReviews?: number;
 
+  @IsString()
   @IsOptional()
   @ApiProperty()
   readonly customerId?: string;
 
+  @IsNumber()
   @IsPositive()
   @IsNotEmpty()
   readonly userId: number;
 
   @IsString()
-  @IsNotEmpty()
+  @IsOptional()
   @ApiProperty()
-  readonly number: string;
+  readonly number?: string;
 
   @IsNumber()
-  @IsNotEmpty()
+  @IsOptional()
   @ApiProperty()
-  readonly exp_month: number;
+  readonly exp_month?: number;
 
   @IsNumber()
-  @IsNotEmpty()
+  @IsOptional()
   @ApiProperty()
-  readonly exp_year: number;
+  readonly exp_year?: number;
 
   @IsString()
-  @IsNotEmpty()
+  @IsOptional()
   @ApiProperty()
-  readonly cvc: string;
+  readonly cvc?: string;
 }
 
 export class UpdateEmployerDto extends PartialType(CreateEmployerDto) {}

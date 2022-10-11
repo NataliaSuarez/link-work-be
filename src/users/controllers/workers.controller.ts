@@ -10,7 +10,11 @@ import {
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 
-import { CreateWorkerDto, UpdateWorkerDto } from '../dtos/workers.dto';
+import {
+  CreateWorkerDto,
+  StripeUserAccDto,
+  UpdateWorkerDto,
+} from '../dtos/workers.dto';
 import { WorkersService } from '../services/workers.service';
 
 @ApiTags('workers')
@@ -31,6 +35,14 @@ export class WorkersController {
   @Post()
   create(@Body() payload: CreateWorkerDto) {
     return this.workersService.create(payload);
+  }
+
+  @Post('create-stripe-account/:id')
+  createStripeUserAccount(
+    @Param('id') id: number,
+    @Body() payload: StripeUserAccDto,
+  ) {
+    return this.workersService.createStripeAccount(id, payload);
   }
 
   @Put(':id')

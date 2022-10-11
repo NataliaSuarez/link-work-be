@@ -36,8 +36,23 @@ export class Worker {
   @Column({ type: 'varchar', length: 255 })
   state: string;
 
+  @Column({ type: 'varchar', length: 255 })
+  postalCode: string;
+
   @Column({ type: 'int' })
-  age: number;
+  dayOfBirth: number;
+
+  @Column({ type: 'int' })
+  monthOfBirth: number;
+
+  @Column({ type: 'int' })
+  yearOfBirth: number;
+
+  @Column({ type: 'varchar', length: 255 })
+  phone: string;
+
+  @Column({ type: 'varchar', length: 255 })
+  personalUrl: string;
 
   @Column({
     type: 'enum',
