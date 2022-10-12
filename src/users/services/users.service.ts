@@ -16,7 +16,7 @@ export class UsersService {
     private userRepository: Repository<Users>,
   ) {}
 
-  findAll(params?: FilterUsersDto) {
+  async findAll(params?: FilterUsersDto) {
     if (params) {
       const where: FindOptionsWhere<Users> = {};
       const { limit, offset } = params;
@@ -24,13 +24,13 @@ export class UsersService {
       if (role) {
         where.role = Equal(role);
       }
-      return this.userRepository.find({
+      return await this.userRepository.find({
         where,
         take: limit,
         skip: offset,
       });
     }
-    return this.userRepository.find();
+    return await this.userRepository.find();
   }
 
   async findOne(id: number): Promise<Users> {
@@ -46,9 +46,9 @@ export class UsersService {
     return user;
   }
 
-  create(data: CreateUserDto) {
+  async create(data: CreateUserDto) {
     const newUser = this.userRepository.create(data);
-    return this.userRepository.save(newUser);
+    return await this.userRepository.save(newUser);
   }
 
   async createWithGoogle(data: CreateUserDto) {
@@ -71,7 +71,7 @@ export class UsersService {
       throw new NotFoundException(`User #${id} not found`);
     }
     this.userRepository.merge(user, changes);
-    return this.userRepository.save(user);
+    return await this.userRepository.save(user);
   }
 
   async remove(id: number) {

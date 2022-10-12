@@ -19,27 +19,27 @@ export class WorkersController {
   constructor(private workersService: WorkersService) {}
 
   @Get()
-  findAll() {
-    return this.workersService.findAll();
+  async findAll() {
+    return await this.workersService.findAll();
   }
 
   @Get(':id')
-  get(@Param('id', ParseIntPipe) id: number) {
-    return this.workersService.findOne(id);
+  async get(@Param('id', ParseIntPipe) id: number) {
+    return await this.workersService.findOne(id);
   }
 
   @Post()
-  create(@Body() payload: CreateWorkerDto) {
-    return this.workersService.create(payload);
+  async create(@Body() payload: CreateWorkerDto) {
+    return await this.workersService.create(payload);
   }
 
   @Put(':id')
-  update(@Param('id') id: number, @Body() payload: UpdateWorkerDto) {
-    return this.workersService.update(id, payload);
+  async update(@Param('id') id: number, @Body() payload: UpdateWorkerDto) {
+    return await this.workersService.update(id, payload);
   }
 
   @Delete(':id')
-  delete(@Param('id') id: number) {
-    return this.workersService.remove(id);
+  async delete(@Param('id') id: number) {
+    return await this.workersService.remove(id);
   }
 }

@@ -19,27 +19,27 @@ export class EmployersController {
   constructor(private employersService: EmployersService) {}
 
   @Get()
-  findAll() {
-    return this.employersService.findAll();
+  async findAll() {
+    return await this.employersService.findAll();
   }
 
   @Get(':id')
-  get(@Param('id', ParseIntPipe) id: number) {
-    return this.employersService.findOne(id);
+  async get(@Param('id', ParseIntPipe) id: number) {
+    return await this.employersService.findOne(id);
   }
 
   @Post()
-  create(@Body() payload: CreateEmployerDto) {
-    return this.employersService.create(payload);
+  async create(@Body() payload: CreateEmployerDto) {
+    return await this.employersService.create(payload);
   }
 
   @Put(':id')
-  update(@Param('id') id: number, @Body() payload: UpdateEmployerDto) {
-    return this.employersService.update(id, payload);
+  async update(@Param('id') id: number, @Body() payload: UpdateEmployerDto) {
+    return await this.employersService.update(id, payload);
   }
 
   @Delete(':id')
-  delete(@Param('id') id: number) {
-    return this.employersService.remove(id);
+  async delete(@Param('id') id: number) {
+    return await this.employersService.remove(id);
   }
 }

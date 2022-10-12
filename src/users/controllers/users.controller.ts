@@ -31,8 +31,8 @@ export class UsersController {
   }
 
   @Get(':id')
-  get(@Param('id', ParseIntPipe) id: number) {
-    return this.usersService.findOne(id);
+  async get(@Param('id', ParseIntPipe) id: number) {
+    return await this.usersService.findOneById(id);
   }
 
   // @Post()
@@ -42,13 +42,15 @@ export class UsersController {
 
   @UseGuards(AccessTokenGuard)
   @Put(':id')
-  update(@Param('id') id: number, @Body() payload: UpdateUserDto) {
-    return this.usersService.update(id, payload);
+  async update(@Param('id') id: number, @Body() payload: UpdateUserDto) {
+    return await this.usersService.update(id, payload);
   }
 
   @UseGuards(AccessTokenGuard)
   @Delete(':id')
-  delete(@Param('id') id: number) {
-    return this.usersService.remove(id);
+  async delete(@Param('id') id: number) {
+    return await this.usersService.remove(id);
+  }
+
   }
 }

@@ -28,33 +28,33 @@ export class AuthController {
 
   @Post('sign-up')
   @ApiOperation({ summary: 'Sign up an user account' })
-  signup(@Body() createUserDto: CreateUserDto) {
+  async signup(@Body() createUserDto: CreateUserDto) {
     if (createUserDto.registerType == 0) {
-      return this.authService.signUp(createUserDto);
+      return await this.authService.signUp(createUserDto);
     } else if (createUserDto.registerType === 1) {
-      return this.googleAuthenticationService.authenticate(createUserDto);
+      return await this.googleAuthenticationService.authenticate(createUserDto);
     }
   }
 
   @Post('sign-in')
   @ApiOperation({ summary: 'Sign in an existing user' })
-  signin(@Body() data: AuthDto) {
-    return this.authService.signIn(data);
+  async signin(@Body() data: AuthDto) {
+    return await this.authService.signIn(data);
   }
 
   @UseGuards(AccessTokenGuard)
   @Get('log-out')
   @ApiOperation({ summary: 'Log out an existing user' })
-  logout(@Req() req: Request) {
-    this.authService.logout(req.user['sub']);
+  async logout(@Req() req: Request) {
+    await this.authService.logout(req.user['sub']);
   }
 
   @UseGuards(RefreshTokenGuard)
   @Get('refresh')
   @ApiOperation({ summary: 'Refresh auth tokens' })
-  refreshTokens(@Req() req: Request) {
+  async refreshTokens(@Req() req: Request) {
     const userId = req.user['sub'];
     const refreshToken = req.user['refreshToken'];
-    return this.authService.refreshTokens(userId, refreshToken);
+    return await this.authService.refreshTokens(userId, refreshToken);
   }
 }
