@@ -5,6 +5,8 @@ import {
   IsOptional,
   Min,
   IsString,
+  IsDate,
+  IsUrl,
 } from 'class-validator';
 import { ApiProperty, PartialType } from '@nestjs/swagger';
 
@@ -24,10 +26,35 @@ export class CreateWorkerDto {
   @ApiProperty()
   readonly state: string;
 
+  @IsString()
+  @IsNotEmpty()
+  @ApiProperty()
+  readonly postalCode: string;
+
   @IsNumber()
   @IsNotEmpty()
   @ApiProperty()
-  readonly age: number;
+  readonly dayOfBirth: number;
+
+  @IsNumber()
+  @IsNotEmpty()
+  @ApiProperty()
+  readonly monthOfBirth: number;
+
+  @IsNumber()
+  @IsNotEmpty()
+  @ApiProperty()
+  readonly yearOfBirth: number;
+
+  @IsString()
+  @IsNotEmpty()
+  @ApiProperty()
+  readonly phone: string;
+
+  @IsUrl()
+  @IsNotEmpty()
+  @ApiProperty()
+  readonly personalUrl: string;
 
   @IsNumber()
   @IsNotEmpty()
@@ -54,8 +81,9 @@ export class CreateWorkerDto {
   readonly totalReviews: number;
 
   @IsString()
+  @IsOptional()
   @ApiProperty()
-  readonly stripeId: string;
+  readonly stripeId?: string;
 
   @IsPositive()
   @IsNotEmpty()
@@ -87,3 +115,15 @@ export class CreateWorkExperienceDto {
 export class UpdateWorkExperience extends PartialType(
   CreateWorkExperienceDto,
 ) {}
+
+export class StripeUserAccDto {
+  @IsString()
+  @IsNotEmpty()
+  @ApiProperty()
+  routingNumber: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @ApiProperty()
+  accountNumber: string;
+}

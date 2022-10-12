@@ -1,7 +1,7 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class init1664911557306 implements MigrationInterface {
-  name = 'init1664911557306';
+export class init1665519140417 implements MigrationInterface {
+  name = 'init1665519140417';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
@@ -32,7 +32,7 @@ export class init1664911557306 implements MigrationInterface {
       `CREATE TYPE "public"."worker_gender_enum" AS ENUM('0', '1', '2')`,
     );
     await queryRunner.query(
-      `CREATE TABLE "worker" ("id" SERIAL NOT NULL, "address" character varying(255) NOT NULL, "city" character varying(255) NOT NULL, "state" character varying(255) NOT NULL, "age" integer NOT NULL, "gender" "public"."worker_gender_enum" NOT NULL, "description" text NOT NULL, "ssn" integer NOT NULL, "stars" integer NOT NULL, "totalReviews" integer NOT NULL, "stripeId" character varying(255) NOT NULL, "createAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), "updateAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), "userId" integer, CONSTRAINT "REL_b4fc7927de11f45e2ecca71726" UNIQUE ("userId"), CONSTRAINT "PK_dc8175fa0e34ce7a39e4ec73b94" PRIMARY KEY ("id"))`,
+      `CREATE TABLE "worker" ("id" SERIAL NOT NULL, "address" character varying(255) NOT NULL, "city" character varying(255) NOT NULL, "state" character varying(255) NOT NULL, "postalCode" character varying(255) NOT NULL, "dayOfBirth" integer NOT NULL, "monthOfBirth" integer NOT NULL, "yearOfBirth" integer NOT NULL, "phone" character varying(255) NOT NULL, "personalUrl" character varying(255) NOT NULL, "gender" "public"."worker_gender_enum" NOT NULL, "description" text NOT NULL, "ssn" integer NOT NULL, "stars" integer NOT NULL, "totalReviews" integer NOT NULL, "stripeId" character varying(255) NOT NULL, "createAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), "updateAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), "userId" integer, CONSTRAINT "REL_b4fc7927de11f45e2ecca71726" UNIQUE ("userId"), CONSTRAINT "PK_dc8175fa0e34ce7a39e4ec73b94" PRIMARY KEY ("id"))`,
     );
     await queryRunner.query(
       `CREATE TYPE "public"."users_registertype_enum" AS ENUM('0', '1', '2')`,

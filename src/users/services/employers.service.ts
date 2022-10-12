@@ -42,40 +42,22 @@ export class EmployersService {
   }
 
   async create(data: CreateEmployerDto) {
-    const { number, exp_month, exp_year, cvc } = data;
     const user = await this.usersService.findOneById(data.userId);
     if (!user) {
       throw new NotFoundException(`User #${data.userId} not found`);
     }
-    const fullName = user.firstName + ' ' + user.lastName;
-    const customerData = {
-      email: user.email,
-      name: fullName,
-      description: data.businessName,
-    };
-    const customer = await this.stripeService.createCustomer(customerData);
-    const card = {
-      number: number,
-      exp_month: exp_month,
-      exp_year: exp_year,
-      cvc: cvc,
-    };
-    const paymentMethod = await this.stripeService.createPaymentMethod(
-      customer.id,
-      card,
-    );
-    const employer = {
-      address: data.address,
-      city: data.city,
-      state: data.state,
-      businessCode: data.businessCode,
-      businessName: data.businessName,
-      description: data.description,
-      stars: 0,
-      totalReviews: 0,
-      customerId: customer.id,
-    };
-    const newEmployer = this.employerRepository.create(employer);
+    // const employer = {
+    //   address: data.address,
+    //   city: data.city,
+    //   state: data.state,
+    //   businessCode: data.businessCode,
+    //   businessName: data.businessName,
+    //   description: data.description,
+    //   stars: 0,
+    //   totalReviews: 0,
+    //   customerId: " "
+    // };
+    const newEmployer = this.employerRepository.create(data);
     newEmployer.user = user;
     return this.employerRepository.save(newEmployer);
   }
@@ -85,8 +67,39 @@ export class EmployersService {
     if (!employer) {
       throw new NotFoundException(`Employer #${id} not found`);
     }
-    this.employerRepository.merge(employer, changes);
-    return this.employerRepository.save(employer);
+    try {
+      if (
+        changes.number &&
+        changes.exp_month &&
+        changes.exp_year &&
+        changes.cvc
+      ) {
+        const { number, exp_month, exp_year, cvc } = changes;
+        const fullName = employer.user.firstName + ' ' + employer.user.lastName;
+        const customerData = {
+          email: employer.user.email,
+          name: fullName,
+          description: employer.businessName,
+        };
+        const customer = await this.stripeService.createCustomer(customerData);
+        const card = {
+          number: number,
+          exp_month: exp_month,
+          exp_year: exp_year,
+          cvc: cvc,
+        };
+        const paymentMethod = await this.stripeService.createPaymentMethod(
+          customer.id,
+          card,
+        );
+        employer.customerId = customer.id;
+      }
+      this.employerRepository.merge(employer, changes);
+      return this.employerRepository.save(employer);
+    } catch (error) {
+      console.log(error);
+      return error.message;
+    }
   }
 
   async remove(id: number) {

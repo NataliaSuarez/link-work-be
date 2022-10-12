@@ -4,30 +4,38 @@ import {
   IsPositive,
   IsOptional,
   Min,
+  IsDate,
+  IsBoolean,
 } from 'class-validator';
 import { ApiProperty, PartialType } from '@nestjs/swagger';
 
 export class CreateShiftDto {
+  @IsBoolean()
   @IsOptional()
   @ApiProperty()
   readonly clockIn?: boolean;
 
+  @IsBoolean()
   @IsOptional()
   @ApiProperty()
   readonly confirmedClockIn?: boolean;
 
+  @IsBoolean()
   @IsOptional()
   @ApiProperty()
   readonly clockOut?: boolean;
 
+  @IsBoolean()
   @IsOptional()
   @ApiProperty()
   readonly confirmedClockOut?: boolean;
 
+  @IsDate()
   @IsOptional()
   @ApiProperty()
   readonly autoConfirmed?: Date;
 
+  @IsNumber()
   @IsOptional()
   @ApiProperty()
   readonly status?: number;
