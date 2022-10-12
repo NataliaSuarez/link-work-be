@@ -1,6 +1,12 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  ConflictException,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Equal, FindOptionsWhere } from 'typeorm';
+import { PostgresErrorCode } from 'src/common/enum/postgres-error-code.enum';
+import { Repository, Equal, FindOptionsWhere, LessThan } from 'typeorm';
 
 import {
   CreateUserDto,
@@ -48,7 +54,14 @@ export class UsersService {
 
   async create(data: CreateUserDto) {
     const newUser = this.userRepository.create(data);
-    return await this.userRepository.save(newUser);
+    try {
+      return await this.userRepository.save(newUser);
+    } catch (error) {
+      if (error.code === PostgresErrorCode.UNIQUE) {
+        throw new ConflictException('User email already being used');
+      }
+      throw new InternalServerErrorException();
+    }
   }
 
   async createWithGoogle(data: CreateUserDto) {
