@@ -41,7 +41,7 @@ export class WorkersService {
 
   async create(data: CreateWorkerDto) {
     const newWorker = this.workerRepository.create(data);
-    const user = await this.usersService.findOne(data.userId);
+    const user = await this.usersService.findOneById(data.userId);
     newWorker.user = user;
     return this.workerRepository.save(newWorker);
   }

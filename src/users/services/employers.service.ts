@@ -43,7 +43,7 @@ export class EmployersService {
 
   async create(data: CreateEmployerDto) {
     const { number, exp_month, exp_year, cvc } = data;
-    const user = await this.usersService.findOne(data.userId);
+    const user = await this.usersService.findOneById(data.userId);
     if (!user) {
       throw new NotFoundException(`User #${data.userId} not found`);
     }
