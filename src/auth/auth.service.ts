@@ -2,6 +2,7 @@ import {
   BadRequestException,
   ForbiddenException,
   Injectable,
+  NotFoundException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
@@ -77,7 +78,11 @@ export class AuthService {
   }
 
   async logout(userId: number) {
-    return this.usersService.update(userId, { refreshToken: null });
+    const user = await this.usersService.findOneById(userId);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    return this.usersService.update(user, { refreshToken: null });
   }
 
   hashData(data: string) {
@@ -85,8 +90,12 @@ export class AuthService {
   }
 
   async updateRefreshToken(userId: number, refreshToken: string) {
+    const user = await this.usersService.findOneById(userId);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
     const hashedRefreshToken = await this.hashData(refreshToken);
-    await this.usersService.update(userId, {
+    await this.usersService.update(user, {
       refreshToken: hashedRefreshToken,
     });
   }
@@ -100,7 +109,7 @@ export class AuthService {
         },
         {
           secret: this.configService.get<string>('JWT_ACCESS_SECRET'),
-          expiresIn: '15m',
+          expiresIn: '6h',
         },
       ),
       this.jwtService.signAsync(

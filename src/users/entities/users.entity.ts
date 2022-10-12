@@ -5,6 +5,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
   OneToOne,
+  DeleteDateColumn,
 } from 'typeorm';
 import { Exclude } from 'class-transformer';
 
@@ -70,6 +71,9 @@ export class Users {
     default: () => 'CURRENT_TIMESTAMP',
   })
   updateAt: Date;
+
+  @DeleteDateColumn()
+  deactivatedAt: Date;
 
   @Column({ type: 'varchar', length: 255, nullable: true })
   refreshToken: string;

@@ -78,20 +78,45 @@ export class UsersService {
     return newUser;
   }
 
-  async update(id: number, changes: UpdateUserDto) {
-    const user = await this.userRepository.findOneBy({ id: id });
-    if (!user) {
-      throw new NotFoundException(`User #${id} not found`);
-    }
+  async update(user: Users, changes: UpdateUserDto) {
     this.userRepository.merge(user, changes);
     return await this.userRepository.save(user);
   }
 
-  async remove(id: number) {
-    const user = await this.userRepository.findOneBy({ id: id });
-    if (!user) {
-      throw new NotFoundException(`User #${id} not found`);
+  async deactivate(userId: number, deactivate = true) {
+    try {
+      if (deactivate) {
+        await this.userRepository.softDelete(userId);
+        return { message: 'User deactivated' };
+      } else {
+        const res = await this.userRepository.restore(userId);
+        if (res.affected !== 0) {
+          return { message: 'User reactivated' };
+        } else {
+          throw new NotFoundException('User not found');
+        }
+      }
+    } catch (error) {
+      throw error;
     }
-    return this.userRepository.delete(id);
+  }
+
+  async delete(userId: number) {
+    try {
+      await this.userRepository.delete(userId);
+      return { message: 'User deleted permanently' };
+    } catch (error) {
+      throw new InternalServerErrorException();
+    }
+  }
+
+  async deleteAllDeactivatedUsers(minDeactivationDatetime: Date) {
+    try {
+      await this.userRepository.delete({
+        deactivatedAt: LessThan(minDeactivationDatetime),
+      });
+    } catch (error) {
+      throw new InternalServerErrorException();
+    }
   }
 }
