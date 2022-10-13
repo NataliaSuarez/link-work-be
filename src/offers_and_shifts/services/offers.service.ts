@@ -29,7 +29,7 @@ export class OffersService {
     private employerServices: EmployersService,
   ) {}
 
-  findAll(params?: FilterOffersDto) {
+  async findAllFiltered(params?: FilterOffersDto) {
     if (params) {
       const where: FindOptionsWhere<Offers> = {};
       const { limit, offset } = params;
@@ -40,14 +40,14 @@ export class OffersService {
       if (status) {
         where.status = Equal(status);
       }
-      return this.offerRepo.find({
+      return await this.offerRepo.find({
         where,
         take: limit,
         skip: offset,
         relations: ['applicants', 'employer'],
       });
     }
-    return this.offerRepo.find();
+    return await this.offerRepo.find();
   }
 
   async findOne(id: number): Promise<Offers> {

@@ -27,7 +27,7 @@ export class OffersController {
 
   @Get()
   getOffers(@Query() params: FilterOffersDto) {
-    return this.offerService.findAll(params);
+    return this.offerService.findAllFiltered(params);
   }
 
   @Get(':id')
