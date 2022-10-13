@@ -58,7 +58,7 @@ export class UsersService {
       return await this.userRepository.save(newUser);
     } catch (error) {
       if (error.code === PostgresErrorCode.UNIQUE) {
-        throw new ConflictException('User email already being used');
+        throw new ConflictException('User email unavailable');
       }
       throw new InternalServerErrorException();
     }
