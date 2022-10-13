@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   ForbiddenException,
+  InternalServerErrorException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Equal, FindOptionsWhere } from 'typeorm';
@@ -18,6 +19,7 @@ import { Employer } from '../../users/entities/employer.entity';
 import { EmployersService } from '../../users/services/employers.service';
 import { Shift } from '../entities/shift.entity';
 import { getDay0, getDay6, getHoursDiff } from 'src/utils/dates';
+import { PaginationDto } from 'src/common/dto/pagination.dto';
 
 @Injectable()
 export class OffersService {
@@ -74,7 +76,10 @@ export class OffersService {
     return offer.applicants;
   }
 
-  async findByEmployer(employerId: number): Promise<Offers[]> {
+  async findByEmployer(
+    employerId: number,
+    pagination?: PaginationDto,
+  ): Promise<Offers[]> {
     const offers = await this.offerRepo.find({
       relations: {
         employer: true,
@@ -84,6 +89,8 @@ export class OffersService {
           id: employerId,
         },
       },
+      skip: pagination.offset,
+      take: pagination.limit,
     });
     if (!offers) {
       throw new NotFoundException(`Employer #${employerId} has not any offer`);
@@ -92,14 +99,26 @@ export class OffersService {
   }
 
   async create(data: CreateOfferDto) {
-    const newOffer = this.offerRepo.create(data);
     const employer = await this.employerServices.findOne(data.employerId);
-    newOffer.employer = employer;
-    return this.offerRepo.save(newOffer);
+    if (!employer) {
+      throw new NotFoundException('Employer not found');
+    }
+    try {
+      const newOffer = this.offerRepo.create(data);
+      newOffer.employer = employer;
+      return this.offerRepo.save(newOffer);
+    } catch (error) {
+      throw new InternalServerErrorException();
+    }
   }
 
-  remove(id: number) {
-    return this.offerRepo.delete(id);
+  async remove(id: number) {
+    try {
+      await this.offerRepo.delete(id);
+      return { message: 'Offer removed' };
+    } catch (error) {
+      throw new InternalServerErrorException();
+    }
   }
 
   async update(id: number, changes: UpdateOfferDto) {
@@ -130,8 +149,12 @@ export class OffersService {
       }
       offer.applicants.push(worker);
     }
-    this.offerRepo.merge(offer, changes);
-    return this.offerRepo.save(offer);
+    try {
+      this.offerRepo.merge(offer, changes);
+      return this.offerRepo.save(offer);
+    } catch (error) {
+      throw new InternalServerErrorException();
+    }
   }
 
   async removeApplicant(offerId: number, applicantId: number) {
@@ -141,10 +164,18 @@ export class OffersService {
       },
       relations: ['applicants'],
     });
+    if (!offer) {
+      throw new NotFoundException('Offer not found');
+    }
     offer.applicants = offer.applicants.filter(
       (item) => item.id != applicantId,
     );
-    return this.offerRepo.save(offer);
+    try {
+      await this.offerRepo.save(offer);
+      return { message: 'Applicant removed from offer' };
+    } catch (error) {
+      throw new InternalServerErrorException();
+    }
   }
 
   async apply(offerId: number, data: ApplyDto) {
@@ -173,40 +204,46 @@ export class OffersService {
       );
     }
     offer.applicants.push(worker);
-    return this.offerRepo.save(offer);
+    try {
+      await this.offerRepo.save(offer);
+    } catch (error) {
+      throw new InternalServerErrorException();
+    }
   }
 
   async validWorkerForShift(workerId: number, offerFrom: Date, offerTo: Date) {
-    const shifts = await this.shiftRepo.find({
-      relations: {
-        offer: true,
-        worker: true,
-      },
-      where: [
-        { worker: { id: workerId }, status: 0 },
-        { worker: { id: workerId }, status: 1 },
-      ],
-    });
+    try {
+      const shifts = await this.shiftRepo.find({
+        relations: {
+          offer: true,
+          worker: true,
+        },
+        where: [
+          { worker: { id: workerId }, status: 0 },
+          { worker: { id: workerId }, status: 1 },
+        ],
+      });
 
-    const weekDay0 = getDay0(offerFrom);
-    const weekDay6 = getDay6(offerFrom);
-    const offerHours = getHoursDiff(offerFrom, offerTo);
-    // console.log(moment(offerFrom).format('YYYY-MM-DD HH:mm:ss'));
-    // console.log(moment(offerTo).format('YYYY-MM-DD HH:mm:ss'));
+      const weekDay0 = getDay0(offerFrom);
+      const weekDay6 = getDay6(offerFrom);
+      const offerHours = getHoursDiff(offerFrom, offerTo);
 
-    let hoursWeek = 0;
+      let hoursWeek = 0;
 
-    for (const object of shifts) {
-      if (object.offer.from >= weekDay0 && object.offer.from <= weekDay6) {
-        const hoursDiff = getHoursDiff(object.offer.from, object.offer.to);
-        hoursWeek += hoursDiff;
+      for (const object of shifts) {
+        if (object.offer.from >= weekDay0 && object.offer.from <= weekDay6) {
+          const hoursDiff = getHoursDiff(object.offer.from, object.offer.to);
+          hoursWeek += hoursDiff;
+        }
       }
-    }
 
-    const totalHours = hoursWeek + offerHours;
-    if (totalHours >= 40) {
-      return false;
+      const totalHours = hoursWeek + offerHours;
+      if (totalHours >= 40) {
+        return false;
+      }
+      return true;
+    } catch (error) {
+      throw new InternalServerErrorException();
     }
-    return true;
   }
 }

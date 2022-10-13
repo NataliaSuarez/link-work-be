@@ -22,7 +22,7 @@ export class UsersService {
     private userRepository: Repository<Users>,
   ) {}
 
-  async findAll(params?: FilterUsersDto) {
+  async findAllFiltered(params?: FilterUsersDto) {
     if (params) {
       const where: FindOptionsWhere<Users> = {};
       const { limit, offset } = params;
@@ -79,25 +79,33 @@ export class UsersService {
   }
 
   async update(user: Users, changes: UpdateUserDto) {
-    this.userRepository.merge(user, changes);
-    return await this.userRepository.save(user);
+    try {
+      this.userRepository.merge(user, changes);
+      return await this.userRepository.save(user);
+    } catch (error) {
+      if (error.code === PostgresErrorCode.UNIQUE) {
+        throw new ConflictException('User email unavailable');
+      }
+      throw new InternalServerErrorException();
+    }
   }
 
   async deactivate(userId: number, deactivate = true) {
+    let reactivateRes;
     try {
       if (deactivate) {
         await this.userRepository.softDelete(userId);
         return { message: 'User deactivated' };
       } else {
-        const res = await this.userRepository.restore(userId);
-        if (res.affected !== 0) {
-          return { message: 'User reactivated' };
-        } else {
-          throw new NotFoundException('User not found');
-        }
+        reactivateRes = await this.userRepository.restore(userId);
       }
     } catch (error) {
-      throw error;
+      throw new InternalServerErrorException();
+    }
+    if (reactivateRes.affected !== 0) {
+      return { message: 'User reactivated' };
+    } else {
+      throw new NotFoundException('User not found');
     }
   }
 

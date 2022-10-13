@@ -3,11 +3,11 @@ import {
   IsNotEmpty,
   IsPositive,
   IsOptional,
-  Min,
   IsDate,
   IsBoolean,
 } from 'class-validator';
 import { ApiProperty, PartialType } from '@nestjs/swagger';
+import { PaginationDto } from 'src/common/dto/pagination.dto';
 
 export class CreateShiftDto {
   @IsBoolean()
@@ -55,15 +55,7 @@ export class CreateShiftDto {
 
 export class UpdateShiftDto extends PartialType(CreateShiftDto) {}
 
-export class FilterShiftsDto {
-  @IsOptional()
-  @IsPositive()
-  limit: number;
-
-  @IsOptional()
-  @Min(0)
-  offset: number;
-
+export class FilterShiftsDto extends PaginationDto {
   @IsOptional()
   @IsNumber()
   status: number;

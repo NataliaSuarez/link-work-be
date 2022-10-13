@@ -7,13 +7,13 @@ import {
   Min,
   Max,
   IsOptional,
-  IsPositive,
   IsBoolean,
   MinLength,
   MaxLength,
   Matches,
 } from 'class-validator';
 import { ApiProperty, PartialType } from '@nestjs/swagger';
+import { PaginationDto } from 'src/common/dto/pagination.dto';
 
 export class CreateUserDto {
   @IsString()
@@ -84,15 +84,7 @@ export class CreateUserDto {
 
 export class UpdateUserDto extends PartialType(CreateUserDto) {}
 
-export class FilterUsersDto {
-  @IsOptional()
-  @IsPositive()
-  limit: number;
-
-  @IsOptional()
-  @Min(0)
-  offset: number;
-
+export class FilterUsersDto extends PaginationDto {
   @IsOptional()
   @IsNumber()
   @Min(1)

@@ -33,7 +33,7 @@ export class ShiftsController {
 
   @Get(':id')
   get(@Param('id', ParseIntPipe) id: number) {
-    return this.shiftService.findOne(id);
+    return this.shiftService.findOneById(id);
   }
 
   @Post()

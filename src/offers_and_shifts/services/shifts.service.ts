@@ -4,6 +4,7 @@ import {
   ForbiddenException,
   ConflictException,
   BadRequestException,
+  InternalServerErrorException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Equal, FindOptionsWhere, LessThanOrEqual } from 'typeorm';
@@ -20,6 +21,7 @@ import {
 } from '../dtos/shift.dto';
 import { Employer } from '../../users/entities/employer.entity';
 import { StripeService } from '../../stripe/stripe.service';
+import { PaginationDto } from 'src/common/dto/pagination.dto';
 
 @Injectable()
 export class ShiftsService {
@@ -58,98 +60,124 @@ export class ShiftsService {
     }
   }
 
-  findAll(params?: FilterShiftsDto) {
-    if (params) {
-      const where: FindOptionsWhere<Shift> = {};
-      const { limit, offset } = params;
-      const { status } = params;
-      if (status) {
-        where.status = Equal(status);
+  async findAllFiltered(params?: FilterShiftsDto) {
+    try {
+      if (params) {
+        const where: FindOptionsWhere<Shift> = {};
+        const { limit, offset } = params;
+        const { status } = params;
+        if (status) {
+          where.status = Equal(status);
+        }
+        return await this.shiftRepo.find({
+          where,
+          take: limit,
+          skip: offset,
+          relations: ['offer', 'worker'],
+        });
       }
-      return this.shiftRepo.find({
-        where,
-        take: limit,
-        skip: offset,
-        relations: ['offer', 'worker'],
-      });
+      return await this.shiftRepo.find();
+    } catch (error) {
+      throw new InternalServerErrorException();
     }
-    return this.shiftRepo.find();
   }
 
-  async findOne(id: number): Promise<Shift> {
-    const shift = await this.shiftRepo.findOne({
-      where: { id: id },
-      relations: ['offer', 'worker'],
-    });
+  async findOneById(id: number): Promise<Shift> {
+    let shift: Shift;
+    try {
+      shift = await this.shiftRepo.findOne({
+        where: { id: id },
+        relations: ['offer', 'worker'],
+      });
+    } catch (error) {
+      throw error;
+    }
     if (!shift) {
       throw new NotFoundException(`Shift #${id} not found`);
     }
     return shift;
   }
 
-  async findByWorker(workerId: number) {
-    const activeShifts = await this.shiftRepo.find({
-      relations: {
-        offer: true,
-        worker: true,
-      },
-      where: {
-        worker: {
-          id: workerId,
-        },
-        status: 1,
-      },
-    });
-    const acceptedShifts = await this.shiftRepo.find({
-      relations: {
-        offer: true,
-        worker: true,
-      },
-      where: {
-        worker: {
-          id: workerId,
-        },
-        status: 0,
-      },
-    });
-
-    const shifts = {
-      activeShifts: activeShifts,
-      acceptedShifts: acceptedShifts,
-    };
-    return shifts;
-  }
-
-  async findByEmployer(employerId: number) {
-    const offers = await this.offerService.findByEmployer(employerId);
-    const activeShifts = [];
-    const acceptedShifts = [];
-
-    for (const object of offers) {
-      const shift = await this.shiftRepo.find({
+  async findByWorker(workerId: number, pagination?: PaginationDto) {
+    let shifts: { activeShifts: Shift[]; acceptedShifts: Shift[] };
+    try {
+      const activeShifts = await this.shiftRepo.find({
         relations: {
           offer: true,
           worker: true,
         },
         where: {
-          offer: {
-            id: object.id,
+          worker: {
+            id: workerId,
           },
+          status: 1,
         },
+        skip: pagination.offset,
+        take: pagination.limit,
       });
-      if (shift[0]) {
-        if (shift[0].status === 0) {
-          acceptedShifts.push(shift);
-        } else if (shift[0].status === 1) {
-          activeShifts.push(shift);
+      const acceptedShifts = await this.shiftRepo.find({
+        relations: {
+          offer: true,
+          worker: true,
+        },
+        where: {
+          worker: {
+            id: workerId,
+          },
+          status: 0,
+        },
+        skip: pagination.offset,
+        take: pagination.limit,
+      });
+
+      shifts = {
+        activeShifts: activeShifts,
+        acceptedShifts: acceptedShifts,
+      };
+    } catch (error) {
+      throw new InternalServerErrorException();
+    }
+    return shifts;
+  }
+
+  async findByEmployer(employerId: number, pagination?: PaginationDto) {
+    let shifts: { activeShifts: Shift[]; acceptedShifts: Shift[] };
+
+    try {
+      const offers = await this.offerService.findByEmployer(employerId);
+      const activeShifts = [];
+      const acceptedShifts = [];
+
+      for (const object of offers) {
+        const shift = await this.shiftRepo.find({
+          relations: {
+            offer: true,
+            worker: true,
+          },
+          where: {
+            offer: {
+              id: object.id,
+            },
+          },
+          skip: pagination.offset,
+          take: pagination.limit,
+        });
+        if (shift[0]) {
+          if (shift[0].status === 0) {
+            acceptedShifts.push(shift);
+          } else if (shift[0].status === 1) {
+            activeShifts.push(shift);
+          }
         }
       }
-    }
 
-    const shifts = {
-      activeShifts: activeShifts,
-      acceptedShifts: acceptedShifts,
-    };
+      shifts = {
+        activeShifts: activeShifts,
+        acceptedShifts: acceptedShifts,
+      };
+    } catch (error) {
+      throw new InternalServerErrorException();
+    }
     return shifts;
   }
 
@@ -334,8 +362,13 @@ export class ShiftsService {
     }
   }
 
-  remove(id: number) {
-    return this.shiftRepo.delete(id);
+  async remove(id: number) {
+    try {
+      await this.shiftRepo.delete(id);
+      return { message: 'Shift removed' };
+    } catch (error) {
+      throw new InternalServerErrorException();
+    }
   }
 
   async update(id: number, changes: UpdateShiftDto) {
@@ -343,7 +376,11 @@ export class ShiftsService {
     if (!shift) {
       throw new NotFoundException(`Shift #${id} not found`);
     }
-    this.shiftRepo.merge(shift, changes);
-    return this.shiftRepo.save(shift);
+    try {
+      this.shiftRepo.merge(shift, changes);
+      return await this.shiftRepo.save(shift);
+    } catch (error) {
+      throw new InternalServerErrorException();
+    }
   }
 }

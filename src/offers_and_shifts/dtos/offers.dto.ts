@@ -9,6 +9,7 @@ import {
   Min,
 } from 'class-validator';
 import { ApiProperty, PartialType } from '@nestjs/swagger';
+import { PaginationDto } from 'src/common/dto/pagination.dto';
 
 export class CreateOfferDto {
   @IsString()
@@ -65,15 +66,7 @@ export class CreateOfferDto {
 
 export class UpdateOfferDto extends PartialType(CreateOfferDto) {}
 
-export class FilterOffersDto {
-  @IsOptional()
-  @IsPositive()
-  limit: number;
-
-  @IsOptional()
-  @Min(0)
-  offset: number;
-
+export class FilterOffersDto extends PaginationDto {
   @IsOptional()
   @IsNumber()
   @Min(0)

@@ -67,6 +67,6 @@ export class UsersController {
   @UseGuards(AccessTokenGuard)
   @Get()
   async getUsers(@Query() params: FilterUsersDto) {
-    return await this.usersService.findAll(params);
+    return await this.usersService.findAllFiltered(params);
   }
 }
