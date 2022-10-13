@@ -26,6 +26,6 @@ import { StripeService } from '../stripe/stripe.service';
     EmployersService,
     StripeService,
   ],
-  exports: [OffersService, ShiftsService, TypeOrmModule],
+  exports: [OffersService, ShiftsService],
 })
-export class OffersModule {}
+export class OffersAndShiftsModule {}

@@ -12,8 +12,8 @@ import {
 } from 'typeorm';
 
 import { Users } from './users.entity';
-import { Offers } from '../../offers/entities/offers.entity';
-import { Shift } from '../../offers/entities/shift.entity';
+import { Offers } from '../../offers_and_shifts/entities/offers.entity';
+import { Shift } from '../../offers_and_shifts/entities/shift.entity';
 import { Experience } from './experience.entity';
 
 export enum Gender {

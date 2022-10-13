@@ -6,13 +6,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import {
-  Repository,
-  Equal,
-  FindOptionsWhere,
-  LessThanOrEqual,
-  UsingJoinColumnOnlyOnOneSideAllowedError,
-} from 'typeorm';
+import { Repository, Equal, FindOptionsWhere, LessThanOrEqual } from 'typeorm';
 
 import { Offers } from '../entities/offers.entity';
 import { OffersService } from './offers.service';

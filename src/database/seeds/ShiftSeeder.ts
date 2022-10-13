@@ -1,7 +1,7 @@
 import { DataSource } from 'typeorm';
 import { Seeder, SeederFactoryManager } from 'typeorm-extension';
 
-import { Shift } from '../../offers/entities/shift.entity';
+import { Shift } from '../../offers_and_shifts/entities/shift.entity';
 
 export class ShiftSeeder implements Seeder {
   async run(

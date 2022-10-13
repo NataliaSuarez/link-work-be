@@ -5,7 +5,6 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Equal, FindOptionsWhere } from 'typeorm';
-import * as moment from 'moment';
 
 import {
   ApplyDto,
@@ -18,22 +17,7 @@ import { Worker } from '../../users/entities/worker.entity';
 import { Employer } from '../../users/entities/employer.entity';
 import { EmployersService } from '../../users/services/employers.service';
 import { Shift } from '../entities/shift.entity';
-
-function getHoursDiff(startDate, endDate) {
-  const msInHour = 1000 * 60 * 60;
-  return Math.round(Math.abs(endDate - startDate) / msInHour);
-}
-function getDay0(date) {
-  const day = new Date(date).getDay();
-  const result = new Date(moment(date).subtract(day, 'd').format());
-  return result;
-}
-function getDay6(date) {
-  const day = new Date(date).getDay();
-  const add = 6 - day;
-  const result = new Date(moment(date).add(add, 'd').format());
-  return result;
-}
+import { getDay0, getDay6, getHoursDiff } from 'src/utils/dates';
 
 @Injectable()
 export class OffersService {

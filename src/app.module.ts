@@ -9,7 +9,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UsersModule } from './users/users.module';
 import { DatabaseModule } from './database/database.module';
-import { OffersModule } from './offers/offers.module';
+import { OffersAndShiftsModule } from './offers_and_shifts/offers_and_shifts.module';
 import { AuthModule } from './auth/auth.module';
 import { StripeModule } from './stripe/stripe.module';
 import { ChatModule } from './chat/chat.module';
@@ -26,7 +26,7 @@ import config from './config';
     }),
     TypeOrmModule.forRootAsync(typeOrmAsyncConfig),
     UsersModule,
-    OffersModule,
+    OffersAndShiftsModule,
     AuthModule,
     StripeModule,
     TypegooseModule.forRoot(process.env.MONGO_URI),

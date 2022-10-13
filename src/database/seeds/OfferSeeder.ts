@@ -1,7 +1,7 @@
 import { DataSource } from 'typeorm';
 import { Seeder, SeederFactoryManager } from 'typeorm-extension';
 
-import { Offers } from '../../offers/entities/offers.entity';
+import { Offers } from '../../offers_and_shifts/entities/offers.entity';
 
 export class OfferSeeder implements Seeder {
   async run(

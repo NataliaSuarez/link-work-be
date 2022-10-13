@@ -10,7 +10,7 @@ import {
 } from 'typeorm';
 
 import { Users } from './users.entity';
-import { Offers } from '../../offers/entities/offers.entity';
+import { Offers } from '../../offers_and_shifts/entities/offers.entity';
 
 export enum BusinessCode {
   HOTEL = 0,
