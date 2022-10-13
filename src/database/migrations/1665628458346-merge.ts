@@ -1,7 +1,7 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class init1665519140417 implements MigrationInterface {
-  name = 'init1665519140417';
+export class merge1665628458346 implements MigrationInterface {
+  name = 'merge1665628458346';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
@@ -41,7 +41,7 @@ export class init1665519140417 implements MigrationInterface {
       `CREATE TYPE "public"."users_role_enum" AS ENUM('1', '2')`,
     );
     await queryRunner.query(
-      `CREATE TABLE "users" ("id" SERIAL NOT NULL, "firstName" character varying(255) NOT NULL, "lastName" character varying(255) NOT NULL, "email" character varying(255) NOT NULL, "password" character varying, "registerType" "public"."users_registertype_enum" NOT NULL DEFAULT '0', "verified" boolean NOT NULL DEFAULT false, "profileImg" character varying(255), "role" "public"."users_role_enum" NOT NULL, "createAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), "updateAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), "refreshToken" character varying(255), CONSTRAINT "UQ_97672ac88f789774dd47f7c8be3" UNIQUE ("email"), CONSTRAINT "PK_a3ffb1c0c8416b9fc6f907b7433" PRIMARY KEY ("id"))`,
+      `CREATE TABLE "users" ("id" SERIAL NOT NULL, "firstName" character varying(255) NOT NULL, "lastName" character varying(255) NOT NULL, "email" character varying(255) NOT NULL, "password" character varying, "registerType" "public"."users_registertype_enum" NOT NULL DEFAULT '0', "verified" boolean NOT NULL DEFAULT false, "profileImg" character varying(255), "role" "public"."users_role_enum" NOT NULL, "createAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), "updateAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(), "deactivatedAt" TIMESTAMP, "refreshToken" character varying(255), CONSTRAINT "UQ_97672ac88f789774dd47f7c8be3" UNIQUE ("email"), CONSTRAINT "PK_a3ffb1c0c8416b9fc6f907b7433" PRIMARY KEY ("id"))`,
     );
     await queryRunner.query(
       `CREATE TABLE "worker_offers_offer" ("workerId" integer NOT NULL, "offerId" integer NOT NULL, CONSTRAINT "PK_7e960b1fe254d49c5668d9a60a6" PRIMARY KEY ("workerId", "offerId"))`,
