@@ -18,6 +18,7 @@ import { Shift } from 'src/offers_and_shifts/entities/shift.entity';
 
 import { Experience } from './entities/experience.entity';
 import { StripeService } from '../stripe/stripe.service';
+import { Clocks } from '../offers_and_shifts/entities/clocks.entity';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { StripeService } from '../stripe/stripe.service';
       Employer,
       Offers,
       Shift,
+      Clocks,
       Experience,
     ]),
   ],

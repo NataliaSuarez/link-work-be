@@ -5,12 +5,14 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
   OneToOne,
+  OneToMany,
   DeleteDateColumn,
 } from 'typeorm';
 import { Exclude } from 'class-transformer';
 
 import { Worker } from './worker.entity';
 import { Employer } from './employer.entity';
+import { Clocks } from '../../offers_and_shifts/entities/clocks.entity';
 
 export enum RegisterType {
   MAIL_AND_PASSWORD = 0,
@@ -89,4 +91,10 @@ export class Users {
     onDelete: 'CASCADE',
   })
   employer: Employer;
+
+  @OneToMany(() => Clocks, (clocks) => clocks.user, {
+    nullable: true,
+    onDelete: 'CASCADE',
+  })
+  clocksHistory: Clocks[];
 }

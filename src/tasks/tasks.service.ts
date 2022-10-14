@@ -11,7 +11,7 @@ export class TasksService {
     private usersService: UsersService,
   ) {}
 
-  @Cron(CronExpression.EVERY_30_MINUTES_BETWEEN_9AM_AND_6PM)
+  @Cron(CronExpression.EVERY_HOUR)
   async handleCron() {
     await this.shiftService.autoConfirmShifts();
   }

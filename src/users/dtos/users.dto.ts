@@ -91,3 +91,9 @@ export class FilterUsersDto extends PaginationDto {
   @Max(2)
   role: number;
 }
+
+export class UserIdDto {
+  @IsNumber()
+  @ApiProperty()
+  userId: number;
+}

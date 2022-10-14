@@ -21,6 +21,8 @@ import {
 } from '../dtos/shift.dto';
 import { Employer } from '../../users/entities/employer.entity';
 import { StripeService } from '../../stripe/stripe.service';
+import { Clocks } from '../entities/clocks.entity';
+import * as moment from 'moment';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 
 @Injectable()
@@ -31,6 +33,7 @@ export class ShiftsService {
     @InjectRepository(Worker) private workerRepo: Repository<Worker>,
     @InjectRepository(Employer) private employerRepo: Repository<Employer>,
     @InjectRepository(Users) private userRepo: Repository<Users>,
+    @InjectRepository(Clocks) private clocksRepo: Repository<Clocks>,
     private offerService: OffersService,
     private stripeService: StripeService,
   ) {}
@@ -57,6 +60,65 @@ export class ShiftsService {
         );
       }
       return this.findByWorker(user.worker.id);
+    }
+  }
+
+  async findByStatus(data, status) {
+    const user = await this.userRepo.findOne({
+      where: { id: data.sub },
+      relations: ['employer', 'worker'],
+    });
+    if (!user) {
+      throw new NotFoundException(`User ${data.sub} not found`);
+    }
+    if (user.role === 1) {
+      if (!user.employer) {
+        throw new NotFoundException(
+          `User ${data.sub} employer profile not found`,
+        );
+      }
+      const doneShifts = await this.shiftRepo.find({
+        relations: {
+          offer: true,
+          worker: true,
+        },
+        where: {
+          status: status,
+          offer: {
+            employer: {
+              id: user.employer.id,
+            },
+          },
+        },
+      });
+      if (doneShifts.length > 0) {
+        return doneShifts;
+      } else {
+        return { message: 'No shifts available' };
+      }
+    } else if (user.role === 2) {
+      if (!user.worker) {
+        throw new NotFoundException(
+          `User ${data.sub} worker profile not found`,
+        );
+      }
+      const doneShifts = await this.shiftRepo.find({
+        relations: {
+          offer: true,
+          worker: true,
+        },
+        where: {
+          worker: {
+            id: user.worker.id,
+          },
+          status: status,
+        },
+      });
+      if (doneShifts.length > 0) {
+        return doneShifts;
+      } else {
+        return { message: 'No shifts available' };
+      }
     }
   }
 
@@ -254,17 +316,82 @@ export class ShiftsService {
     }
   }
 
-  async clockInByEmployer(id: number) {
+  async clockIn(shiftId: number, userId: number) {
+    const user = await this.userRepo.findOne({
+      where: { id: userId },
+      relations: ['employer', 'worker'],
+    });
+    if (!user) {
+      throw new NotFoundException(`User ${userId} not found`);
+    }
+    if (user.role === 1) {
+      if (!user.employer) {
+        throw new NotFoundException(
+          `User ${userId} employer profile not found`,
+        );
+      }
+      return this.clockInByEmployer(shiftId, user.employer.id);
+    } else if (user.role === 2) {
+      if (!user.worker) {
+        throw new NotFoundException(`User ${userId} worker profile not found`);
+      }
+      return this.clockInByWorker(shiftId, user.worker.id);
+    }
+  }
+
+  async clockOut(shiftId: number, userId: number) {
+    const user = await this.userRepo.findOne({
+      where: { id: userId },
+      relations: ['employer', 'worker'],
+    });
+    if (!user) {
+      throw new NotFoundException(`User ${userId} not found`);
+    }
+    if (user.role === 1) {
+      if (!user.employer) {
+        throw new NotFoundException(
+          `User ${userId} employer profile not found`,
+        );
+      }
+      return this.confirmShift(shiftId, user.employer.id);
+    } else if (user.role === 2) {
+      if (!user.worker) {
+        throw new NotFoundException(`User ${userId} worker profile not found`);
+      }
+      return this.clockOutByWorker(shiftId, user.worker.id);
+    }
+  }
+
+  async clockInByEmployer(id: number, employerId: number) {
     const shift = await this.shiftRepo.findOneBy({ id: id });
     if (!shift) {
       throw new NotFoundException(`Shift #${id} not found`);
     }
-    shift.clockIn = true;
-    return this.shiftRepo.save(shift);
+    if (shift.offer.employer.id != employerId) {
+      throw new ForbiddenException(
+        `Employer #${employerId} can't clock-in this shift`,
+      );
+    }
+    try {
+      shift.clockIn = true;
+      const clockHistory = {
+        clockType: 1,
+        shift: shift,
+        user: shift.offer.employer.user,
+      };
+      const newClock = this.clocksRepo.create(clockHistory);
+      await this.clocksRepo.save(newClock);
+      return this.shiftRepo.save(shift);
+    } catch (error) {
+      return error.message;
+    }
   }
 
-  async clockInByWorker(id: number) {
-    const shift = await this.shiftRepo.findOneBy({ id: id });
+  async clockInByWorker(id: number, workerId: number) {
+    const shift = await this.shiftRepo.findOne({
+      where: { id: id },
+      relations: ['worker'],
+    });
     if (!shift) {
       throw new NotFoundException(`Shift #${id} not found`);
     }
@@ -273,23 +400,62 @@ export class ShiftsService {
         `Shift #${id} need clock in request by Employer`,
       );
     }
-    shift.confirmedClockIn = true;
-    return this.shiftRepo.save(shift);
+    if (shift.worker.id != workerId) {
+      throw new ForbiddenException(
+        `Worker #${workerId} can't clock-in this shift`,
+      );
+    }
+    try {
+      shift.confirmedClockIn = true;
+      shift.status = 1;
+      const clockHistory = {
+        clockType: 1,
+        shift: shift,
+        user: shift.worker.user,
+      };
+      const newClock = this.clocksRepo.create(clockHistory);
+      await this.clocksRepo.save(newClock);
+      return this.shiftRepo.save(shift);
+    } catch (error) {
+      return error.message;
+    }
   }
 
-  async clockOutByWorker(id: number) {
-    const shift = await this.shiftRepo.findOneBy({ id: id });
+  async clockOutByWorker(id: number, workerId: number) {
+    const shift = await this.shiftRepo.findOne({
+      where: { id: id },
+      relations: ['worker'],
+    });
     if (!shift) {
       throw new NotFoundException(`Shift #${id} not found`);
     }
     if (!shift.confirmedClockIn) {
       throw new BadRequestException(`Shift #${id} need clock in confirm`);
     }
-    shift.clockOut = true;
-    return this.shiftRepo.save(shift);
+    if (shift.worker.id != workerId) {
+      throw new ForbiddenException(
+        `Worker #${workerId} can't clock-out this shift`,
+      );
+    }
+    try {
+      shift.clockOut = true;
+      const date = new Date(moment().add(1, 'd').format());
+      shift.autoConfirmed = date;
+      shift.status = 4;
+      const clockHistory = {
+        clockType: 2,
+        shift: shift,
+        user: shift.worker.user,
+      };
+      const newClock = this.clocksRepo.create(clockHistory);
+      await this.clocksRepo.save(newClock);
+      return this.shiftRepo.save(shift);
+    } catch (error) {
+      return error.message;
+    }
   }
 
-  async confirmShift(id: number) {
+  async confirmShift(id: number, employerId: number) {
     try {
       const shift = await this.shiftRepo.findOneBy({ id: id });
       if (!shift) {
@@ -298,6 +464,16 @@ export class ShiftsService {
       if (!shift.clockOut) {
         throw new BadRequestException(
           `Shift #${id} need clock out request by Worker`,
+        );
+      }
+      if (shift.offer.employer.id != employerId) {
+        throw new ForbiddenException(
+          `Employer #${employerId} can't confirm this shift`,
+        );
+      }
+      if (!shift.worker.stripeId) {
+        throw new BadRequestException(
+          `Error Worker ID ${shift.worker.id} has not payment stripe ID`,
         );
       }
       const amount = shift.offer.usdTotal * 100;
@@ -311,6 +487,13 @@ export class ShiftsService {
       const transfer = await this.stripeService.createTransfer(transferData);
       if (transfer.created) {
         await this.offerService.update(shift.offer.id, { status: 2 });
+        const clockHistory = {
+          clockType: 2,
+          shift: shift,
+          user: shift.offer.employer.user,
+        };
+        const newClock = this.clocksRepo.create(clockHistory);
+        await this.clocksRepo.save(newClock);
         return await this.update(shift.id, {
           status: 2,
           confirmedClockOut: true,
@@ -324,6 +507,7 @@ export class ShiftsService {
 
   async autoConfirmShifts() {
     const date = new Date();
+    console.log(date);
     const shifts = await this.shiftRepo.find({
       where: {
         status: 4,
@@ -333,6 +517,11 @@ export class ShiftsService {
     });
     if (shifts.length > 0) {
       for (const obj of shifts) {
+        if (!obj.worker.stripeId) {
+          throw new ConflictException(
+            `Error Worker ID ${obj.worker.id} has not payment stripe ID`,
+          );
+        }
         try {
           const amount = obj.offer.usdTotal * 100;
           const description = obj.offer.title + obj.offer.from + obj.offer.to;

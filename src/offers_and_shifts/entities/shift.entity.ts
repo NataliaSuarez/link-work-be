@@ -7,10 +7,12 @@ import {
   OneToOne,
   JoinColumn,
   ManyToOne,
+  OneToMany,
 } from 'typeorm';
 
 import { Offers } from './offers.entity';
 import { Worker } from '../../users/entities/worker.entity';
+import { Clocks } from './clocks.entity';
 
 export enum Status {
   ACCEPTED = 0,
@@ -49,7 +51,7 @@ export class Shift {
   @Column({ type: 'bool', default: false })
   confirmedClockOut: boolean;
 
-  @Column({ type: 'date', nullable: true })
+  @Column({ type: 'timestamptz', nullable: true })
   autoConfirmed: Date;
 
   @Column({
@@ -73,4 +75,10 @@ export class Shift {
   })
   @JoinColumn({ name: 'offerId' })
   offer: Offers;
+
+  @OneToMany(() => Clocks, (clocks) => clocks.shift, {
+    nullable: true,
+    onDelete: 'CASCADE',
+  })
+  clocksHistory: Clocks[];
 }

@@ -15,9 +15,12 @@ import { EmployersService } from '../users/services/employers.service';
 import { UsersService } from '../users/services/users.service';
 import { Users } from '../users/entities/users.entity';
 import { StripeService } from '../stripe/stripe.service';
+import { Clocks } from './entities/clocks.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Offers, Shift, Worker, Employer, Users])],
+  imports: [
+    TypeOrmModule.forFeature([Offers, Shift, Clocks, Worker, Employer, Users]),
+  ],
   controllers: [OffersController, ShiftsController],
   providers: [
     OffersService,

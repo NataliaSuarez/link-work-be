@@ -20,6 +20,7 @@ import {
 } from '../dtos/shift.dto';
 import { ShiftsService } from '../services/shifts.service';
 import { AccessTokenGuard } from '../../common/guards/accessToken.guard';
+import { UserIdDto } from '../../users/dtos/users.dto';
 @UseGuards(AccessTokenGuard)
 @ApiTags('shifts')
 @Controller('shifts')
@@ -36,9 +37,24 @@ export class ShiftsController {
     return this.shiftService.findOneById(id);
   }
 
+  @Get('by-status/:status')
+  getByStatus(@Param('status') status: number, @Req() req: Request) {
+    return this.shiftService.findByStatus(req.user, status);
+  }
+
   @Post()
   create(@Body() payload: CreateShiftDto) {
     return this.shiftService.create(payload);
+  }
+
+  @Post('/clock-in/:shiftId')
+  clockIn(@Param('shiftId') shiftId: number, @Body() userId: UserIdDto) {
+    return this.shiftService.clockIn(shiftId, userId.userId);
+  }
+
+  @Post('/clock-out/:shiftId')
+  clockOut(@Param('shiftId') shiftId: number, @Body() userId: UserIdDto) {
+    return this.shiftService.clockOut(shiftId, userId.userId);
   }
 
   @Put(':id')

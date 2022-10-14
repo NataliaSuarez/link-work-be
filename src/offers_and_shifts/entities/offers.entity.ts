@@ -85,6 +85,8 @@ export class Offers {
   @ManyToOne(() => Employer, (employer) => employer.offers, {
     nullable: false,
     onDelete: 'CASCADE',
+    cascade: true,
+    eager: true,
   })
   employer: Employer;
 
