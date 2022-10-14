@@ -13,7 +13,7 @@ import {
   FilterOffersDto,
   UpdateOfferDto,
 } from '../dtos/offers.dto';
-import { Offers } from '../entities/offers.entity';
+import { Offer } from '../entities/offer.entity';
 import { Worker } from '../../users/entities/worker.entity';
 import { Employer } from '../../users/entities/employer.entity';
 import { EmployersService } from '../../users/services/employers.service';
@@ -24,7 +24,7 @@ import { PaginationDto } from 'src/common/dto/pagination.dto';
 @Injectable()
 export class OffersService {
   constructor(
-    @InjectRepository(Offers) private offerRepo: Repository<Offers>,
+    @InjectRepository(Offer) private offerRepo: Repository<Offer>,
     @InjectRepository(Worker) private workerRepo: Repository<Worker>,
     @InjectRepository(Employer) private employerRepo: Repository<Employer>,
     @InjectRepository(Shift) private shiftRepo: Repository<Shift>,
@@ -33,7 +33,7 @@ export class OffersService {
 
   async findAllFiltered(params?: FilterOffersDto) {
     if (params) {
-      const where: FindOptionsWhere<Offers> = {};
+      const where: FindOptionsWhere<Offer> = {};
       const { limit, offset } = params;
       const { usdHour, status } = params;
       if (usdHour) {
@@ -52,7 +52,7 @@ export class OffersService {
     return await this.offerRepo.find();
   }
 
-  async findOne(id: number): Promise<Offers> {
+  async findOne(id: number): Promise<Offer> {
     const offer = await this.offerRepo.findOne({
       where: { id: id },
       relations: ['applicants', 'employer'],
@@ -79,7 +79,7 @@ export class OffersService {
   async findByEmployer(
     employerId: number,
     pagination?: PaginationDto,
-  ): Promise<Offers[]> {
+  ): Promise<Offer[]> {
     const offers = await this.offerRepo.find({
       relations: {
         employer: true,

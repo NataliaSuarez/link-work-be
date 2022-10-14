@@ -3,7 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { UsersController } from './controllers/users.controller';
 import { UsersService } from './services/users.service';
-import { Users } from './entities/users.entity';
+import { User } from './entities/user.entity';
 
 import { EmployersController } from './controllers/employers.controller';
 import { EmployersService } from './services/employers.service';
@@ -13,22 +13,22 @@ import { WorkersController } from './controllers/workers.controller';
 import { WorkersService } from './services/workers.service';
 import { Worker } from './entities/worker.entity';
 
-import { Offers } from 'src/offers_and_shifts/entities/offers.entity';
+import { Offer } from 'src/offers_and_shifts/entities/offer.entity';
 import { Shift } from 'src/offers_and_shifts/entities/shift.entity';
 
 import { Experience } from './entities/experience.entity';
 import { StripeService } from '../stripe/stripe.service';
-import { Clocks } from '../offers_and_shifts/entities/clocks.entity';
+import { Clock } from '../offers_and_shifts/entities/clock.entity';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([
-      Users,
+      User,
       Worker,
       Employer,
-      Offers,
+      Offer,
       Shift,
-      Clocks,
+      Clock,
       Experience,
     ]),
   ],

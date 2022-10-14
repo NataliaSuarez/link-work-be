@@ -12,7 +12,7 @@ import { Exclude } from 'class-transformer';
 
 import { Worker } from './worker.entity';
 import { Employer } from './employer.entity';
-import { Clocks } from '../../offers_and_shifts/entities/clocks.entity';
+import { Clock } from '../../offers_and_shifts/entities/clock.entity';
 
 export enum RegisterType {
   MAIL_AND_PASSWORD = 0,
@@ -26,7 +26,7 @@ export enum Role {
 }
 
 @Entity('users')
-export class Users {
+export class User {
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -92,9 +92,9 @@ export class Users {
   })
   employer: Employer;
 
-  @OneToMany(() => Clocks, (clocks) => clocks.user, {
+  @OneToMany(() => Clock, (clocks) => clocks.user, {
     nullable: true,
     onDelete: 'CASCADE',
   })
-  clocksHistory: Clocks[];
+  clocksHistory: Clock[];
 }

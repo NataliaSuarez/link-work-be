@@ -11,8 +11,8 @@ import {
   OneToMany,
 } from 'typeorm';
 
-import { Users } from './users.entity';
-import { Offers } from '../../offers_and_shifts/entities/offers.entity';
+import { User } from './user.entity';
+import { Offer } from '../../offers_and_shifts/entities/offer.entity';
 import { Shift } from '../../offers_and_shifts/entities/shift.entity';
 import { Experience } from './experience.entity';
 
@@ -22,7 +22,7 @@ export enum Gender {
   OTHER = 2,
 }
 
-@Entity('worker')
+@Entity('workers')
 export class Worker {
   @PrimaryGeneratedColumn()
   id: number;
@@ -87,21 +87,21 @@ export class Worker {
   })
   updateAt: Date;
 
-  @OneToOne(() => Users, (user) => user.worker, {
+  @OneToOne(() => User, (user) => user.worker, {
     cascade: true,
     eager: true,
     onDelete: 'CASCADE',
     onUpdate: 'CASCADE',
   })
   @JoinColumn({ name: 'userId' })
-  user: Users;
+  user: User;
 
-  @ManyToMany(() => Offers, (offers) => offers.applicants, {
+  @ManyToMany(() => Offer, (offers) => offers.applicants, {
     onDelete: 'CASCADE',
     onUpdate: 'CASCADE',
   })
   @JoinTable()
-  offers: Offers[];
+  offers: Offer[];
 
   @OneToMany(() => Shift, (shift) => shift.worker, {
     nullable: true,

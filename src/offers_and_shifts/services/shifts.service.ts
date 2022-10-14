@@ -9,10 +9,10 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Equal, FindOptionsWhere, LessThanOrEqual } from 'typeorm';
 
-import { Offers } from '../entities/offers.entity';
+import { Offer } from '../entities/offer.entity';
 import { OffersService } from './offers.service';
 import { Worker } from '../../users/entities/worker.entity';
-import { Users } from '../../users/entities/users.entity';
+import { User } from '../../users/entities/user.entity';
 import { Shift } from '../entities/shift.entity';
 import {
   CreateShiftDto,
@@ -21,7 +21,7 @@ import {
 } from '../dtos/shift.dto';
 import { Employer } from '../../users/entities/employer.entity';
 import { StripeService } from '../../stripe/stripe.service';
-import { Clocks } from '../entities/clocks.entity';
+import { Clock } from '../entities/clock.entity';
 import * as moment from 'moment';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 
@@ -29,11 +29,11 @@ import { PaginationDto } from 'src/common/dto/pagination.dto';
 export class ShiftsService {
   constructor(
     @InjectRepository(Shift) private shiftRepo: Repository<Shift>,
-    @InjectRepository(Offers) private offerRepo: Repository<Offers>,
+    @InjectRepository(Offer) private offerRepo: Repository<Offer>,
     @InjectRepository(Worker) private workerRepo: Repository<Worker>,
     @InjectRepository(Employer) private employerRepo: Repository<Employer>,
-    @InjectRepository(Users) private userRepo: Repository<Users>,
-    @InjectRepository(Clocks) private clocksRepo: Repository<Clocks>,
+    @InjectRepository(User) private userRepo: Repository<User>,
+    @InjectRepository(Clock) private clocksRepo: Repository<Clock>,
     private offerService: OffersService,
     private stripeService: StripeService,
   ) {}

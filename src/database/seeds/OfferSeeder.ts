@@ -1,14 +1,14 @@
 import { DataSource } from 'typeorm';
 import { Seeder, SeederFactoryManager } from 'typeorm-extension';
 
-import { Offers } from '../../offers_and_shifts/entities/offers.entity';
+import { Offer } from '../../offers_and_shifts/entities/offer.entity';
 
 export class OfferSeeder implements Seeder {
   async run(
     dataSource: DataSource,
     factoryManager: SeederFactoryManager,
   ): Promise<void> {
-    const offerRepository = dataSource.getRepository(Offers);
+    const offerRepository = dataSource.getRepository(Offer);
 
     const fecha1 = new Date('2023-02-12 10:00:00');
     const fecha2 = new Date('2023-02-12 22:00:00');

@@ -13,18 +13,18 @@ import {
   FilterUsersDto,
   UpdateUserDto,
 } from '../dtos/users.dto';
-import { Users } from '../entities/users.entity';
+import { User } from '../entities/user.entity';
 
 @Injectable()
 export class UsersService {
   constructor(
-    @InjectRepository(Users)
-    private userRepository: Repository<Users>,
+    @InjectRepository(User)
+    private userRepository: Repository<User>,
   ) {}
 
   async findAllFiltered(params?: FilterUsersDto) {
     if (params) {
-      const where: FindOptionsWhere<Users> = {};
+      const where: FindOptionsWhere<User> = {};
       const { limit, offset } = params;
       const { role } = params;
       if (role) {
@@ -39,7 +39,7 @@ export class UsersService {
     return await this.userRepository.find();
   }
 
-  async findOneById(id: number): Promise<Users> {
+  async findOneById(id: number): Promise<User> {
     const user = await this.userRepository.findOneBy({ id: id });
     if (!user) {
       throw new NotFoundException(`User #${id} not found`);
@@ -47,7 +47,7 @@ export class UsersService {
     return user;
   }
 
-  async findByEmail(email: string): Promise<Users> {
+  async findByEmail(email: string): Promise<User> {
     const user = await this.userRepository.findOne({ where: { email: email } });
     return user;
   }
@@ -78,7 +78,7 @@ export class UsersService {
     return newUser;
   }
 
-  async update(user: Users, changes: UpdateUserDto) {
+  async update(user: User, changes: UpdateUserDto) {
     try {
       this.userRepository.merge(user, changes);
       return await this.userRepository.save(user);

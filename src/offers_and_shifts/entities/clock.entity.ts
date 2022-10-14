@@ -7,15 +7,15 @@ import {
   Column,
 } from 'typeorm';
 import { Shift } from './shift.entity';
-import { Users } from '../../users/entities/users.entity';
+import { User } from '../../users/entities/user.entity';
 
 export enum ClockType {
   IN = 1,
   OUT = 2,
 }
 
-@Entity('clocks_history')
-export class Clocks {
+@Entity('clocks_histories')
+export class Clock {
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -43,9 +43,9 @@ export class Clocks {
   })
   shift: Shift;
 
-  @ManyToOne(() => Users, (user) => user.clocksHistory, {
+  @ManyToOne(() => User, (user) => user.clocksHistory, {
     nullable: false,
     onDelete: 'CASCADE',
   })
-  user: Users;
+  user: User;
 }

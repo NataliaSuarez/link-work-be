@@ -10,9 +10,9 @@ import {
   OneToMany,
 } from 'typeorm';
 
-import { Offers } from './offers.entity';
+import { Offer } from './offer.entity';
 import { Worker } from '../../users/entities/worker.entity';
-import { Clocks } from './clocks.entity';
+import { Clock } from './clock.entity';
 
 export enum Status {
   ACCEPTED = 0,
@@ -22,7 +22,7 @@ export enum Status {
   UNCONFIRMED = 4,
 }
 
-@Entity('shift')
+@Entity('shifts')
 export class Shift {
   @PrimaryGeneratedColumn()
   id: number;
@@ -67,18 +67,18 @@ export class Shift {
   })
   worker: Worker;
 
-  @OneToOne(() => Offers, (offer) => offer.shift, {
+  @OneToOne(() => Offer, (offer) => offer.shift, {
     cascade: true,
     eager: true,
     onDelete: 'CASCADE',
     nullable: false,
   })
   @JoinColumn({ name: 'offerId' })
-  offer: Offers;
+  offer: Offer;
 
-  @OneToMany(() => Clocks, (clocks) => clocks.shift, {
+  @OneToMany(() => Clock, (clocks) => clocks.shift, {
     nullable: true,
     onDelete: 'CASCADE',
   })
-  clocksHistory: Clocks[];
+  clocksHistory: Clock[];
 }

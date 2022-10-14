@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
-import { Offers } from './entities/offers.entity';
+import { Offer } from './entities/offer.entity';
 import { OffersService } from './services/offers.service';
 import { OffersController } from './controllers/offers.controller';
 
@@ -13,13 +13,13 @@ import { Worker } from '../users/entities/worker.entity';
 import { Employer } from '../users/entities/employer.entity';
 import { EmployersService } from '../users/services/employers.service';
 import { UsersService } from '../users/services/users.service';
-import { Users } from '../users/entities/users.entity';
+import { User } from '../users/entities/user.entity';
 import { StripeService } from '../stripe/stripe.service';
-import { Clocks } from './entities/clocks.entity';
+import { Clock } from './entities/clock.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Offers, Shift, Clocks, Worker, Employer, Users]),
+    TypeOrmModule.forFeature([Offer, Shift, Clock, Worker, Employer, User]),
   ],
   controllers: [OffersController, ShiftsController],
   providers: [

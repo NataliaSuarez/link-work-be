@@ -1,14 +1,14 @@
 import { DataSource } from 'typeorm';
 import { Seeder, SeederFactoryManager } from 'typeorm-extension';
 
-import { Users } from '../../users/entities/users.entity';
+import { User } from '../../users/entities/user.entity';
 
 export class UserSeeder implements Seeder {
   async run(
     dataSource: DataSource,
     factoryManager: SeederFactoryManager,
   ): Promise<void> {
-    const userRepository = dataSource.getRepository(Users);
+    const userRepository = dataSource.getRepository(User);
 
     const userData1 = {
       firstName: 'Selie',

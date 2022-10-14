@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
-import { Users } from '../users/entities/users.entity';
+import { User } from '../users/entities/user.entity';
 import { Employer } from '../users/entities/employer.entity';
 import { Worker } from '../users/entities/worker.entity';
-import { Offers } from '../offers_and_shifts/entities/offers.entity';
+import { Offer } from '../offers_and_shifts/entities/offer.entity';
 import { Shift } from '../offers_and_shifts/entities/shift.entity';
 import { ShiftsService } from '../offers_and_shifts/services/shifts.service';
 import { TasksService } from './tasks.service';
@@ -13,11 +13,11 @@ import { StripeService } from '../stripe/stripe.service';
 import { EmployersService } from '../users/services/employers.service';
 import { WorkersService } from '../users/services/workers.service';
 import { UsersService } from '../users/services/users.service';
-import { Clocks } from '../offers_and_shifts/entities/clocks.entity';
+import { Clock } from '../offers_and_shifts/entities/clock.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Shift, Offers, Worker, Employer, Users, Clocks]),
+    TypeOrmModule.forFeature([Shift, Offer, Worker, Employer, User, Clock]),
   ],
   providers: [
     TasksService,

@@ -28,8 +28,8 @@ export enum Category {
   OTHER = 4,
 }
 
-@Entity('offer')
-export class Offers {
+@Entity('offers')
+export class Offer {
   @PrimaryGeneratedColumn()
   id: number;
 

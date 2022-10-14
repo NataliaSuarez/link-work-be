@@ -9,8 +9,8 @@ import {
   OneToMany,
 } from 'typeorm';
 
-import { Users } from './users.entity';
-import { Offers } from '../../offers_and_shifts/entities/offers.entity';
+import { User } from './user.entity';
+import { Offer } from '../../offers_and_shifts/entities/offer.entity';
 
 export enum BusinessCode {
   HOTEL = 0,
@@ -18,7 +18,7 @@ export enum BusinessCode {
   OTHER = 2,
 }
 
-@Entity('employer')
+@Entity('employers')
 export class Employer {
   @PrimaryGeneratedColumn()
   id: number;
@@ -65,15 +65,15 @@ export class Employer {
   })
   updateAt: Date;
 
-  @OneToOne(() => Users, (user) => user.employer, {
+  @OneToOne(() => User, (user) => user.employer, {
     cascade: true,
     eager: true,
     onDelete: 'CASCADE',
     onUpdate: 'CASCADE',
   })
   @JoinColumn({ name: 'userId' })
-  user: Users;
+  user: User;
 
-  @OneToMany(() => Offers, (offers) => offers.employer)
-  offers: Offers[];
+  @OneToMany(() => Offer, (offers) => offers.employer)
+  offers: Offer[];
 }
