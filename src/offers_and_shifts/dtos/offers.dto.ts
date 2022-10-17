@@ -44,14 +44,14 @@ export class CreateOfferDto {
   readonly category: number;
 
   @IsString()
+  @IsOptional()
   @ApiProperty()
-  readonly description: string;
+  readonly description?: string;
 
   @IsNumber()
-  @IsNotEmpty()
-  @IsPositive()
+  @IsOptional()
   @ApiProperty()
-  readonly status: number;
+  readonly status?: number;
 
   @IsNumber()
   @IsNotEmpty()
@@ -60,8 +60,9 @@ export class CreateOfferDto {
   readonly employerId: number;
 
   @IsArray()
+  @IsOptional()
   @ApiProperty()
-  readonly applicantsIds: number[];
+  readonly applicantsIds?: number[];
 }
 
 export class UpdateOfferDto extends PartialType(CreateOfferDto) {}

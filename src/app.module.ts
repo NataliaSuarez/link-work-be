@@ -15,6 +15,7 @@ import { StripeModule } from './stripe/stripe.module';
 import { ChatModule } from './chat/chat.module';
 import { Chat } from './chat/chat.entity';
 import { TasksModule } from './tasks/tasks.module';
+import { SpacesModule } from './spaces/spaces.module';
 import config from './config';
 
 @Module({
@@ -34,6 +35,7 @@ import config from './config';
     ChatModule,
     ScheduleModule.forRoot(),
     TasksModule,
+    SpacesModule,
   ],
   controllers: [AppController],
 

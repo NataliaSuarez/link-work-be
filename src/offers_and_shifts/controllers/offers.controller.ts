@@ -9,8 +9,11 @@ import {
   Body,
   Query,
   UseGuards,
+  UploadedFile,
+  UseInterceptors,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
+import { Express } from 'express';
 import {
   ApplyDto,
   CreateOfferDto,
@@ -19,6 +22,9 @@ import {
 } from '../dtos/offers.dto';
 import { OffersService } from '../services/offers.service';
 import { AccessTokenGuard } from '../../common/guards/accessToken.guard';
+import { DOSpacesService } from '../../spaces/services/doSpacesService';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
 
 @ApiTags('offers')
 @Controller('offers')
@@ -44,6 +50,26 @@ export class OffersController {
   @Post()
   create(@Body() payload: CreateOfferDto) {
     return this.offerService.create(payload);
+  }
+
+  @Post(':id/upload-video')
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: diskStorage({
+        destination: './tmp/uploads/offers',
+      }),
+    }),
+  )
+  async createByVideo(
+    @Param('id', ParseIntPipe) id: number,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    return await this.offerService.uploadOfferVideo(id, file);
+  }
+
+  @Get(':id/video')
+  async downloadFileUrl(@Param('id') offerId: number) {
+    return this.offerService.getDownloadFileUrl(offerId);
   }
 
   @Put(':id')

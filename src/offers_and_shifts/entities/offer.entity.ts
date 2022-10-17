@@ -54,8 +54,11 @@ export class Offer {
   })
   category: Category;
 
-  @Column({ type: 'text' })
+  @Column({ type: 'text', nullable: true })
   description: string;
+
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  videoUrl?: string;
 
   @Column({
     type: 'enum',

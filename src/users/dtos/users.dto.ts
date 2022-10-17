@@ -17,14 +17,14 @@ import { PaginationDto } from 'src/common/dto/pagination.dto';
 
 export class CreateUserDto {
   @IsString()
-  @IsNotEmpty()
+  @IsOptional()
   @ApiProperty()
-  readonly firstName: string;
+  readonly firstName?: string;
 
   @IsString()
-  @IsNotEmpty()
+  @IsOptional()
   @ApiProperty()
-  readonly lastName: string;
+  readonly lastName?: string;
 
   @IsEmail()
   @IsNotEmpty()

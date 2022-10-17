@@ -14,6 +14,8 @@ import { EmployersService } from '../users/services/employers.service';
 import { WorkersService } from '../users/services/workers.service';
 import { UsersService } from '../users/services/users.service';
 import { Clock } from '../offers_and_shifts/entities/clock.entity';
+import { DOSpacesService } from '../spaces/services/doSpacesService';
+import { DOSpacesServiceProvider } from '../spaces/services';
 
 @Module({
   imports: [
@@ -27,6 +29,8 @@ import { Clock } from '../offers_and_shifts/entities/clock.entity';
     EmployersService,
     WorkersService,
     UsersService,
+    DOSpacesService,
+    DOSpacesServiceProvider,
   ],
 })
 export class TasksModule {}

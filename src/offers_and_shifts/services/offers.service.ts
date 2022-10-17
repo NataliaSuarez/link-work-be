@@ -20,6 +20,7 @@ import { EmployersService } from '../../users/services/employers.service';
 import { Shift } from '../entities/shift.entity';
 import { getDay0, getDay6, getHoursDiff } from 'src/utils/dates';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
+import { DOSpacesService } from '../../spaces/services/doSpacesService';
 
 @Injectable()
 export class OffersService {
@@ -29,6 +30,7 @@ export class OffersService {
     @InjectRepository(Employer) private employerRepo: Repository<Employer>,
     @InjectRepository(Shift) private shiftRepo: Repository<Shift>,
     private employerServices: EmployersService,
+    private doSpaceService: DOSpacesService,
   ) {}
 
   async findAllFiltered(params?: FilterOffersDto) {
@@ -107,6 +109,30 @@ export class OffersService {
       const newOffer = this.offerRepo.create(data);
       newOffer.employer = employer;
       return this.offerRepo.save(newOffer);
+    } catch (error) {
+      throw new InternalServerErrorException();
+    }
+  }
+
+  async uploadOfferVideo(offerId: number, file: Express.Multer.File) {
+    try {
+      const offer = await this.findOne(offerId);
+      const fileUrl = await this.doSpaceService.uploadOfferVideo(
+        file,
+        offer.employer.id,
+        offerId,
+      );
+      return fileUrl;
+    } catch (error) {
+      throw new InternalServerErrorException();
+    }
+  }
+
+  async getDownloadFileUrl(offerId: number) {
+    try {
+      const offer = await this.findOne(offerId);
+      const url = await this.doSpaceService.downloadFile(offer.videoUrl);
+      return url;
     } catch (error) {
       throw new InternalServerErrorException();
     }

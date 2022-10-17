@@ -16,6 +16,8 @@ import { UsersService } from '../users/services/users.service';
 import { User } from '../users/entities/user.entity';
 import { StripeService } from '../stripe/stripe.service';
 import { Clock } from './entities/clock.entity';
+import { DOSpacesService } from '../spaces/services/doSpacesService';
+import { DOSpacesServiceProvider } from '../spaces/services';
 
 @Module({
   imports: [
@@ -28,6 +30,8 @@ import { Clock } from './entities/clock.entity';
     UsersService,
     EmployersService,
     StripeService,
+    DOSpacesService,
+    DOSpacesServiceProvider,
   ],
   exports: [OffersService, ShiftsService],
 })
