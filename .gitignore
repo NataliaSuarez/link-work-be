@@ -37,6 +37,9 @@ lerna-debug.log*
 *.env
 !.env.example
 
+# Temporary
+/tmp
+
 # TypeScript v1 declaration files
 typings/
 
