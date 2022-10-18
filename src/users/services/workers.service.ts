@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, FindOptionsWhere } from 'typeorm';
 
@@ -11,14 +15,18 @@ import {
 import { Worker } from '../entities/worker.entity';
 import { UsersService } from './users.service';
 import { StripeService } from '../../stripe/stripe.service';
+import { DOSpacesService } from '../../spaces/services/doSpacesService';
+import { Experience } from '../entities/experience.entity';
 
 @Injectable()
 export class WorkersService {
   constructor(
-    @InjectRepository(Worker)
-    private workerRepository: Repository<Worker>,
+    @InjectRepository(Worker) private workerRepository: Repository<Worker>,
+    @InjectRepository(Experience)
+    private experienceRepository: Repository<Experience>,
     private usersService: UsersService,
     private stripeService: StripeService,
+    private doSpaceService: DOSpacesService,
   ) {}
 
   findAll(params?: FilterWorkersDto) {
@@ -56,6 +64,36 @@ export class WorkersService {
     }
     this.workerRepository.merge(worker, changes);
     return this.workerRepository.save(worker);
+  }
+
+  async uploadExperienceVideo(workerId: number, file: Express.Multer.File) {
+    try {
+      const worker = await this.findOne(workerId);
+      const fileUrl = await this.doSpaceService.uploadWorkerVideo(
+        file,
+        worker.id,
+      );
+      const experienceData = {
+        videoUrl: fileUrl,
+        worker: worker,
+      };
+      const newExperience = this.experienceRepository.create(experienceData);
+      return this.experienceRepository.save(newExperience);
+    } catch (error) {
+      throw new InternalServerErrorException();
+    }
+  }
+
+  async getDownloadFileUrl(workerId: number) {
+    try {
+      const experience = await this.experienceRepository.findOne({
+        where: { worker: { id: workerId } },
+      });
+      const url = await this.doSpaceService.downloadFile(experience.videoUrl);
+      return url;
+    } catch (error) {
+      throw new InternalServerErrorException();
+    }
   }
 
   async remove(id: number) {

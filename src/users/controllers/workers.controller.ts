@@ -7,8 +7,12 @@ import {
   ParseIntPipe,
   Delete,
   Param,
+  UseInterceptors,
+  UploadedFile,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
 
 import {
   CreateWorkerDto,
@@ -43,6 +47,26 @@ export class WorkersController {
     @Body() payload: StripeUserAccDto,
   ) {
     return this.workersService.createStripeAccount(id, payload);
+  }
+
+  @Post(':id/upload-video')
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: diskStorage({
+        destination: './tmp/uploads/workers',
+      }),
+    }),
+  )
+  async addExperienceVideo(
+    @Param('id', ParseIntPipe) id: number,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    return await this.workersService.uploadExperienceVideo(id, file);
+  }
+
+  @Get(':id/video')
+  async downloadFileUrl(@Param('id') workerId: number) {
+    return this.workersService.getDownloadFileUrl(workerId);
   }
 
   @Put(':id')

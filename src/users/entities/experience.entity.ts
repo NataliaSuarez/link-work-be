@@ -4,7 +4,8 @@ import {
   Entity,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
-  ManyToOne,
+  OneToOne,
+  JoinColumn,
 } from 'typeorm';
 
 import { Worker } from './worker.entity';
@@ -14,8 +15,8 @@ export class Experience {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ type: 'text' })
-  description: string;
+  @Column({ type: 'varchar', length: 255, nullable: false })
+  videoUrl: string;
 
   @CreateDateColumn({
     type: 'timestamptz',
@@ -29,9 +30,7 @@ export class Experience {
   })
   updateAt: Date;
 
-  @ManyToOne(() => Worker, (worker) => worker.experience, {
-    nullable: true,
-    onDelete: 'CASCADE',
-  })
+  @OneToOne(() => Worker, (worker) => worker.experience, { nullable: false })
+  @JoinColumn({ name: 'workerId' })
   worker: Worker;
 }

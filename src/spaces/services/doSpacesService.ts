@@ -66,6 +66,17 @@ export class DOSpacesService {
     });
   }
 
+  async uploadWorkerVideo(
+    file: Express.Multer.File,
+    workerId: number,
+  ): Promise<string> {
+    const key = `worker-${workerId}`;
+    const fileReadStream = fs.createReadStream(file.path);
+    return await this.uploadFile(fileReadStream, linkWorkBucket, key, {
+      contentType: file.mimetype,
+    });
+  }
+
   async downloadFile(url: string): Promise<AWS.S3.GetObjectOutput> {
     const { bucket, key } = this.parseS3Url(url);
     return new Promise((resolve, reject) => {

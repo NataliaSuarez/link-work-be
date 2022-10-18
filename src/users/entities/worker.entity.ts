@@ -109,9 +109,11 @@ export class Worker {
   })
   shifts: Shift[];
 
-  @OneToMany(() => Experience, (experience) => experience.worker, {
-    nullable: true,
+  @OneToOne(() => Experience, (experience) => experience.worker, {
+    cascade: true,
+    eager: true,
     onDelete: 'CASCADE',
   })
-  experience: Experience[];
+  @JoinColumn({ name: 'workerId' })
+  experience: Experience;
 }

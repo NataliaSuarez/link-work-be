@@ -7,6 +7,7 @@ import {
   IsDate,
   IsOptional,
   Min,
+  IsUrl,
 } from 'class-validator';
 import { ApiProperty, PartialType } from '@nestjs/swagger';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
@@ -47,6 +48,11 @@ export class CreateOfferDto {
   @IsOptional()
   @ApiProperty()
   readonly description?: string;
+
+  @IsUrl()
+  @IsOptional()
+  @ApiProperty()
+  readonly videoUrl?: string;
 
   @IsNumber()
   @IsOptional()

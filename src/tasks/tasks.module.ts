@@ -16,10 +16,19 @@ import { UsersService } from '../users/services/users.service';
 import { Clock } from '../offers_and_shifts/entities/clock.entity';
 import { DOSpacesService } from '../spaces/services/doSpacesService';
 import { DOSpacesServiceProvider } from '../spaces/services';
+import { Experience } from '../users/entities/experience.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Shift, Offer, Worker, Employer, User, Clock]),
+    TypeOrmModule.forFeature([
+      Shift,
+      Offer,
+      Worker,
+      Employer,
+      User,
+      Clock,
+      Experience,
+    ]),
   ],
   providers: [
     TasksService,

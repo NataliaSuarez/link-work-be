@@ -19,6 +19,8 @@ import { Shift } from 'src/offers_and_shifts/entities/shift.entity';
 import { Experience } from './entities/experience.entity';
 import { StripeService } from '../stripe/stripe.service';
 import { Clock } from '../offers_and_shifts/entities/clock.entity';
+import { DOSpacesService } from '../spaces/services/doSpacesService';
+import { DOSpacesServiceProvider } from '../spaces/services';
 
 @Module({
   imports: [
@@ -33,7 +35,14 @@ import { Clock } from '../offers_and_shifts/entities/clock.entity';
     ]),
   ],
   controllers: [UsersController, EmployersController, WorkersController],
-  providers: [UsersService, EmployersService, WorkersService, StripeService],
+  providers: [
+    UsersService,
+    EmployersService,
+    WorkersService,
+    StripeService,
+    DOSpacesService,
+    DOSpacesServiceProvider,
+  ],
   exports: [UsersService, EmployersService, WorkersService],
 })
 export class UsersModule {}
