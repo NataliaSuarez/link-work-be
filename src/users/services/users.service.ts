@@ -14,12 +14,14 @@ import {
   UpdateUserDto,
 } from '../dtos/users.dto';
 import { User } from '../entities/user.entity';
+import { DOSpacesService } from '../../spaces/services/doSpacesService';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(User)
     private userRepository: Repository<User>,
+    private doSpaceService: DOSpacesService,
   ) {}
 
   async findAllFiltered(params?: FilterUsersDto) {
@@ -79,6 +81,17 @@ export class UsersService {
     });
     await this.userRepository.save(newUser);
     return newUser;
+  }
+
+  async uploadProfileImg(userId: number, file: Express.Multer.File) {
+    try {
+      const user = await this.findOneById(userId);
+      const fileUrl = await this.doSpaceService.uploadProfileImg(file, userId);
+      const updatedUser = await this.update(user, { profileImg: fileUrl });
+      return updatedUser;
+    } catch (error) {
+      throw new InternalServerErrorException();
+    }
   }
 
   async update(user: User, changes: UpdateUserDto) {

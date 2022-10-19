@@ -35,22 +35,23 @@ export class Employer {
   @Column({
     type: 'enum',
     enum: BusinessCode,
+    default: BusinessCode.OTHER,
   })
   businessCode: BusinessCode;
 
   @Column({ type: 'varchar', length: 255 })
   businessName: string;
 
-  @Column({ type: 'text' })
+  @Column({ type: 'text', nullable: true })
   description: string;
 
-  @Column({ type: 'int' })
+  @Column({ type: 'int', default: 0 })
   stars: number;
 
-  @Column({ type: 'int' })
+  @Column({ type: 'int', default: 0 })
   totalReviews: number;
 
-  @Column({ type: 'varchar', length: 255 })
+  @Column({ type: 'varchar', length: 255, nullable: true })
   customerId: string;
 
   @CreateDateColumn({

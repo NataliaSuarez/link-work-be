@@ -383,7 +383,7 @@ export class ShiftsService {
       await this.clocksRepo.save(newClock);
       return this.shiftRepo.save(shift);
     } catch (error) {
-      return error.message;
+      throw new InternalServerErrorException();
     }
   }
 
@@ -417,7 +417,7 @@ export class ShiftsService {
       await this.clocksRepo.save(newClock);
       return this.shiftRepo.save(shift);
     } catch (error) {
-      return error.message;
+      throw new InternalServerErrorException();
     }
   }
 
@@ -451,7 +451,7 @@ export class ShiftsService {
       await this.clocksRepo.save(newClock);
       return this.shiftRepo.save(shift);
     } catch (error) {
-      return error.message;
+      throw new InternalServerErrorException();
     }
   }
 

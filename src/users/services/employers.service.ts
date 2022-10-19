@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, FindOptionsWhere } from 'typeorm';
 
@@ -42,24 +47,31 @@ export class EmployersService {
   }
 
   async create(data: CreateEmployerDto) {
-    const user = await this.usersService.findOneById(data.userId);
-    if (!user) {
-      throw new NotFoundException(`User #${data.userId} not found`);
+    try {
+      const user = await this.usersService.findOneById(data.userId);
+      if (!user) {
+        throw new NotFoundException(`User #${data.userId} not found`);
+      }
+      if (user.role != 1) {
+        throw new ForbiddenException("This user can't be an employer");
+      }
+      // const employer = {
+      //   address: data.address,
+      //   city: data.city,
+      //   state: data.state,
+      //   businessCode: data.businessCode,
+      //   businessName: data.businessName,
+      //   description: data.description,
+      //   stars: 0,
+      //   totalReviews: 0,
+      //   customerId: " "
+      // };
+      const newEmployer = this.employerRepository.create(data);
+      newEmployer.user = user;
+      return this.employerRepository.save(newEmployer);
+    } catch (error) {
+      throw new InternalServerErrorException();
     }
-    // const employer = {
-    //   address: data.address,
-    //   city: data.city,
-    //   state: data.state,
-    //   businessCode: data.businessCode,
-    //   businessName: data.businessName,
-    //   description: data.description,
-    //   stars: 0,
-    //   totalReviews: 0,
-    //   customerId: " "
-    // };
-    const newEmployer = this.employerRepository.create(data);
-    newEmployer.user = user;
-    return this.employerRepository.save(newEmployer);
   }
 
   async update(id: number, changes: UpdateEmployerDto) {
@@ -97,8 +109,7 @@ export class EmployersService {
       this.employerRepository.merge(employer, changes);
       return this.employerRepository.save(employer);
     } catch (error) {
-      console.log(error);
-      return error.message;
+      throw new InternalServerErrorException();
     }
   }
 

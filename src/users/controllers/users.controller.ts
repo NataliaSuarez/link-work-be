@@ -10,8 +10,13 @@ import {
   UseGuards,
   Patch,
   NotFoundException,
+  UseInterceptors,
+  Post,
+  UploadedFile,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
 
 import { FilterUsersDto, UpdateUserDto } from '../dtos/users.dto';
 import { UsersService } from '../services/users.service';
@@ -41,6 +46,21 @@ export class UsersController {
   @Get(':id')
   async get(@Param('id', ParseIntPipe) id: number) {
     return await this.usersService.findOneById(id);
+  }
+
+  @Post(':id/upload-profile-img')
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: diskStorage({
+        destination: './tmp/uploads/profileImgs',
+      }),
+    }),
+  )
+  async addProfileImg(
+    @Param('id', ParseIntPipe) id: number,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    return await this.usersService.uploadProfileImg(id, file);
   }
 
   // @Post()

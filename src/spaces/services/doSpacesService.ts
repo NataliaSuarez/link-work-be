@@ -59,7 +59,7 @@ export class DOSpacesService {
     employerId: number,
     offerId: number,
   ): Promise<string> {
-    const key = `employer-${employerId}/offer-${offerId}`;
+    const key = `video/offers/employer-${employerId}/offer-${offerId}`;
     const fileReadStream = fs.createReadStream(file.path);
     return await this.uploadFile(fileReadStream, linkWorkBucket, key, {
       contentType: file.mimetype,
@@ -70,7 +70,29 @@ export class DOSpacesService {
     file: Express.Multer.File,
     workerId: number,
   ): Promise<string> {
-    const key = `worker-${workerId}`;
+    const key = `video/workers/worker-${workerId}`;
+    const fileReadStream = fs.createReadStream(file.path);
+    return await this.uploadFile(fileReadStream, linkWorkBucket, key, {
+      contentType: file.mimetype,
+    });
+  }
+
+  async uploadProfileImg(
+    file: Express.Multer.File,
+    userId: number,
+  ): Promise<string> {
+    const key = `img/profiles/user-${userId}`;
+    const fileReadStream = fs.createReadStream(file.path);
+    return await this.uploadFile(fileReadStream, linkWorkBucket, key, {
+      contentType: file.mimetype,
+    });
+  }
+
+  async uploadBusinessImg(
+    file: Express.Multer.File,
+    employerId: number,
+  ): Promise<string> {
+    const key = `img/employers/employer-${employerId}`;
     const fileReadStream = fs.createReadStream(file.path);
     return await this.uploadFile(fileReadStream, linkWorkBucket, key, {
       contentType: file.mimetype,

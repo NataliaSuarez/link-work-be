@@ -25,9 +25,9 @@ export class CreateEmployerDto {
   readonly state: string;
 
   @IsNumber()
-  @IsNotEmpty()
+  @IsOptional()
   @ApiProperty()
-  readonly businessCode: number;
+  readonly businessCode?: number;
 
   @IsString()
   @IsNotEmpty()
@@ -35,8 +35,9 @@ export class CreateEmployerDto {
   readonly businessName: string;
 
   @IsString()
+  @IsOptional()
   @ApiProperty()
-  readonly description: string;
+  readonly description?: string;
 
   @IsNumber()
   @IsOptional()

@@ -1,4 +1,5 @@
 import {
+  ForbiddenException,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
@@ -51,10 +52,17 @@ export class WorkersService {
   }
 
   async create(data: CreateWorkerDto) {
-    const newWorker = this.workerRepository.create(data);
-    const user = await this.usersService.findOneById(data.userId);
-    newWorker.user = user;
-    return this.workerRepository.save(newWorker);
+    try {
+      const user = await this.usersService.findOneById(data.userId);
+      if (user.role != 2) {
+        throw new ForbiddenException("This user can't be a worker");
+      }
+      const newWorker = this.workerRepository.create(data);
+      newWorker.user = user;
+      return this.workerRepository.save(newWorker);
+    } catch (error) {
+      throw new InternalServerErrorException();
+    }
   }
 
   async update(id: number, changes: UpdateWorkerDto) {
