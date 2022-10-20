@@ -17,6 +17,7 @@ import { Clock } from '../offers_and_shifts/entities/clock.entity';
 import { DOSpacesService } from '../spaces/services/doSpacesService';
 import { DOSpacesServiceProvider } from '../spaces/services';
 import { Experience } from '../users/entities/experience.entity';
+import { BusinessImages } from '../users/entities/businessImg.entity';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { Experience } from '../users/entities/experience.entity';
       User,
       Clock,
       Experience,
+      BusinessImages,
     ]),
   ],
   providers: [

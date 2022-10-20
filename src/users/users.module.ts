@@ -21,6 +21,7 @@ import { StripeService } from '../stripe/stripe.service';
 import { Clock } from '../offers_and_shifts/entities/clock.entity';
 import { DOSpacesService } from '../spaces/services/doSpacesService';
 import { DOSpacesServiceProvider } from '../spaces/services';
+import { BusinessImages } from './entities/businessImg.entity';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { DOSpacesServiceProvider } from '../spaces/services';
       Shift,
       Clock,
       Experience,
+      BusinessImages,
     ]),
   ],
   controllers: [UsersController, EmployersController, WorkersController],

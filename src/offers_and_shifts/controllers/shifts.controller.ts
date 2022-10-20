@@ -13,11 +13,7 @@ import {
 import { ApiTags } from '@nestjs/swagger';
 import { Request } from 'express';
 
-import {
-  CreateShiftDto,
-  FilterShiftsDto,
-  UpdateShiftDto,
-} from '../dtos/shift.dto';
+import { CreateShiftDto, UpdateShiftDto } from '../dtos/shift.dto';
 import { ShiftsService } from '../services/shifts.service';
 import { AccessTokenGuard } from '../../common/guards/accessToken.guard';
 import { UserIdDto } from '../../users/dtos/users.dto';

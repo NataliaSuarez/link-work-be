@@ -11,6 +11,7 @@ import {
 
 import { User } from './user.entity';
 import { Offer } from '../../offers_and_shifts/entities/offer.entity';
+import { BusinessImages } from './businessImg.entity';
 
 export enum BusinessCode {
   HOTEL = 0,
@@ -77,4 +78,14 @@ export class Employer {
 
   @OneToMany(() => Offer, (offers) => offers.employer)
   offers: Offer[];
+
+  @OneToMany(
+    () => BusinessImages,
+    (businessImages) => businessImages.employer,
+    {
+      nullable: true,
+      onDelete: 'CASCADE',
+    },
+  )
+  businessImages: BusinessImages[];
 }

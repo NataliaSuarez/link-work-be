@@ -83,6 +83,24 @@ export class StripeService {
     return paymentMethods;
   }
 
+  async updatePaymentMethod(customerId: string, data: CardDto) {
+    const paymentMethod = await stripe.paymentMethods.create({
+      type: 'card',
+      card: data,
+    });
+    const oldPaymentMethod = await this.retrievePaymentMethod(customerId);
+    await stripe.paymentMethods.detach(oldPaymentMethod.data[0].id);
+    await stripe.paymentMethods.attach(paymentMethod.id, {
+      customer: customerId,
+    });
+    await stripe.customers.update(customerId, {
+      invoice_settings: {
+        default_payment_method: paymentMethod.id,
+      },
+    });
+    return paymentMethod;
+  }
+
   async createPaymentIntent(data: PaymentIntentDto) {
     const paymentIntent = await stripe.paymentIntents.create(data);
     return paymentIntent;
