@@ -63,11 +63,6 @@ export class UsersController {
     return await this.usersService.uploadProfileImg(id, file);
   }
 
-  // @Post()
-  // create(@Body() payload: CreateUserDto) {
-  //   return this.usersService.create(payload);
-  // }
-
   @UseGuards(AccessTokenGuard)
   @Put(':id')
   async update(@Param('id') userId: number, @Body() payload: UpdateUserDto) {

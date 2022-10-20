@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ForbiddenException,
   Injectable,
   InternalServerErrorException,
@@ -15,14 +16,19 @@ import {
 import { Employer } from '../entities/employer.entity';
 import { UsersService } from './users.service';
 import { StripeService } from '../../stripe/stripe.service';
+import { BusinessImages } from '../entities/businessImg.entity';
+import { DOSpacesService } from '../../spaces/services/doSpacesService';
 
 @Injectable()
 export class EmployersService {
   constructor(
     @InjectRepository(Employer)
     private employerRepository: Repository<Employer>,
+    @InjectRepository(BusinessImages)
+    private imgRepository: Repository<BusinessImages>,
     private usersService: UsersService,
     private stripeService: StripeService,
+    private doSpaceService: DOSpacesService,
   ) {}
 
   findAll(params?: FilterEmployersDto) {
@@ -55,20 +61,34 @@ export class EmployersService {
       if (user.role != 1) {
         throw new ForbiddenException("This user can't be an employer");
       }
-      // const employer = {
-      //   address: data.address,
-      //   city: data.city,
-      //   state: data.state,
-      //   businessCode: data.businessCode,
-      //   businessName: data.businessName,
-      //   description: data.description,
-      //   stars: 0,
-      //   totalReviews: 0,
-      //   customerId: " "
-      // };
-      const newEmployer = this.employerRepository.create(data);
-      newEmployer.user = user;
-      return this.employerRepository.save(newEmployer);
+      if (data.number) {
+        if (!data.exp_month || !data.exp_year || !data.cvc) {
+          throw new BadRequestException();
+        }
+        const newEmployer = this.employerRepository.create(data);
+        const { number, exp_month, exp_year, cvc } = data;
+        const fullName = user.firstName + ' ' + user.lastName;
+        const customerData = {
+          email: user.email,
+          name: fullName,
+          description: data.businessName,
+        };
+        const customer = await this.stripeService.createCustomer(customerData);
+        const card = {
+          number: number,
+          exp_month: exp_month,
+          exp_year: exp_year,
+          cvc: cvc,
+        };
+        await this.stripeService.createPaymentMethod(customer.id, card);
+        newEmployer.user = user;
+        newEmployer.customerId = customer.id;
+        return this.employerRepository.save(newEmployer);
+      } else {
+        const newEmployer = this.employerRepository.create(data);
+        newEmployer.user = user;
+        return this.employerRepository.save(newEmployer);
+      }
     } catch (error) {
       throw new InternalServerErrorException();
     }
@@ -80,34 +100,62 @@ export class EmployersService {
       throw new NotFoundException(`Employer #${id} not found`);
     }
     try {
-      if (
-        changes.number &&
-        changes.exp_month &&
-        changes.exp_year &&
-        changes.cvc
-      ) {
-        const { number, exp_month, exp_year, cvc } = changes;
-        const fullName = employer.user.firstName + ' ' + employer.user.lastName;
-        const customerData = {
-          email: employer.user.email,
-          name: fullName,
-          description: employer.businessName,
-        };
-        const customer = await this.stripeService.createCustomer(customerData);
-        const card = {
-          number: number,
-          exp_month: exp_month,
-          exp_year: exp_year,
-          cvc: cvc,
-        };
-        const paymentMethod = await this.stripeService.createPaymentMethod(
-          customer.id,
-          card,
-        );
-        employer.customerId = customer.id;
+      if (changes.number) {
+        if (changes.exp_month && changes.exp_year && changes.cvc) {
+          if (employer.customerId) {
+            const { number, exp_month, exp_year, cvc } = changes;
+            const card = {
+              number: number,
+              exp_month: exp_month,
+              exp_year: exp_year,
+              cvc: cvc,
+            };
+            await this.stripeService.updatePaymentMethod(
+              employer.customerId,
+              card,
+            );
+          } else {
+            const { number, exp_month, exp_year, cvc } = changes;
+            const fullName =
+              employer.user.firstName + ' ' + employer.user.lastName;
+            const customerData = {
+              email: employer.user.email,
+              name: fullName,
+              description: employer.businessName,
+            };
+            const customer = await this.stripeService.createCustomer(
+              customerData,
+            );
+            const card = {
+              number: number,
+              exp_month: exp_month,
+              exp_year: exp_year,
+              cvc: cvc,
+            };
+            await this.stripeService.createPaymentMethod(customer.id, card);
+            employer.customerId = customer.id;
+          }
+        } else {
+          throw new BadRequestException('All card information needed');
+        }
       }
       this.employerRepository.merge(employer, changes);
       return this.employerRepository.save(employer);
+    } catch (error) {
+      throw new InternalServerErrorException();
+    }
+  }
+
+  async uploadBusinessImg(employerId: number, file: Express.Multer.File) {
+    try {
+      const employer = await this.findOne(employerId);
+      const fileUrl = await this.doSpaceService.uploadBusinessImg(
+        file,
+        employerId,
+      );
+      const newImg = this.imgRepository.create({ imgUrl: fileUrl });
+      newImg.employer = employer;
+      return this.imgRepository.save(newImg);
     } catch (error) {
       throw new InternalServerErrorException();
     }

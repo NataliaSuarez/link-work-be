@@ -18,10 +18,19 @@ import { StripeService } from '../stripe/stripe.service';
 import { Clock } from './entities/clock.entity';
 import { DOSpacesService } from '../spaces/services/doSpacesService';
 import { DOSpacesServiceProvider } from '../spaces/services';
+import { BusinessImages } from '../users/entities/businessImg.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Offer, Shift, Clock, Worker, Employer, User]),
+    TypeOrmModule.forFeature([
+      Offer,
+      Shift,
+      Clock,
+      Worker,
+      Employer,
+      User,
+      BusinessImages,
+    ]),
   ],
   controllers: [OffersController, ShiftsController],
   providers: [

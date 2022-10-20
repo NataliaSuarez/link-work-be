@@ -7,8 +7,12 @@ import {
   ParseIntPipe,
   Put,
   Delete,
+  UseInterceptors,
+  UploadedFile,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
 
 import { CreateEmployerDto, UpdateEmployerDto } from '../dtos/employers.dto';
 import { EmployersService } from '../services/employers.service';
@@ -31,6 +35,21 @@ export class EmployersController {
   @Post()
   async create(@Body() payload: CreateEmployerDto) {
     return await this.employersService.create(payload);
+  }
+
+  @Post(':id/upload-img')
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: diskStorage({
+        destination: './tmp/uploads/employerImgs',
+      }),
+    }),
+  )
+  async addBusinessImg(
+    @Param('id', ParseIntPipe) id: number,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    return await this.employersService.uploadBusinessImg(id, file);
   }
 
   @Put(':id')
