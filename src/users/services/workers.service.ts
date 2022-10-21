@@ -74,6 +74,22 @@ export class WorkersService {
     return this.workerRepository.save(worker);
   }
 
+  async updateStars(id: number, stars: number) {
+    const worker = await this.workerRepository.findOneBy({ id: id });
+    if (!worker) {
+      throw new NotFoundException(`Worker #${id} not found`);
+    }
+    const newTotal = worker.stars + stars;
+    const totalReviews = worker.totalReviews + 1;
+    const newAvg = newTotal / totalReviews;
+    const changes = {
+      stars: newTotal,
+      totalReviews: totalReviews,
+      avgStars: newAvg,
+    };
+    return this.update(id, changes);
+  }
+
   async uploadExperienceVideo(workerId: number, file: Express.Multer.File) {
     try {
       const worker = await this.findOne(workerId);

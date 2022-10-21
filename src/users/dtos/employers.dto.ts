@@ -5,6 +5,7 @@ import {
   IsPositive,
   IsOptional,
   Min,
+  Max,
 } from 'class-validator';
 import { ApiProperty, PartialType } from '@nestjs/swagger';
 
@@ -49,6 +50,11 @@ export class CreateEmployerDto {
   @ApiProperty()
   readonly totalReviews?: number;
 
+  @IsNumber()
+  @IsOptional()
+  @ApiProperty()
+  readonly avgStars?: number;
+
   @IsString()
   @IsOptional()
   @ApiProperty()
@@ -90,4 +96,12 @@ export class FilterEmployersDto {
   @IsOptional()
   @Min(0)
   offset: number;
+}
+
+export class UpdateStarsDto {
+  @IsPositive()
+  @IsNumber()
+  @Min(0)
+  @Max(5)
+  stars: number;
 }

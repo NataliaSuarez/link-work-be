@@ -14,7 +14,11 @@ import { ApiTags } from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 
-import { CreateEmployerDto, UpdateEmployerDto } from '../dtos/employers.dto';
+import {
+  CreateEmployerDto,
+  UpdateEmployerDto,
+  UpdateStarsDto,
+} from '../dtos/employers.dto';
 import { EmployersService } from '../services/employers.service';
 
 @ApiTags('employers')
@@ -50,6 +54,11 @@ export class EmployersController {
     @UploadedFile() file: Express.Multer.File,
   ) {
     return await this.employersService.uploadBusinessImg(id, file);
+  }
+
+  @Put(':id/add-review')
+  async addReview(@Param('id') id: number, @Body() payload: UpdateStarsDto) {
+    return await this.employersService.updateStars(id, payload.stars);
   }
 
   @Put(':id')

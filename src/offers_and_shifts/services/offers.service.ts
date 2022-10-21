@@ -29,7 +29,6 @@ export class OffersService {
     @InjectRepository(Worker) private workerRepo: Repository<Worker>,
     @InjectRepository(Employer) private employerRepo: Repository<Employer>,
     @InjectRepository(Shift) private shiftRepo: Repository<Shift>,
-    private employerServices: EmployersService,
     private doSpaceService: DOSpacesService,
   ) {}
 
@@ -101,7 +100,7 @@ export class OffersService {
   }
 
   async create(data: CreateOfferDto) {
-    const employer = await this.employerServices.findOne(data.employerId);
+    const employer = await this.employerRepo.findOneBy({ id: data.employerId });
     if (!employer) {
       throw new NotFoundException('Employer not found');
     }

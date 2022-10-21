@@ -22,6 +22,8 @@ import { Clock } from '../offers_and_shifts/entities/clock.entity';
 import { DOSpacesService } from '../spaces/services/doSpacesService';
 import { DOSpacesServiceProvider } from '../spaces/services';
 import { BusinessImages } from './entities/businessImg.entity';
+import { ShiftsService } from '../offers_and_shifts/services/shifts.service';
+import { OffersService } from '../offers_and_shifts/services/offers.service';
 
 @Module({
   imports: [
@@ -44,6 +46,8 @@ import { BusinessImages } from './entities/businessImg.entity';
     StripeService,
     DOSpacesService,
     DOSpacesServiceProvider,
+    ShiftsService,
+    OffersService,
   ],
   exports: [UsersService, EmployersService, WorkersService],
 })

@@ -46,11 +46,14 @@ export class Employer {
   @Column({ type: 'text', nullable: true })
   description: string;
 
-  @Column({ type: 'int', default: 0 })
+  @Column({ type: 'float', default: 0 })
   stars: number;
 
   @Column({ type: 'int', default: 0 })
   totalReviews: number;
+
+  @Column({ type: 'float', default: 0 })
+  avgStars: number;
 
   @Column({ type: 'varchar', length: 255, nullable: true })
   customerId: string;

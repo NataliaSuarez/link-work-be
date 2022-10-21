@@ -18,6 +18,7 @@ import { UsersService } from './users.service';
 import { StripeService } from '../../stripe/stripe.service';
 import { BusinessImages } from '../entities/businessImg.entity';
 import { DOSpacesService } from '../../spaces/services/doSpacesService';
+import { ShiftsService } from '../../offers_and_shifts/services/shifts.service';
 
 @Injectable()
 export class EmployersService {
@@ -29,6 +30,7 @@ export class EmployersService {
     private usersService: UsersService,
     private stripeService: StripeService,
     private doSpaceService: DOSpacesService,
+    private shiftService: ShiftsService,
   ) {}
 
   findAll(params?: FilterEmployersDto) {
@@ -103,6 +105,15 @@ export class EmployersService {
       if (changes.number) {
         if (changes.exp_month && changes.exp_year && changes.cvc) {
           if (employer.customerId) {
+            const shifts = await this.shiftService.findByEmployer(employer.id);
+            if (
+              shifts.acceptedShifts.length > 0 ||
+              shifts.activeShifts.length > 0
+            ) {
+              throw new ForbiddenException(
+                "Can't change payment method with shifts in course",
+              );
+            }
             const { number, exp_month, exp_year, cvc } = changes;
             const card = {
               number: number,
@@ -144,6 +155,22 @@ export class EmployersService {
     } catch (error) {
       throw new InternalServerErrorException();
     }
+  }
+
+  async updateStars(id: number, stars: number) {
+    const employer = await this.employerRepository.findOneBy({ id: id });
+    if (!employer) {
+      throw new NotFoundException(`Employer #${id} not found`);
+    }
+    const newTotal = employer.stars + stars;
+    const totalReviews = employer.totalReviews + 1;
+    const newAvg = newTotal / totalReviews;
+    const changes = {
+      stars: newTotal,
+      totalReviews: totalReviews,
+      avgStars: newAvg,
+    };
+    return this.update(id, changes);
   }
 
   async uploadBusinessImg(employerId: number, file: Express.Multer.File) {

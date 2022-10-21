@@ -17,6 +17,7 @@ import { Chat } from './chat/chat.entity';
 import { TasksModule } from './tasks/tasks.module';
 import { SpacesModule } from './spaces/spaces.module';
 import config from './config';
+import { configValidationSchema } from './config.schema';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import config from './config';
     ConfigModule.forRoot({
       load: [config],
       isGlobal: true,
+      validationSchema: configValidationSchema,
     }),
     TypeOrmModule.forRootAsync(typeOrmAsyncConfig),
     UsersModule,

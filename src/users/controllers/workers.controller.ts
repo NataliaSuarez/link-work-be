@@ -17,6 +17,7 @@ import { diskStorage } from 'multer';
 import {
   CreateWorkerDto,
   StripeUserAccDto,
+  UpdateStarsDto,
   UpdateWorkerDto,
 } from '../dtos/workers.dto';
 import { WorkersService } from '../services/workers.service';
@@ -67,6 +68,11 @@ export class WorkersController {
   @Get(':id/video')
   async downloadFileUrl(@Param('id') workerId: number) {
     return this.workersService.getDownloadFileUrl(workerId);
+  }
+
+  @Put(':id/add-review')
+  async addReview(@Param('id') id: number, @Body() payload: UpdateStarsDto) {
+    return await this.workersService.updateStars(id, payload.stars);
   }
 
   @Put(':id')

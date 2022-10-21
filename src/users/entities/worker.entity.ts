@@ -66,11 +66,14 @@ export class Worker {
   @Column({ type: 'int' })
   ssn: number;
 
-  @Column({ type: 'int' })
+  @Column({ type: 'float', default: 0 })
   stars: number;
 
-  @Column({ type: 'int' })
+  @Column({ type: 'int', default: 0 })
   totalReviews: number;
+
+  @Column({ type: 'float', default: 0 })
+  avgStars: number;
 
   @Column({ type: 'varchar', length: 255 })
   stripeId: string;

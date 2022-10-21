@@ -7,6 +7,7 @@ import {
   IsString,
   IsDate,
   IsUrl,
+  Max,
 } from 'class-validator';
 import { ApiProperty, PartialType } from '@nestjs/swagger';
 
@@ -80,6 +81,11 @@ export class CreateWorkerDto {
   @ApiProperty()
   readonly totalReviews: number;
 
+  @IsNumber()
+  @IsOptional()
+  @ApiProperty()
+  readonly avgStars?: number;
+
   @IsString()
   @IsOptional()
   @ApiProperty()
@@ -126,4 +132,12 @@ export class StripeUserAccDto {
   @IsNotEmpty()
   @ApiProperty()
   accountNumber: string;
+}
+
+export class UpdateStarsDto {
+  @IsPositive()
+  @IsNumber()
+  @Min(0)
+  @Max(5)
+  stars: number;
 }
