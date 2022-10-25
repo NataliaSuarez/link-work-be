@@ -10,21 +10,6 @@ import {
 import { ApiProperty, PartialType } from '@nestjs/swagger';
 
 export class CreateEmployerDto {
-  @IsString()
-  @IsNotEmpty()
-  @ApiProperty()
-  readonly address: string;
-
-  @IsString()
-  @IsNotEmpty()
-  @ApiProperty()
-  readonly city: string;
-
-  @IsString()
-  @IsNotEmpty()
-  @ApiProperty()
-  readonly state: string;
-
   @IsNumber()
   @IsOptional()
   @ApiProperty()
@@ -34,6 +19,11 @@ export class CreateEmployerDto {
   @IsNotEmpty()
   @ApiProperty()
   readonly businessName: string;
+
+  @IsString()
+  @IsOptional()
+  @ApiProperty()
+  readonly businessUrl?: string;
 
   @IsString()
   @IsOptional()
@@ -84,6 +74,26 @@ export class CreateEmployerDto {
   @IsOptional()
   @ApiProperty()
   readonly cvc?: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @ApiProperty()
+  readonly address: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @ApiProperty()
+  readonly city: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @ApiProperty()
+  readonly state: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @ApiProperty()
+  readonly postalCode: string;
 }
 
 export class UpdateEmployerDto extends PartialType(CreateEmployerDto) {}

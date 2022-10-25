@@ -24,15 +24,6 @@ export class Employer {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ type: 'varchar', length: 255 })
-  address: string;
-
-  @Column({ type: 'varchar', length: 255 })
-  city: string;
-
-  @Column({ type: 'varchar', length: 255 })
-  state: string;
-
   @Column({
     type: 'enum',
     enum: BusinessCode,
@@ -42,6 +33,9 @@ export class Employer {
 
   @Column({ type: 'varchar', length: 255 })
   businessName: string;
+
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  businessUrl: string;
 
   @Column({ type: 'text', nullable: true })
   description: string;

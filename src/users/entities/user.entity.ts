@@ -13,6 +13,7 @@ import { Exclude } from 'class-transformer';
 import { Worker } from './worker.entity';
 import { Employer } from './employer.entity';
 import { Clock } from '../../offers_and_shifts/entities/clock.entity';
+import { Address } from './address.entity';
 
 export enum RegisterType {
   MAIL_AND_PASSWORD = 0,
@@ -97,4 +98,7 @@ export class User {
     onDelete: 'CASCADE',
   })
   clocksHistory: Clock[];
+
+  @OneToMany(() => Address, (address) => address.user)
+  address: Address[];
 }

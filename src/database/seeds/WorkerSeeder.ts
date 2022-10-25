@@ -11,10 +11,6 @@ export class WorkerSeeder implements Seeder {
     const workerRepository = dataSource.getRepository(Worker);
 
     const data1 = {
-      address: '90 Sage Junction',
-      city: 'New York City',
-      state: 'New York',
-      postalCode: '35802',
       dayOfBirth: 15,
       monthOfBirth: 1,
       yearOfBirth: 1974,
@@ -39,10 +35,6 @@ export class WorkerSeeder implements Seeder {
     };
 
     const data2 = {
-      address: '362 Oxford Alley',
-      city: 'Oakland',
-      state: 'California',
-      postalCode: '35802',
       dayOfBirth: 15,
       monthOfBirth: 1,
       yearOfBirth: 1974,
@@ -67,10 +59,6 @@ export class WorkerSeeder implements Seeder {
     };
 
     const data3 = {
-      address: '1 Algoma Park',
-      city: 'Raleigh',
-      state: 'North Carolina',
-      postalCode: '35802',
       dayOfBirth: 15,
       monthOfBirth: 1,
       yearOfBirth: 1974,
@@ -95,10 +83,6 @@ export class WorkerSeeder implements Seeder {
     };
 
     const data4 = {
-      address: '69 Dennis Drive',
-      city: 'Newark',
-      state: 'New Jersey',
-      postalCode: '35802',
       dayOfBirth: 15,
       monthOfBirth: 1,
       yearOfBirth: 1974,
@@ -123,10 +107,6 @@ export class WorkerSeeder implements Seeder {
     };
 
     const data5 = {
-      address: '41879 Mosinee Place',
-      city: 'Fresno',
-      state: 'California',
-      postalCode: '35802',
       dayOfBirth: 15,
       monthOfBirth: 1,
       yearOfBirth: 1974,

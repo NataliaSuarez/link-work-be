@@ -19,6 +19,7 @@ import { Clock } from './entities/clock.entity';
 import { DOSpacesService } from '../spaces/services/doSpacesService';
 import { DOSpacesServiceProvider } from '../spaces/services';
 import { BusinessImages } from '../users/entities/businessImg.entity';
+import { Address } from '../users/entities/address.entity';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { BusinessImages } from '../users/entities/businessImg.entity';
       Employer,
       User,
       BusinessImages,
+      Address,
     ]),
   ],
   controllers: [OffersController, ShiftsController],

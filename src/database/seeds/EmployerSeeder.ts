@@ -11,9 +11,6 @@ export class EmployerSeeder implements Seeder {
     const employerRepository = dataSource.getRepository(Employer);
 
     const data1 = {
-      address: '546 Douglas Street',
-      city: 'Miami',
-      state: 'Florida',
       businessName: 'Jacobi Group',
       businessCode: 0,
       description: 'Lorem ipsum lorem ipsum lorem ipsum',
@@ -33,9 +30,6 @@ export class EmployerSeeder implements Seeder {
     };
 
     const data2 = {
-      address: '44 Douglas Street',
-      city: 'Miami',
-      state: 'Florida',
       businessName: 'Wilkinson Group',
       businessCode: 1,
       description: 'Lorem ipsum lorem ipsum lorem ipsum',
@@ -55,9 +49,6 @@ export class EmployerSeeder implements Seeder {
     };
 
     const data3 = {
-      address: '321 Privet Drive',
-      city: 'Miami',
-      state: 'Florida',
       businessName: 'Carroll Inc',
       businessCode: 2,
       description: 'Lorem ipsum lorem ipsum lorem ipsum',

@@ -30,7 +30,14 @@ export class AuthService {
       const newUser = await this.usersService.createWithGoogle(createUserDto);
       const tokens = await this.getTokens(newUser.id, newUser.email);
       await this.updateRefreshToken(newUser.id, tokens.refreshToken);
-      return tokens;
+      const gObjRta = {
+        tokens: tokens,
+        userData: {
+          id: newUser.id,
+          role: newUser.role,
+        },
+      };
+      return gObjRta;
     }
     if (!createUserDto.password) {
       throw new BadRequestException('Password invalid');

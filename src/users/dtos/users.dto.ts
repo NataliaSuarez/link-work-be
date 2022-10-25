@@ -11,6 +11,7 @@ import {
   MinLength,
   MaxLength,
   Matches,
+  IsPositive,
 } from 'class-validator';
 import { ApiProperty, PartialType } from '@nestjs/swagger';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
@@ -93,6 +94,36 @@ export class FilterUsersDto extends PaginationDto {
 }
 
 export class UserIdDto {
+  @IsNumber()
+  @ApiProperty()
+  userId: number;
+}
+
+export class CreateAddressDto {
+  @IsString()
+  @IsNotEmpty()
+  @ApiProperty()
+  address: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @ApiProperty()
+  city: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @ApiProperty()
+  state: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @ApiProperty()
+  postalCode: string;
+
+  @IsBoolean()
+  @ApiProperty()
+  principal: boolean;
+
   @IsNumber()
   @ApiProperty()
   userId: number;

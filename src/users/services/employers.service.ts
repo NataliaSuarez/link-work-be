@@ -19,6 +19,7 @@ import { StripeService } from '../../stripe/stripe.service';
 import { BusinessImages } from '../entities/businessImg.entity';
 import { DOSpacesService } from '../../spaces/services/doSpacesService';
 import { ShiftsService } from '../../offers_and_shifts/services/shifts.service';
+import { Address } from '../entities/address.entity';
 
 @Injectable()
 export class EmployersService {
@@ -27,6 +28,7 @@ export class EmployersService {
     private employerRepository: Repository<Employer>,
     @InjectRepository(BusinessImages)
     private imgRepository: Repository<BusinessImages>,
+    @InjectRepository(Address) private addressRepository: Repository<Address>,
     private usersService: UsersService,
     private stripeService: StripeService,
     private doSpaceService: DOSpacesService,
@@ -63,11 +65,21 @@ export class EmployersService {
       if (user.role != 1) {
         throw new ForbiddenException("This user can't be an employer");
       }
+      const { address, city, state, postalCode } = data;
+      const newAddress = this.addressRepository.create({
+        address: address,
+        city: city,
+        state: state,
+        postalCode: postalCode,
+        principal: true,
+      });
+      newAddress.user = user;
+      await this.addressRepository.save(newAddress);
       if (data.number) {
         if (!data.exp_month || !data.exp_year || !data.cvc) {
           throw new BadRequestException();
         }
-        const newEmployer = this.employerRepository.create(data);
+        const newEmployer = await this.employerRepository.create(data);
         const { number, exp_month, exp_year, cvc } = data;
         const fullName = user.firstName + ' ' + user.lastName;
         const customerData = {
@@ -85,14 +97,20 @@ export class EmployersService {
         await this.stripeService.createPaymentMethod(customer.id, card);
         newEmployer.user = user;
         newEmployer.customerId = customer.id;
-        return this.employerRepository.save(newEmployer);
+        const savedEmployer = await this.employerRepository.save(newEmployer);
+        const rta = {
+          employer: savedEmployer,
+          cardNumber: card.number,
+        };
+        return rta;
       } else {
-        const newEmployer = this.employerRepository.create(data);
+        const newEmployer = await this.employerRepository.create(data);
         newEmployer.user = user;
-        return this.employerRepository.save(newEmployer);
+        const employerSaved = await this.employerRepository.save(newEmployer);
+        return employerSaved;
       }
     } catch (error) {
-      throw new InternalServerErrorException();
+      throw new InternalServerErrorException(error.response.message);
     }
   }
 
@@ -102,6 +120,39 @@ export class EmployersService {
       throw new NotFoundException(`Employer #${id} not found`);
     }
     try {
+      if (
+        changes.address ||
+        changes.city ||
+        changes.state ||
+        changes.postalCode
+      ) {
+        if (
+          !changes.address ||
+          !changes.city ||
+          !changes.state ||
+          !changes.postalCode
+        ) {
+          throw new ForbiddenException(
+            'To update an address you have to send all the address info',
+          );
+        }
+        const { address, city, state, postalCode } = changes;
+        const modifyAddress = await this.addressRepository.findOne({
+          where: {
+            user: {
+              id: employer.user.id,
+            },
+          },
+        });
+        const newAddress = {
+          address: address,
+          city: city,
+          state: state,
+          postalCode: postalCode,
+        };
+        this.addressRepository.merge(modifyAddress, newAddress);
+        await this.addressRepository.save(modifyAddress);
+      }
       if (changes.number) {
         if (changes.exp_month && changes.exp_year && changes.cvc) {
           if (employer.customerId) {
@@ -153,7 +204,7 @@ export class EmployersService {
       this.employerRepository.merge(employer, changes);
       return this.employerRepository.save(employer);
     } catch (error) {
-      throw new InternalServerErrorException();
+      throw new InternalServerErrorException(error.response.message);
     }
   }
 

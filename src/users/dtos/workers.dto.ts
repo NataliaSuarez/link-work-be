@@ -12,26 +12,6 @@ import {
 import { ApiProperty, PartialType } from '@nestjs/swagger';
 
 export class CreateWorkerDto {
-  @IsString()
-  @IsNotEmpty()
-  @ApiProperty()
-  readonly address: string;
-
-  @IsString()
-  @IsNotEmpty()
-  @ApiProperty()
-  readonly city: string;
-
-  @IsString()
-  @IsNotEmpty()
-  @ApiProperty()
-  readonly state: string;
-
-  @IsString()
-  @IsNotEmpty()
-  @ApiProperty()
-  readonly postalCode: string;
-
   @IsNumber()
   @IsNotEmpty()
   @ApiProperty()
@@ -90,6 +70,26 @@ export class CreateWorkerDto {
   @IsOptional()
   @ApiProperty()
   readonly stripeId?: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @ApiProperty()
+  readonly address: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @ApiProperty()
+  readonly city: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @ApiProperty()
+  readonly state: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @ApiProperty()
+  readonly postalCode: string;
 
   @IsPositive()
   @IsNotEmpty()

@@ -25,7 +25,7 @@ export class ChatGateway
   }
 
   handleConnection(client: any, ...args: any[]) {
-    console.log('Alguien se conecto al socket 👌👌👌');
+    console.log('Alguien se conecto al socket');
   }
 
   handleDisconnect(client: any) {
@@ -38,11 +38,11 @@ export class ChatGateway
     const chats = await this.chatService.getChats(room);
     chats.forEach((obj) => {
       console.log(obj.message, obj.sender);
-      this.server.to(`room_${room}`).emit('new_message', obj.message);
+      client.emit('new_message', obj.message);
     });
   }
 
-  @SubscribeMessage('event_message') //TODO Backend
+  @SubscribeMessage('event_message')
   async handleIncommingMessage(
     client: Socket,
     payload: { room: string; message: string },

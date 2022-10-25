@@ -124,6 +124,7 @@ export class OffersService {
       const updatedOffer = await this.update(offerId, { videoUrl: fileUrl });
       return updatedOffer;
     } catch (error) {
+      console.log(error);
       throw new InternalServerErrorException();
     }
   }

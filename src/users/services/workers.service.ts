@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ForbiddenException,
   Injectable,
   InternalServerErrorException,
@@ -18,6 +19,7 @@ import { UsersService } from './users.service';
 import { StripeService } from '../../stripe/stripe.service';
 import { DOSpacesService } from '../../spaces/services/doSpacesService';
 import { Experience } from '../entities/experience.entity';
+import { Address } from '../entities/address.entity';
 
 @Injectable()
 export class WorkersService {
@@ -25,6 +27,7 @@ export class WorkersService {
     @InjectRepository(Worker) private workerRepository: Repository<Worker>,
     @InjectRepository(Experience)
     private experienceRepository: Repository<Experience>,
+    @InjectRepository(Address) private addressRepository: Repository<Address>,
     private usersService: UsersService,
     private stripeService: StripeService,
     private doSpaceService: DOSpacesService,
@@ -57,11 +60,26 @@ export class WorkersService {
       if (user.role != 2) {
         throw new ForbiddenException("This user can't be a worker");
       }
+      const { address, city, state, postalCode } = data;
+      const newAddress = this.addressRepository.create({
+        address: address,
+        city: city,
+        state: state,
+        postalCode: postalCode,
+        principal: true,
+      });
+      newAddress.user = user;
       const newWorker = this.workerRepository.create(data);
       newWorker.user = user;
-      return this.workerRepository.save(newWorker);
+      const savedAddress = await this.addressRepository.save(newAddress);
+      const worker = await this.workerRepository.save(newWorker);
+      return {
+        worker: worker,
+        address: savedAddress,
+      };
     } catch (error) {
-      throw new InternalServerErrorException();
+      console.log(error);
+      throw new InternalServerErrorException(error.response.message);
     }
   }
 
@@ -70,8 +88,42 @@ export class WorkersService {
     if (!worker) {
       throw new NotFoundException(`Worker #${id} not found`);
     }
+    if (
+      changes.address ||
+      changes.city ||
+      changes.state ||
+      changes.postalCode
+    ) {
+      if (
+        !changes.address ||
+        !changes.city ||
+        !changes.state ||
+        !changes.postalCode
+      ) {
+        throw new ForbiddenException(
+          'To update an address you have to send all the address info',
+        );
+      }
+      const { address, city, state, postalCode } = changes;
+      const modifyAddress = await this.addressRepository.findOne({
+        where: {
+          user: {
+            id: worker.user.id,
+          },
+        },
+      });
+      const newAddress = {
+        address: address,
+        city: city,
+        state: state,
+        postalCode: postalCode,
+      };
+      this.addressRepository.merge(modifyAddress, newAddress);
+      await this.addressRepository.save(modifyAddress);
+    }
     this.workerRepository.merge(worker, changes);
-    return this.workerRepository.save(worker);
+    const savedWorker = await this.workerRepository.save(worker);
+    return savedWorker;
   }
 
   async updateStars(id: number, stars: number) {
@@ -134,6 +186,17 @@ export class WorkersService {
       if (!worker) {
         throw new NotFoundException(`Worker #${id} not found`);
       }
+      const userAddress = await this.addressRepository.find({
+        where: {
+          user: {
+            id: worker.user.id,
+          },
+          principal: true,
+        },
+      });
+      if (!userAddress) {
+        throw new BadRequestException('This user has not an address');
+      }
       const accountData = {
         type: 'custom',
         country: 'US',
@@ -148,10 +211,10 @@ export class WorkersService {
           last_name: worker.user.lastName,
           ssn_last_4: worker.ssn.toString().slice(-4),
           address: {
-            line1: worker.address,
-            postal_code: worker.postalCode,
-            city: worker.city,
-            state: worker.state,
+            line1: userAddress[0].address,
+            postal_code: userAddress[0].postalCode,
+            city: userAddress[0].city,
+            state: userAddress[0].state,
           },
           dob: {
             day: worker.dayOfBirth,
@@ -185,6 +248,7 @@ export class WorkersService {
       }
     } catch (error) {
       console.log(error);
+      return error;
     }
   }
 }
