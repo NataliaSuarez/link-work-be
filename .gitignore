@@ -40,6 +40,9 @@ lerna-debug.log*
 # Temporary
 /tmp
 
+# Logs Folder
+/log
+
 # TypeScript v1 declaration files
 typings/
 

@@ -33,6 +33,5 @@ export class EmployerBusinessImage {
   @ManyToOne(() => User, (user) => user.employerBusinessImages, {
     nullable: false,
   })
-  @JoinColumn({ name: 'employerUserId' })
   employerUser: User;
 }

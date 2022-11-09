@@ -43,6 +43,16 @@ export class CreateUserDto {
   @ApiProperty()
   readonly password?: string;
 
+  @IsString()
+  @IsOptional()
+  @MinLength(8)
+  @MaxLength(20)
+  @Matches(/((?=.*\d)|(?=.*\W+))(?![.\n])(?=.*[A-Z])(?=.*[a-z]).*$/, {
+    message: 'password too weak',
+  })
+  @ApiProperty()
+  readonly repeatPassword?: string;
+
   @IsEnum(RegisterType)
   @ApiProperty()
   readonly registerType: RegisterType;
@@ -108,10 +118,7 @@ export class CreateAddressDto {
   postalCode: string;
 
   @IsBoolean()
+  @IsOptional()
   @ApiProperty()
-  principal: boolean;
-
-  @IsUUID()
-  @ApiProperty()
-  userId: string;
+  principal?: boolean;
 }

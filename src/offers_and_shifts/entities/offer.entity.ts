@@ -12,6 +12,7 @@ import {
 
 import { Shift } from './shift.entity';
 import { User } from 'src/users/entities/user.entity';
+import { Address } from '../../users/entities/address.entity';
 
 export enum OfferStatus {
   CREATED = 0,
@@ -105,4 +106,7 @@ export class Offer {
     nullable: true,
   })
   shift: Shift;
+
+  @ManyToOne(() => Address, { cascade: true, eager: true })
+  address: Address;
 }

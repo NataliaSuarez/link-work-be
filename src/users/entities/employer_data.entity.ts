@@ -6,11 +6,9 @@ import {
   UpdateDateColumn,
   OneToOne,
   JoinColumn,
-  OneToMany,
 } from 'typeorm';
 
 import { User } from './user.entity';
-import { EmployerBusinessImage } from './employer_business_image.entity';
 
 export enum BusinessCode {
   HOTEL = 0,
@@ -69,14 +67,4 @@ export class EmployerData {
   })
   @JoinColumn({ name: 'userId' })
   user: User;
-
-  @OneToMany(
-    () => EmployerBusinessImage,
-    (businessImages) => businessImages.employerUser,
-    {
-      nullable: true,
-      onDelete: 'CASCADE',
-    },
-  )
-  businessImages: EmployerBusinessImage[];
 }

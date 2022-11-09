@@ -3,11 +3,13 @@ import {
   InternalServerErrorException,
   ConflictException,
   NotFoundException,
+  BadRequestException,
 } from '@nestjs/common';
+import * as argon2 from 'argon2';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PostgresErrorCode } from 'src/common/enum/postgres-error-code.enum';
-import { OfferStatus } from 'src/offers_and_shifts/entities/offer.entity';
-import { ShiftStatus } from 'src/offers_and_shifts/entities/shift.entity';
+import { OfferStatus } from '../../offers_and_shifts/entities/offer.entity';
+import { ShiftStatus } from '../../offers_and_shifts/entities/shift.entity';
 import { Repository, Equal, LessThan, FindOptionsRelations } from 'typeorm';
 
 import {
@@ -45,13 +47,40 @@ export class UsersService {
   ): Promise<User> {
     const user = await this.userRepository.findOne({
       where: { id: id },
-      relations,
+      relations: { employerBusinessImages: true, workerExperience: true },
     });
+    if (user.profileImg) {
+      const signedURL = await this.doSpaceService.tempAccessToPrivateFileUrl(
+        user.profileImg,
+      );
+      user.profileImg = signedURL;
+    }
+    if (user.employerBusinessImages.length > 0) {
+      let i = 0;
+      for (const img of user.employerBusinessImages) {
+        console.log(img.imgUrl);
+        const signedimg = await this.doSpaceService.tempAccessToPrivateFileUrl(
+          img.imgUrl,
+        );
+        user.employerBusinessImages[i].imgUrl = signedimg;
+        i++;
+      }
+    }
+    if (user.workerExperience) {
+      const signedExperience =
+        await this.doSpaceService.tempAccessToPrivateFileUrl(
+          user.workerExperience.videoUrl,
+        );
+      user.workerExperience.videoUrl = signedExperience;
+    }
     return user;
   }
 
   async findByEmail(email: string): Promise<User> {
-    return await this.userRepository.findOne({ where: { email } });
+    return await this.userRepository.findOne({
+      where: { email: email },
+      withDeleted: true,
+    });
   }
 
   async findCredentials(email: string): Promise<User> {
@@ -59,7 +88,7 @@ export class UsersService {
       where: { email },
       select: {
         id: true,
-        deactivatedAt: true,
+        desactivatedAt: true,
         email: true,
         role: true,
         password: true,
@@ -104,20 +133,43 @@ export class UsersService {
       const updatedUser = await this.update(user, { profileImg: fileUrl });
       return updatedUser;
     } catch (error) {
-      throw new InternalServerErrorException();
+      console.error(error);
+      throw new InternalServerErrorException(error.message);
     }
   }
 
   async update(user: User, changes: UpdateUserDto) {
+    if (
+      changes.email ||
+      changes.firstName ||
+      changes.lastName ||
+      changes.role
+    ) {
+      throw new BadRequestException('You cannot change this data');
+    }
     try {
+      if (changes.password) {
+        if (changes.password != changes.repeatPassword) {
+          throw new BadRequestException('Password must be the same');
+        }
+        // Hash password
+        const hash = await this.hashData(changes.password);
+        this.userRepository.merge(user, { password: hash });
+        return await this.userRepository.save(user);
+      }
       this.userRepository.merge(user, changes);
       return await this.userRepository.save(user);
     } catch (error) {
+      console.error(error);
       if (error.code === PostgresErrorCode.UNIQUE) {
         throw new ConflictException('User email unavailable');
       }
-      throw new InternalServerErrorException();
+      throw new InternalServerErrorException(error.message);
     }
+  }
+
+  hashData(data: string) {
+    return argon2.hash(data);
   }
 
   private async isUserDeletable(userId: string) {
@@ -125,60 +177,70 @@ export class UsersService {
       where: { id: userId },
       withDeleted: true,
     });
+    if (!user) {
+      throw new BadRequestException('User dont exists');
+    }
     if (user.role === Role.EMPLOYER) {
-      user.offersOwnedByEmployer.forEach((offer) => {
-        if (
-          offer.status !== OfferStatus.DONE &&
-          offer.status !== OfferStatus.CANCELED
-        ) {
-          throw new ConflictException(
-            'Cannot delete an employer with active offers',
-          );
-        }
-      });
+      if (user.offersOwnedByEmployer) {
+        user.offersOwnedByEmployer.forEach((offer) => {
+          if (
+            offer.status !== OfferStatus.DONE &&
+            offer.status !== OfferStatus.CANCELED
+          ) {
+            throw new ConflictException(
+              'Cannot delete an employer with active offers',
+            );
+          }
+        });
+      }
     }
     if (user.role === Role.WORKER) {
-      user.offersAppliedToByWorker.forEach((offer) => {
-        if (
-          offer.status !== OfferStatus.DONE &&
-          offer.status !== OfferStatus.CANCELED
-        ) {
-          throw new ConflictException(
-            'Cannot delete an employer with active offers',
-          );
-        }
-      });
-      user.workerShifts.forEach((shift) => {
-        if (
-          shift.status !== ShiftStatus.DONE &&
-          shift.status !== ShiftStatus.CANCELED &&
-          shift.status !== ShiftStatus.UNCONFIRMED
-        ) {
-          throw new ConflictException(
-            'Cannot delete a worker with active or accepted shifts',
-          );
-        }
-      });
+      if (user.offersAppliedToByWorker) {
+        user.offersAppliedToByWorker.forEach((offer) => {
+          if (
+            offer.status !== OfferStatus.DONE &&
+            offer.status !== OfferStatus.CANCELED
+          ) {
+            throw new ConflictException(
+              'Cannot delete an employer with active offers',
+            );
+          }
+        });
+      }
+      if (user.workerShifts) {
+        user.workerShifts.forEach((shift) => {
+          if (
+            shift.status !== ShiftStatus.DONE &&
+            shift.status !== ShiftStatus.CANCELED &&
+            shift.status !== ShiftStatus.UNCONFIRMED
+          ) {
+            throw new ConflictException(
+              'Cannot delete a worker with active or accepted shifts',
+            );
+          }
+        });
+      }
     }
-
     return true;
   }
 
-  async deactivate(userId: string, deactivate = true) {
-    await this.isUserDeletable(userId);
+  async desactivate(userId: string, desactivate: boolean) {
     let reactivateRes;
     try {
-      if (deactivate) {
+      if (desactivate) {
+        await this.isUserDeletable(userId);
         await this.userRepository.softDelete(userId);
-        return { message: 'User deactivated' };
+        console.log(`User ${userId} desactivated`);
+        return { message: `User ${userId} desactivated` };
       } else {
         reactivateRes = await this.userRepository.restore(userId);
       }
     } catch (error) {
-      throw new InternalServerErrorException();
+      console.error(error);
+      throw new InternalServerErrorException(error.message);
     }
     if (reactivateRes.affected !== 0) {
-      return { message: 'User reactivated' };
+      return { message: `User ${userId} reactivated` };
     } else {
       throw new NotFoundException('User not found');
     }
@@ -188,6 +250,7 @@ export class UsersService {
     await this.isUserDeletable(userId);
     try {
       await this.userRepository.delete(userId);
+      console.log(`User ${userId} deleted permanently`);
       return { message: 'User deleted permanently' };
     } catch (error) {
       throw new InternalServerErrorException();
@@ -197,7 +260,7 @@ export class UsersService {
   async deleteAllDeactivatedUsers(minDeactivationDatetime: Date) {
     try {
       await this.userRepository.delete({
-        deactivatedAt: LessThan(minDeactivationDatetime),
+        desactivatedAt: LessThan(minDeactivationDatetime),
       });
     } catch (error) {
       throw new InternalServerErrorException();

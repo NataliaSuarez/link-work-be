@@ -10,6 +10,7 @@ import {
   IsEnum,
   Length,
   ValidateIf,
+  IsUUID,
 } from 'class-validator';
 import { ApiProperty, PartialType } from '@nestjs/swagger';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
@@ -55,6 +56,9 @@ export class CreateOfferDto {
   @IsOptional()
   @ApiProperty()
   readonly videoUrl?: string;
+
+  @IsUUID()
+  readonly addressId: string;
 }
 
 export class UpdateOfferDto extends PartialType(CreateOfferDto) {

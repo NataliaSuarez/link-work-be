@@ -58,7 +58,7 @@ export class WorkerData {
   @Column({ type: 'float', default: 0 })
   avgStars: number;
 
-  @Column({ type: 'varchar', length: 255 })
+  @Column({ type: 'varchar', length: 255, nullable: true })
   stripeId: string;
 
   @CreateDateColumn({

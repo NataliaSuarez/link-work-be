@@ -3,6 +3,7 @@ import {
   ConflictException,
   ForbiddenException,
   Injectable,
+  InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
@@ -24,54 +25,76 @@ export class AuthService {
   ) {}
 
   async signUp(createUserDto: CreateUserDto): Promise<any> {
-    const userExists = await this.usersService.findByEmail(createUserDto.email);
-    if (userExists) {
-      throw new ConflictException('User already exists');
-    }
+    try {
+      const userExists = await this.usersService.findByEmail(
+        createUserDto.email,
+      );
+      if (userExists) {
+        throw new ConflictException(
+          `User ${createUserDto.email} already exists`,
+        );
+      }
 
-    if (createUserDto.registerType === RegisterType.GOOGLE) {
-      const newUser = await this.usersService.createWithGoogle(createUserDto);
+      if (createUserDto.registerType === RegisterType.GOOGLE) {
+        const newUser = await this.usersService.createWithGoogle(createUserDto);
+        const tokens = await this.getTokens({
+          sub: newUser.id,
+          email: newUser.email,
+          role: newUser.role,
+        });
+        await this.updateRefreshToken(newUser.id, tokens.refreshToken);
+        const gObjRta = {
+          tokens: tokens,
+          userData: {
+            id: newUser.id,
+            role: newUser.role,
+          },
+        };
+        console.log(`User ${newUser.email} registered with Google`);
+        return gObjRta;
+      }
+      if (!createUserDto.password) {
+        throw new BadRequestException('Password invalid');
+      }
+      if (createUserDto.password != createUserDto.repeatPassword) {
+        throw new BadRequestException('The password is not the same');
+      }
+      // Hash password
+      const hash = await this.hashData(createUserDto.password);
+      const newUser = await this.usersService.create({
+        ...createUserDto,
+        password: hash,
+      });
       const tokens = await this.getTokens({
         sub: newUser.id,
         email: newUser.email,
         role: newUser.role,
       });
       await this.updateRefreshToken(newUser.id, tokens.refreshToken);
-      const gObjRta = {
+      const objRta = {
         tokens: tokens,
         userData: {
           id: newUser.id,
           role: newUser.role,
         },
       };
-      return gObjRta;
+      console.log(`User ${newUser.email} registered`);
+      return objRta;
+    } catch (error) {
+      console.error(error);
+      throw new InternalServerErrorException(error.message);
     }
-    if (!createUserDto.password) {
-      throw new BadRequestException('Password invalid');
-    }
-    // Hash password
-    const hash = await this.hashData(createUserDto.password);
-    const newUser = await this.usersService.create({
-      ...createUserDto,
-      password: hash,
-    });
-    const tokens = await this.getTokens({
-      sub: newUser.id,
-      email: newUser.email,
-      role: newUser.role,
-    });
-    await this.updateRefreshToken(newUser.id, tokens.refreshToken);
-    const objRta = {
-      tokens: tokens,
-      userData: {
-        id: newUser.id,
-        role: newUser.role,
-      },
-    };
-    return objRta;
   }
 
   async signIn({ email, password }: AuthDto) {
+    const checkUser = await this.usersService.findByEmail(email);
+    if (checkUser.desactivatedAt) {
+      const reactivateUser = await this.usersService.desactivate(
+        checkUser.id,
+        false,
+      );
+      console.log(reactivateUser);
+    }
     const user = await this.usersService.findCredentials(email);
     if (!user) throw new BadRequestException('Incorrect email or password');
     if (password) {

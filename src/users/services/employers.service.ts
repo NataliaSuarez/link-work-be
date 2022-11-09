@@ -4,20 +4,22 @@ import {
   Injectable,
   InternalServerErrorException,
   ConflictException,
+  NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
 import { CreateEmployerDto, UpdateEmployerDto } from '../dtos/employers.dto';
-import { EmployerData } from '../entities/employer_data.entity';
 import { UsersService } from './users.service';
 import { StripeService } from '../../stripe/stripe.service';
-import { EmployerBusinessImage } from '../entities/employer_business_image.entity';
 import { DOSpacesService } from '../../spaces/services/doSpacesService';
 import { ShiftsService } from '../../offers_and_shifts/services/shifts.service';
 import { Role } from '../entities/user.entity';
 import { PostgresErrorCode } from '../../common/enum/postgres-error-code.enum';
 import { Address } from '../entities/address.entity';
+import { CreateAddressDto } from '../dtos/users.dto';
+import { EmployerData } from '../entities/employer_data.entity';
+import { EmployerBusinessImage } from '../entities/employer_business_image.entity';
 
 @Injectable()
 export class EmployersService {
@@ -34,7 +36,14 @@ export class EmployersService {
   ) {}
 
   async findByUserId(id: string): Promise<EmployerData> {
-    const employer = await this.employerRepository.findOneBy({ user: { id } });
+    const employer = await this.employerRepository.findOne({
+      where: {
+        user: {
+          id: id,
+        },
+      },
+      relations: { user: true },
+    });
     return employer;
   }
 
@@ -121,6 +130,7 @@ export class EmployersService {
             user: {
               id: employerData.user.id,
             },
+            principal: true,
           },
         });
         const newAddress = {
@@ -185,7 +195,30 @@ export class EmployersService {
       this.employerRepository.merge(employerData, changes);
       return await this.employerRepository.save(employerData);
     } catch (error) {
-      throw new InternalServerErrorException(error.response.message);
+      console.error(error);
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
+  async addAddress(userId: string, data: CreateAddressDto) {
+    try {
+      const user = await this.usersService.findOneById(userId);
+      const newAddress = await this.addressRepository.create(data);
+      newAddress.principal = false;
+      newAddress.user = user;
+      return await this.addressRepository.save(newAddress);
+    } catch (error) {
+      console.error(error);
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
+  async deleteAddress(addressId: string) {
+    try {
+      return await this.addressRepository.delete(addressId);
+    } catch (error) {
+      console.error(error);
+      throw new InternalServerErrorException(error.message);
     }
   }
 
@@ -214,5 +247,28 @@ export class EmployersService {
     } catch (error) {
       throw new InternalServerErrorException();
     }
+  }
+
+  async retrieveStripeData(userId: string) {
+    const employer = await this.findByUserId(userId);
+    if (!employer.customerId) {
+      throw new BadRequestException('Has not customer ID');
+    }
+    const stripeData = await this.stripeService.retrieveCustomer(
+      employer.customerId,
+    );
+    if (stripeData.invoice_settings.default_payment_method) {
+      const paymentMethod = await this.stripeService.retrievePaymentMethod(
+        employer.customerId,
+      );
+      return {
+        stripeAccountData: stripeData,
+        paymentMethodData: paymentMethod,
+      };
+    }
+    return {
+      stripeAccountData: stripeData,
+      paymentMethodData: null,
+    };
   }
 }

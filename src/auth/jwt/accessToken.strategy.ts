@@ -19,7 +19,7 @@ export class AccessTokenStrategy extends PassportStrategy(Strategy, 'jwt') {
 
     if (!account) {
       throw new UnauthorizedException('Invalid access token');
-    } else if (account.deactivatedAt !== null) {
+    } else if (account.desactivatedAt !== null) {
       throw new UnauthorizedException('User account deactivated');
     }
 

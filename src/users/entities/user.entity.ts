@@ -81,7 +81,7 @@ export class User {
   updateAt: Date;
 
   @DeleteDateColumn()
-  deactivatedAt: Date;
+  desactivatedAt: Date;
 
   @Column({ type: 'varchar', length: 255, nullable: true, select: false })
   refreshToken: string;
@@ -123,6 +123,9 @@ export class User {
   })
   clocksHistory: Clock[];
 
-  @OneToMany(() => Address, (address) => address.user)
+  @OneToMany(() => Address, (address) => address.user, {
+    eager: true,
+    cascade: true,
+  })
   address: Address[];
 }

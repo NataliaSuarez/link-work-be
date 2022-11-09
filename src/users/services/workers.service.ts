@@ -1,13 +1,12 @@
 import {
   ConflictException,
   BadRequestException,
-  ForbiddenException,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, FindOptionsWhere } from 'typeorm';
+import { Repository } from 'typeorm';
 
 import {
   CreateWorkerDto,
@@ -59,8 +58,13 @@ export class WorkersService {
   }
 
   async findByUserId(workerUserId: string): Promise<WorkerData> {
-    const workerData = await this.workerRepository.findOneBy({
-      user: { id: workerUserId },
+    const workerData = await this.workerRepository.findOne({
+      where: {
+        user: {
+          id: workerUserId,
+        },
+      },
+      relations: { user: true },
     });
     if (!workerData) {
       throw new NotFoundException(`Worker data not found`);
@@ -71,10 +75,14 @@ export class WorkersService {
   async create(data: CreateWorkerDto, userId: string) {
     const user = await this.usersService.findOneById(userId);
     if (user.role !== Role.WORKER) {
-      throw new ConflictException('The user has to be registered as a worker');
+      console.warn(`The user ${userId} is not a worker`);
+      throw new ConflictException('The user cant be registered as a worker');
     }
     try {
       const { address, city, state, postalCode } = data;
+      const newWorker = this.workerRepository.create(data);
+      newWorker.user = user;
+      const worker = await this.workerRepository.save(newWorker);
       const newAddress = this.addressRepository.create({
         address: address,
         city: city,
@@ -83,23 +91,18 @@ export class WorkersService {
         principal: true,
       });
       newAddress.user = user;
-      const newWorker = this.workerRepository.create(data);
-      newWorker.user = user;
-      const savedAddress = await this.addressRepository.save(newAddress);
-      const worker = await this.workerRepository.save(newWorker);
-      return {
-        worker: worker,
-        address: savedAddress,
-      };
+      await this.addressRepository.save(newAddress);
+      return worker;
     } catch (error) {
       if (error.code === PostgresErrorCode.UNIQUE) {
         throw new ConflictException('User already has worker data');
       }
-      throw new InternalServerErrorException();
+      console.error(error);
+      throw new InternalServerErrorException(error.message);
     }
   }
 
-  async update(workerData: WorkerData, changes: UpdateWorkerDto) {
+  async update(userId: string, changes: UpdateWorkerDto) {
     if (
       changes.address ||
       changes.city ||
@@ -122,7 +125,7 @@ export class WorkersService {
       const modifyAddress = await this.addressRepository.findOne({
         where: {
           user: {
-            id: workerData.user.id,
+            id: userId,
           },
         },
       });
@@ -135,7 +138,9 @@ export class WorkersService {
       this.addressRepository.merge(modifyAddress, newAddress);
       await this.addressRepository.save(modifyAddress);
 
-      const updatedWorker = this.workerRepository.merge(workerData, changes);
+      const worker = await this.findByUserId(userId);
+
+      const updatedWorker = this.workerRepository.merge(worker, changes);
       const savedWorker = await this.workerRepository.save(updatedWorker);
       return savedWorker;
     } catch (error) {
@@ -145,15 +150,20 @@ export class WorkersService {
   }
 
   async updateStars(workerData: WorkerData, stars: number) {
-    const newTotal = workerData.stars + stars;
-    const totalReviews = workerData.totalReviews + 1;
-    const newAvg = newTotal / totalReviews;
-    const changes = {
-      stars: newTotal,
-      totalReviews: totalReviews,
-      avgStars: newAvg,
-    };
-    return await this.update(workerData, changes);
+    try {
+      const newTotal = workerData.stars + stars;
+      const totalReviews = workerData.totalReviews + 1;
+      const newAvg = newTotal / totalReviews;
+      const changes = {
+        stars: newTotal,
+        totalReviews: totalReviews,
+        avgStars: newAvg,
+      };
+      return await this.update(workerData.user.id, changes);
+    } catch (error) {
+      console.error(error);
+      throw new InternalServerErrorException();
+    }
   }
 
   async uploadExperienceVideo(workerUserId: string, file: Express.Multer.File) {
@@ -169,7 +179,8 @@ export class WorkersService {
       });
       return await this.experienceRepository.save(newExperience);
     } catch (error) {
-      throw new InternalServerErrorException();
+      console.error(error);
+      throw new InternalServerErrorException(error.message);
     }
   }
 
@@ -185,12 +196,16 @@ export class WorkersService {
     }
   }
 
-  async createStripeAccount(workerData: WorkerData, data: StripeUserAccDto) {
+  async createStripeAccount(userId: string, data: StripeUserAccDto) {
     try {
+      const user = await this.usersService.findOneById(userId);
+      if (!user) {
+        throw new BadRequestException('Cant find an user');
+      }
       const userAddress = await this.addressRepository.find({
         where: {
           user: {
-            id: workerData.user.id,
+            id: userId,
           },
           principal: true,
         },
@@ -201,16 +216,16 @@ export class WorkersService {
       const accountData = {
         type: 'custom',
         country: 'US',
-        email: workerData.user.email,
+        email: user.email,
         capabilities: {
           card_payments: { requested: true },
           transfers: { requested: true },
         },
         business_type: 'individual',
         individual: {
-          first_name: workerData.user.firstName,
-          last_name: workerData.user.lastName,
-          ssn_last_4: workerData.ssn.toString().slice(-4),
+          first_name: user.firstName,
+          last_name: user.lastName,
+          ssn_last_4: user.workerData.ssn.toString().slice(-4),
           address: {
             line1: userAddress[0].address,
             postal_code: userAddress[0].postalCode,
@@ -218,12 +233,12 @@ export class WorkersService {
             state: userAddress[0].state,
           },
           dob: {
-            day: workerData.dayOfBirth,
-            month: workerData.monthOfBirth,
-            year: workerData.yearOfBirth,
+            day: user.workerData.dayOfBirth,
+            month: user.workerData.monthOfBirth,
+            year: user.workerData.yearOfBirth,
           },
-          email: workerData.user.email,
-          phone: workerData.phone,
+          email: user.email,
+          phone: user.workerData.phone,
         },
         external_account: {
           object: 'bank_account',
@@ -235,21 +250,38 @@ export class WorkersService {
         tos_acceptance: { date: Math.floor(Date.now() / 1000), ip: '8.8.8.8' },
         business_profile: {
           mcc: '7011',
-          url: workerData.personalUrl,
+          url: user.workerData.personalUrl,
         },
       };
       const stripeAccount = await this.stripeService.createUserAccount(
         accountData,
       );
+      console.log(stripeAccount);
       if (stripeAccount.id) {
-        const workerUpdated = await this.update(workerData, {
+        const workerUpdated = await this.update(userId, {
           stripeId: stripeAccount.id,
         });
         return workerUpdated;
       }
     } catch (error) {
-      console.log(error);
+      console.error(error);
       return error;
+    }
+  }
+
+  async checkStripeAccount(userId: string) {
+    const worker = await this.findByUserId(userId);
+    if (!worker.stripeId) {
+      throw new BadRequestException('This worker has not stripe id');
+    }
+    try {
+      const stripeData = await this.stripeService.retrieveAccount(
+        worker.stripeId,
+      );
+      return stripeData;
+    } catch (error) {
+      console.error(error);
+      throw new InternalServerErrorException(error.message);
     }
   }
 }

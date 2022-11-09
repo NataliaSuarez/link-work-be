@@ -40,10 +40,10 @@ export class WorkersController {
     return await this.workersService.findAll();
   }
 
-  @Get(':id')
+  @Get('stripe-account-data')
   @CheckAbilities({ action: Action.Read, subject: WorkerData })
-  async get(@Param('id') workerUserId: string) {
-    return await this.workersService.findOne(workerUserId);
+  async getStripeData(@GetReqUser('id') workerUserId) {
+    return await this.workersService.checkStripeAccount(workerUserId);
   }
 
   @Post()
@@ -77,16 +77,10 @@ export class WorkersController {
     return await this.workersService.uploadExperienceVideo(reqUserId, file);
   }
 
-  @Get(':id/video')
-  @CheckAbilities({ action: Action.Read, subject: WorkerData })
-  async downloadFileUrl(@Param('id') workerUserId: string) {
-    return this.workersService.getDownloadFileUrl(workerUserId);
-  }
-
-  @Put(':id/add-review')
+  @Put(':userId/add-review')
   @CheckAbilities({ action: Action.Read, subject: WorkerData })
   async addReview(
-    @Param('id') workerUserId: string,
+    @Param('userId') workerUserId: string,
     @Body() payload: UpdateStarsDto,
     @GetReqUser('role') reqUserRole,
   ) {

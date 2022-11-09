@@ -90,10 +90,43 @@ export class DOSpacesService {
     file: Express.Multer.File,
     employerUserId: string,
   ): Promise<string> {
-    const key = `img/employers/employer-${employerUserId}`;
+    const randomKey = Math.random().toString(36).slice(2, 7);
+    const key = `img/employers/employer-${employerUserId}/${randomKey}`;
     const fileReadStream = fs.createReadStream(file.path);
     return await this.uploadFile(fileReadStream, linkWorkBucket, key, {
       contentType: file.mimetype,
+    });
+  }
+
+  async tempAccessToPrivateFileUrl(
+    url: string,
+    expires?: number,
+  ): Promise<string> {
+    const { bucket, key } = this.parseS3Url(url);
+    return new Promise((resolve, reject) => {
+      this.s3.getSignedUrl(
+        'getObject',
+        {
+          Bucket: bucket,
+          Key: key,
+          Expires: expires ?? 300, // Default 5 minutes
+        },
+        (error: AWS.AWSError, url: string) => {
+          if (!error) {
+            resolve(url);
+          } else {
+            reject(
+              new Error(
+                `DOSpacesService_ERROR: ${
+                  error.message ||
+                  error.code ||
+                  'Something went wrong while getting the signed url'
+                }`,
+              ),
+            );
+          }
+        },
+      );
     });
   }
 

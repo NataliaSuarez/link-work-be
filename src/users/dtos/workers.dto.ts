@@ -52,14 +52,14 @@ export class CreateWorkerDto {
   readonly ssn: number;
 
   @IsNumber()
-  @IsNotEmpty()
+  @IsOptional()
   @ApiProperty()
-  readonly stars: number;
+  readonly stars?: number;
 
   @IsNumber()
-  @IsNotEmpty()
+  @IsOptional()
   @ApiProperty()
-  readonly totalReviews: number;
+  readonly totalReviews?: number;
 
   @IsNumber()
   @IsOptional()
@@ -90,9 +90,6 @@ export class CreateWorkerDto {
   @IsNotEmpty()
   @ApiProperty()
   readonly postalCode: string;
-
-  @IsUUID()
-  readonly userId: string;
 }
 
 export class UpdateWorkerDto extends PartialType(CreateWorkerDto) {}

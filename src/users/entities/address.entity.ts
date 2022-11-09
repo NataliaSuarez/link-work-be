@@ -3,16 +3,17 @@ import {
   CreateDateColumn,
   Entity,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 
 import { User } from './user.entity';
-
+import { Offer } from '../../offers_and_shifts/entities/offer.entity';
 @Entity('addresses')
 export class Address {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
   @CreateDateColumn({
     type: 'timestamptz',
@@ -45,4 +46,7 @@ export class Address {
     nullable: false,
   })
   user: User;
+
+  @OneToMany(() => Offer, (offer) => offer.address)
+  addressOffers: Offer[];
 }

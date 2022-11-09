@@ -19,6 +19,7 @@ import { SpacesModule } from './spaces/spaces.module';
 import config from './config';
 import { configValidationSchema } from './config.schema';
 import { AbilityModule } from './auth/abilities/ability.module';
+import { LoggerService } from './logger/logger.service';
 
 @Module({
   imports: [
@@ -43,6 +44,6 @@ import { AbilityModule } from './auth/abilities/ability.module';
   ],
   controllers: [AppController],
 
-  providers: [AppService],
+  providers: [AppService, LoggerService],
 })
 export class AppModule {}

@@ -13,13 +13,14 @@ import {
   Post,
   UploadedFile,
 } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 
 import { FilterUsersDto, UpdateUserDto } from '../dtos/users.dto';
 import { UsersService } from '../services/users.service';
 import { AccessTokenGuard } from 'src/auth/jwt/accessToken.guard';
+import { GetReqUser } from 'src/auth/get-req-user.decorator';
 
 @Controller('users')
 @ApiTags('users')
@@ -27,26 +28,19 @@ import { AccessTokenGuard } from 'src/auth/jwt/accessToken.guard';
 export class UsersController {
   constructor(private usersService: UsersService) {}
 
-  @Patch(':id/deactivate')
-  async deactivate(@Param('id') userId: string) {
-    const user = await this.usersService.findOneById(userId);
-    if (!user) {
-      throw new NotFoundException(`User not found`);
-    }
-    return await this.usersService.deactivate(userId);
-  }
-
-  @Patch(':id/reactivate')
-  async reactivate(@Param('id') userId: string) {
-    return await this.usersService.deactivate(userId, false);
+  @Get()
+  @ApiOperation({ summary: 'Filtro y paginación de usuarios' })
+  async getUsers(@Query() params: FilterUsersDto) {
+    return await this.usersService.findAllFiltered(params);
   }
 
   @Get(':id')
+  @ApiOperation({ summary: 'Obtener usuario por ID' })
   async get(@Param('id') id: string) {
     return await this.usersService.findOneById(id);
   }
 
-  @Post(':id/upload-profile-img')
+  @Post('upload-profile-img')
   @UseInterceptors(
     FileInterceptor('file', {
       storage: diskStorage({
@@ -54,11 +48,16 @@ export class UsersController {
       }),
     }),
   )
+  @ApiOperation({ summary: 'Cargar foto de perfil' })
   async addProfileImg(
-    @Param('id') id: string,
+    @GetReqUser('id') reqUserId,
     @UploadedFile() file: Express.Multer.File,
   ) {
-    return await this.usersService.uploadProfileImg(id, file);
+    const user = await this.usersService.findOneById(reqUserId);
+    if (!user) {
+      throw new NotFoundException(`User not found`);
+    }
+    return await this.usersService.uploadProfileImg(reqUserId, file);
   }
 
   @Put(':id')
@@ -70,13 +69,17 @@ export class UsersController {
     return await this.usersService.update(user, payload);
   }
 
+  @Patch(':id/desactivate')
+  async desactivate(@Param('id') userId: string) {
+    const user = await this.usersService.findOneById(userId);
+    if (!user) {
+      throw new NotFoundException(`User not found`);
+    }
+    return await this.usersService.desactivate(userId, true);
+  }
+
   @Delete(':id')
   async delete(@Param('id') id: string) {
     return await this.usersService.delete(id);
-  }
-
-  @Get()
-  async getUsers(@Query() params: FilterUsersDto) {
-    return await this.usersService.findAllFiltered(params);
   }
 }

@@ -8,6 +8,9 @@ import {
   UploadedFile,
   UseGuards,
   NotFoundException,
+  Delete,
+  Get,
+  BadRequestException,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -19,6 +22,7 @@ import {
   UpdateStarsDto,
 } from '../dtos/employers.dto';
 import { EmployersService } from '../services/employers.service';
+import { CreateAddressDto } from '../dtos/users.dto';
 import { GetReqUser } from 'src/auth/get-req-user.decorator';
 import { AccessTokenGuard } from 'src/auth/jwt/accessToken.guard';
 
@@ -27,6 +31,11 @@ import { AccessTokenGuard } from 'src/auth/jwt/accessToken.guard';
 @UseGuards(AccessTokenGuard)
 export class EmployersController {
   constructor(private employersService: EmployersService) {}
+
+  @Get('stripe-customer-data')
+  async getStripeData(@GetReqUser('id') reqUserId) {
+    return await this.employersService.retrieveStripeData(reqUserId);
+  }
 
   @Post()
   async create(
@@ -51,11 +60,28 @@ export class EmployersController {
     return await this.employersService.uploadBusinessImg(reqUserId, file);
   }
 
-  @Put(':id/add-review')
+  @Post('add-address')
+  async addAddress(
+    @GetReqUser('id') reqUserId,
+    @Body() payload: CreateAddressDto,
+  ) {
+    return await this.employersService.addAddress(reqUserId, payload);
+  }
+
+  @Delete('delete-address/:addressId')
+  async deleteAddress(@Param('addressId') addressId: string) {
+    return await this.employersService.deleteAddress(addressId);
+  }
+
+  @Put(':toUserId/add-review')
   async addReview(
-    @Param('id') employerUserId: string,
+    @Param('toUserId') employerUserId: string,
+    @GetReqUser('id') reqUserId,
     @Body() payload: UpdateStarsDto,
   ) {
+    if (reqUserId === employerUserId) {
+      throw new BadRequestException('Can not review yourself');
+    }
     const employerData = await this.employersService.findByUserId(
       employerUserId,
     );

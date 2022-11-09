@@ -30,6 +30,7 @@ import { Shift, ShiftStatus } from '../entities/shift.entity';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { DOSpacesService } from '../../spaces/services/doSpacesService';
 import { Role, User } from 'src/users/entities/user.entity';
+import { Address } from '../../users/entities/address.entity';
 
 @Injectable()
 export class OffersService {
@@ -37,6 +38,7 @@ export class OffersService {
     @InjectRepository(Offer) private offersRepo: Repository<Offer>,
     @InjectRepository(User) private usersRepo: Repository<User>,
     @InjectRepository(Shift) private shiftsRepo: Repository<Shift>,
+    @InjectRepository(Address) private addressRepo: Repository<Address>,
     private doSpaceService: DOSpacesService,
   ) {}
 
@@ -110,14 +112,21 @@ export class OffersService {
         'Offer time cannot be less than 30 minutes or longer than 16 hours',
       );
     }
+    const { addressId } = data;
+    const address = await this.addressRepo.findBy({ id: addressId });
+    if (!address) {
+      throw new NotFoundException('Address not found');
+    }
     try {
       const newOffer = this.offersRepo.create({
         ...data,
         employerUser: { id: employerUserId },
+        address: { id: addressId },
       });
       return await this.offersRepo.save(newOffer);
     } catch (error) {
-      throw new InternalServerErrorException();
+      console.log(error);
+      throw new InternalServerErrorException(error.response.message);
     }
   }
 
