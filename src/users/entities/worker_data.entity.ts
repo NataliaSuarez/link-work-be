@@ -9,7 +9,6 @@ import {
 } from 'typeorm';
 
 import { User } from './user.entity';
-import { WorkerExperience } from './worker_experience.entity';
 
 export enum Gender {
   FEMALE = 0,
@@ -79,12 +78,4 @@ export class WorkerData {
   })
   @JoinColumn({ name: 'userId' })
   user: User;
-
-  @OneToOne(() => WorkerExperience, (experience) => experience.workerUser, {
-    cascade: true,
-    eager: true,
-    onDelete: 'CASCADE',
-  })
-  @JoinColumn({ name: 'workerId' })
-  experience: WorkerExperience;
 }

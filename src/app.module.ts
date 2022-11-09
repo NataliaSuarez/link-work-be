@@ -19,8 +19,7 @@ import { SpacesModule } from './spaces/spaces.module';
 import config from './config';
 import { configValidationSchema } from './config.schema';
 import { AbilityModule } from './auth/abilities/ability.module';
-import { LoggerService } from './logger/logger.service';
-
+import { LoggerService } from './loggerService/logger.service';
 @Module({
   imports: [
     DatabaseModule,
