@@ -7,31 +7,31 @@ import {
   ManyToMany,
   OneToOne,
   ManyToOne,
+  JoinTable,
 } from 'typeorm';
 
-import { Worker } from '../../users/entities/worker.entity';
-import { Employer } from '../../users/entities/employer.entity';
 import { Shift } from './shift.entity';
+import { User } from 'src/users/entities/user.entity';
 
-export enum Status {
+export enum OfferStatus {
   CREATED = 0,
   ACCEPTED = 1,
   DONE = 2,
-  CANCELLED = 3,
+  CANCELED = 3,
 }
 
-export enum Category {
-  LIMPIEZA = 0,
-  MESERO = 1,
-  RECEPCION = 2,
-  TECNICO = 3,
+export enum OfferCategory {
+  CLEANING = 0,
+  WAITING = 1,
+  RECEPTION = 2,
+  TECHNICIAN = 3,
   OTHER = 4,
 }
 
 @Entity('offers')
 export class Offer {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
   @Column({ type: 'varchar', length: 255 })
   title: string;
@@ -50,9 +50,9 @@ export class Offer {
 
   @Column({
     type: 'enum',
-    enum: Category,
+    enum: OfferCategory,
   })
-  category: Category;
+  category: OfferCategory;
 
   @Column({ type: 'text', nullable: true })
   description: string;
@@ -62,10 +62,13 @@ export class Offer {
 
   @Column({
     type: 'enum',
-    enum: Status,
-    default: Status.CREATED,
+    enum: OfferStatus,
+    default: OfferStatus.CREATED,
   })
-  status: Status;
+  status: OfferStatus;
+
+  @Column({ type: 'int', default: 0 })
+  applicantsCount: number;
 
   @CreateDateColumn({
     type: 'timestamptz',
@@ -79,23 +82,27 @@ export class Offer {
   })
   updateAt: Date;
 
-  @ManyToMany(() => Worker, (applicants) => applicants.offers, {
-    nullable: true,
+  @ManyToMany(() => User, {
     onDelete: 'CASCADE',
   })
-  applicants: Worker[];
+  @JoinTable({ name: 'offers_applicants' })
+  applicants: User[];
 
-  @ManyToOne(() => Employer, (employer) => employer.offers, {
-    nullable: false,
+  @ManyToMany(() => User, {
+    onDelete: 'CASCADE',
+  })
+  @JoinTable({ name: 'workers_offers_favorites' })
+  favoritedBy: User[];
+
+  @ManyToOne(() => User, {
     onDelete: 'CASCADE',
     cascade: true,
     eager: true,
   })
-  employer: Employer;
+  employerUser: User;
 
   @OneToOne(() => Shift, (shift) => shift.offer, {
     nullable: true,
-    onDelete: 'CASCADE',
   })
   shift: Shift;
 }

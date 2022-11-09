@@ -1,28 +1,29 @@
 import {
   IsString,
-  IsNumber,
   IsUrl,
   IsEmail,
   IsNotEmpty,
-  Min,
-  Max,
   IsOptional,
   IsBoolean,
   MinLength,
   MaxLength,
   Matches,
-  IsPositive,
+  IsEnum,
+  IsUUID,
 } from 'class-validator';
 import { ApiProperty, PartialType } from '@nestjs/swagger';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
+import { RegisterType, Role } from '../entities/user.entity';
 
 export class CreateUserDto {
   @IsString()
+  @IsNotEmpty()
   @IsOptional()
   @ApiProperty()
   readonly firstName?: string;
 
   @IsString()
+  @IsNotEmpty()
   @IsOptional()
   @ApiProperty()
   readonly lastName?: string;
@@ -42,18 +43,9 @@ export class CreateUserDto {
   @ApiProperty()
   readonly password?: string;
 
-  @IsString()
-  @IsOptional()
-  @MinLength(8)
-  @MaxLength(20)
-  readonly passwordConfirm?: string;
-
-  @IsNumber()
-  @IsNotEmpty()
-  @Min(0)
-  @Max(2)
+  @IsEnum(RegisterType)
   @ApiProperty()
-  readonly registerType: number;
+  readonly registerType: RegisterType;
 
   @IsBoolean()
   @IsOptional()
@@ -65,12 +57,9 @@ export class CreateUserDto {
   @ApiProperty()
   readonly profileImg?: string;
 
-  @IsNumber()
-  @IsNotEmpty()
-  @Min(1)
-  @Max(2)
+  @IsEnum(Role)
   @ApiProperty()
-  readonly role: number;
+  readonly role: Role;
 
   @IsString()
   @IsOptional()
@@ -86,15 +75,13 @@ export class CreateUserDto {
 export class UpdateUserDto extends PartialType(CreateUserDto) {}
 
 export class FilterUsersDto extends PaginationDto {
+  @IsEnum(Role)
   @IsOptional()
-  @IsNumber()
-  @Min(1)
-  @Max(2)
-  role: number;
+  role?: number;
 }
 
 export class UserIdDto {
-  @IsNumber()
+  @IsUUID()
   @ApiProperty()
   userId: number;
 }
@@ -124,7 +111,7 @@ export class CreateAddressDto {
   @ApiProperty()
   principal: boolean;
 
-  @IsNumber()
+  @IsUUID()
   @ApiProperty()
-  userId: number;
+  userId: string;
 }

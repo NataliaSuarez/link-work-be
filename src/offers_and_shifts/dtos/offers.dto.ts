@@ -3,18 +3,22 @@ import {
   IsNotEmpty,
   IsPositive,
   IsString,
-  IsArray,
   IsDate,
   IsOptional,
   Min,
   IsUrl,
+  IsEnum,
+  Length,
+  ValidateIf,
 } from 'class-validator';
 import { ApiProperty, PartialType } from '@nestjs/swagger';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
+import { OfferCategory, OfferStatus } from '../entities/offer.entity';
 
 export class CreateOfferDto {
   @IsString()
   @IsNotEmpty()
+  @Length(3, 255)
   @ApiProperty()
   readonly title: string;
 
@@ -38,9 +42,7 @@ export class CreateOfferDto {
   @ApiProperty()
   readonly usdTotal: number;
 
-  @IsNumber()
-  @IsNotEmpty()
-  @IsPositive()
+  @IsEnum(OfferCategory)
   @ApiProperty()
   readonly category: number;
 
@@ -53,25 +55,14 @@ export class CreateOfferDto {
   @IsOptional()
   @ApiProperty()
   readonly videoUrl?: string;
+}
 
-  @IsNumber()
+export class UpdateOfferDto extends PartialType(CreateOfferDto) {
+  @IsEnum(OfferStatus)
   @IsOptional()
   @ApiProperty()
   readonly status?: number;
-
-  @IsNumber()
-  @IsNotEmpty()
-  @IsPositive()
-  @ApiProperty()
-  readonly employerId: number;
-
-  @IsArray()
-  @IsOptional()
-  @ApiProperty()
-  readonly applicantsIds?: number[];
 }
-
-export class UpdateOfferDto extends PartialType(CreateOfferDto) {}
 
 export class FilterOffersDto extends PaginationDto {
   @IsOptional()
@@ -80,12 +71,6 @@ export class FilterOffersDto extends PaginationDto {
   usdHour: number;
 
   @IsOptional()
-  @IsNumber()
-  @Min(0)
+  @IsEnum(OfferStatus)
   status: number;
-}
-
-export class ApplyDto {
-  @IsNumber()
-  workerId: number;
 }

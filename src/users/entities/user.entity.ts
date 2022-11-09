@@ -7,16 +7,21 @@ import {
   OneToOne,
   OneToMany,
   DeleteDateColumn,
+  ManyToMany,
 } from 'typeorm';
 import { Exclude } from 'class-transformer';
 
-import { Worker } from './worker.entity';
-import { Employer } from './employer.entity';
+import { WorkerData } from './worker_data.entity';
+import { EmployerData } from './employer_data.entity';
 import { Clock } from '../../offers_and_shifts/entities/clock.entity';
+import { Offer } from 'src/offers_and_shifts/entities/offer.entity';
+import { Shift } from 'src/offers_and_shifts/entities/shift.entity';
+import { EmployerBusinessImage } from './employer_business_image.entity';
+import { WorkerExperience } from './worker_experience.entity';
 import { Address } from './address.entity';
 
 export enum RegisterType {
-  MAIL_AND_PASSWORD = 0,
+  EMAIL_AND_PASSWORD = 0,
   GOOGLE = 1,
   APPLE = 2,
 }
@@ -28,8 +33,8 @@ export enum Role {
 
 @Entity('users')
 export class User {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
   @Column({ type: 'varchar', length: 255, nullable: true })
   firstName: string;
@@ -40,14 +45,14 @@ export class User {
   @Column({ type: 'varchar', unique: true, length: 255 })
   email: string;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, select: false })
   @Exclude()
   password?: string;
 
   @Column({
     type: 'enum',
     enum: RegisterType,
-    default: RegisterType.MAIL_AND_PASSWORD,
+    default: RegisterType.EMAIL_AND_PASSWORD,
   })
   registerType: RegisterType;
 
@@ -78,24 +83,43 @@ export class User {
   @DeleteDateColumn()
   deactivatedAt: Date;
 
-  @Column({ type: 'varchar', length: 255, nullable: true })
+  @Column({ type: 'varchar', length: 255, nullable: true, select: false })
   refreshToken: string;
 
-  @OneToOne(() => Worker, (worker) => worker.user, {
+  @OneToOne(() => WorkerData, (worker) => worker.user, {
     nullable: true,
-    onDelete: 'CASCADE',
+    eager: true,
+    cascade: true,
   })
-  worker: Worker;
+  workerData: WorkerData;
 
-  @OneToOne(() => Employer, (employer) => employer.user, {
+  @ManyToMany(() => Offer, (offer) => offer.applicants)
+  offersAppliedToByWorker: Offer[];
+
+  @ManyToMany(() => Offer, (offer) => offer.favoritedBy)
+  workerFavoriteOffers: Offer[];
+
+  @OneToMany(() => Shift, (shift) => shift.workerUser)
+  workerShifts: Shift[];
+
+  @OneToOne(() => WorkerExperience, (exp) => exp.workerUser)
+  workerExperience: WorkerExperience;
+
+  @OneToOne(() => EmployerData, (employer) => employer.user, {
     nullable: true,
-    onDelete: 'CASCADE',
+    eager: true,
+    cascade: true,
   })
-  employer: Employer;
+  employerData: EmployerData;
+
+  @OneToMany(() => Offer, (offer) => offer.employerUser)
+  offersOwnedByEmployer: Offer[];
+
+  @OneToMany(() => EmployerBusinessImage, (img) => img.employerUser)
+  employerBusinessImages: EmployerBusinessImage[];
 
   @OneToMany(() => Clock, (clocks) => clocks.user, {
     nullable: true,
-    onDelete: 'CASCADE',
   })
   clocksHistory: Clock[];
 

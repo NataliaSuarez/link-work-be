@@ -2,7 +2,6 @@ import {
   Get,
   Controller,
   Body,
-  ParseIntPipe,
   Param,
   Put,
   Delete,
@@ -20,16 +19,16 @@ import { diskStorage } from 'multer';
 
 import { FilterUsersDto, UpdateUserDto } from '../dtos/users.dto';
 import { UsersService } from '../services/users.service';
-import { AccessTokenGuard } from 'src/common/guards/accessToken.guard';
+import { AccessTokenGuard } from 'src/auth/jwt/accessToken.guard';
 
-@ApiTags('users')
 @Controller('users')
+@ApiTags('users')
+@UseGuards(AccessTokenGuard)
 export class UsersController {
   constructor(private usersService: UsersService) {}
 
-  @UseGuards(AccessTokenGuard)
   @Patch(':id/deactivate')
-  async deactivate(@Param('id') userId: number) {
+  async deactivate(@Param('id') userId: string) {
     const user = await this.usersService.findOneById(userId);
     if (!user) {
       throw new NotFoundException(`User not found`);
@@ -37,14 +36,13 @@ export class UsersController {
     return await this.usersService.deactivate(userId);
   }
 
-  @UseGuards(AccessTokenGuard)
   @Patch(':id/reactivate')
-  async reactivate(@Param('id') userId: number) {
+  async reactivate(@Param('id') userId: string) {
     return await this.usersService.deactivate(userId, false);
   }
 
   @Get(':id')
-  async get(@Param('id', ParseIntPipe) id: number) {
+  async get(@Param('id') id: string) {
     return await this.usersService.findOneById(id);
   }
 
@@ -57,29 +55,26 @@ export class UsersController {
     }),
   )
   async addProfileImg(
-    @Param('id', ParseIntPipe) id: number,
+    @Param('id') id: string,
     @UploadedFile() file: Express.Multer.File,
   ) {
     return await this.usersService.uploadProfileImg(id, file);
   }
 
-  @UseGuards(AccessTokenGuard)
   @Put(':id')
-  async update(@Param('id') userId: number, @Body() payload: UpdateUserDto) {
-    const user = await this.usersService.findOneById(userId);
+  async update(@Param('id') id: string, @Body() payload: UpdateUserDto) {
+    const user = await this.usersService.findOneById(id);
     if (!user) {
       throw new NotFoundException(`User not found`);
     }
     return await this.usersService.update(user, payload);
   }
 
-  @UseGuards(AccessTokenGuard)
   @Delete(':id')
-  async delete(@Param('id') id: number) {
+  async delete(@Param('id') id: string) {
     return await this.usersService.delete(id);
   }
 
-  @UseGuards(AccessTokenGuard)
   @Get()
   async getUsers(@Query() params: FilterUsersDto) {
     return await this.usersService.findAllFiltered(params);

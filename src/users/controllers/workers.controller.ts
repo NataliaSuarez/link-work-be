@@ -4,11 +4,11 @@ import {
   Post,
   Get,
   Put,
-  ParseIntPipe,
-  Delete,
   Param,
   UseInterceptors,
   UploadedFile,
+  UseGuards,
+  ForbiddenException,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -21,36 +21,47 @@ import {
   UpdateWorkerDto,
 } from '../dtos/workers.dto';
 import { WorkersService } from '../services/workers.service';
+import { GetReqUser } from 'src/auth/get-req-user.decorator';
+import { AccessTokenGuard } from 'src/auth/jwt/accessToken.guard';
+import { CheckAbilities } from 'src/auth/abilities/abilities.decorator';
+import { Action } from 'src/auth/abilities/ability.factory';
+import { WorkerData } from '../entities/worker_data.entity';
+import { Role } from '../entities/user.entity';
 
+@UseGuards(AccessTokenGuard)
 @ApiTags('workers')
 @Controller('workers')
 export class WorkersController {
   constructor(private workersService: WorkersService) {}
 
   @Get()
-  async findAll() {
+  @CheckAbilities({ action: Action.Read, subject: WorkerData })
+  async findAllWorkers() {
     return await this.workersService.findAll();
   }
 
   @Get(':id')
-  async get(@Param('id', ParseIntPipe) id: number) {
-    return await this.workersService.findOne(id);
+  @CheckAbilities({ action: Action.Read, subject: WorkerData })
+  async get(@Param('id') workerUserId: string) {
+    return await this.workersService.findOne(workerUserId);
   }
 
   @Post()
-  async create(@Body() payload: CreateWorkerDto) {
-    return await this.workersService.create(payload);
+  @CheckAbilities({ action: Action.Create, subject: WorkerData })
+  async create(@Body() payload: CreateWorkerDto, @GetReqUser('id') reqUserId) {
+    return await this.workersService.create(payload, reqUserId);
   }
 
-  @Post('create-stripe-account/:id')
-  createStripeUserAccount(
-    @Param('id') id: number,
+  @Post('create-stripe-account')
+  @CheckAbilities({ action: Action.Update, subject: WorkerData })
+  async createStripeUserAccount(
+    @GetReqUser('id') reqUserId,
     @Body() payload: StripeUserAccDto,
   ) {
-    return this.workersService.createStripeAccount(id, payload);
+    return await this.workersService.createStripeAccount(reqUserId, payload);
   }
 
-  @Post(':id/upload-video')
+  @Post('upload-video')
   @UseInterceptors(
     FileInterceptor('file', {
       storage: diskStorage({
@@ -58,30 +69,37 @@ export class WorkersController {
       }),
     }),
   )
+  @CheckAbilities({ action: Action.Update, subject: WorkerData })
   async addExperienceVideo(
-    @Param('id', ParseIntPipe) id: number,
     @UploadedFile() file: Express.Multer.File,
+    @GetReqUser('id') reqUserId,
   ) {
-    return await this.workersService.uploadExperienceVideo(id, file);
+    return await this.workersService.uploadExperienceVideo(reqUserId, file);
   }
 
   @Get(':id/video')
-  async downloadFileUrl(@Param('id') workerId: number) {
-    return this.workersService.getDownloadFileUrl(workerId);
+  @CheckAbilities({ action: Action.Read, subject: WorkerData })
+  async downloadFileUrl(@Param('id') workerUserId: string) {
+    return this.workersService.getDownloadFileUrl(workerUserId);
   }
 
   @Put(':id/add-review')
-  async addReview(@Param('id') id: number, @Body() payload: UpdateStarsDto) {
-    return await this.workersService.updateStars(id, payload.stars);
+  @CheckAbilities({ action: Action.Read, subject: WorkerData })
+  async addReview(
+    @Param('id') workerUserId: string,
+    @Body() payload: UpdateStarsDto,
+    @GetReqUser('role') reqUserRole,
+  ) {
+    if (reqUserRole !== Role.EMPLOYER) {
+      throw new ForbiddenException('Only employers can add reviews of workers');
+    }
+    const workerData = await this.workersService.findByUserId(workerUserId);
+    return await this.workersService.updateStars(workerData, payload.stars);
   }
 
-  @Put(':id')
-  async update(@Param('id') id: number, @Body() payload: UpdateWorkerDto) {
-    return await this.workersService.update(id, payload);
-  }
-
-  @Delete(':id')
-  async delete(@Param('id') id: number) {
-    return await this.workersService.remove(id);
+  @Put()
+  @CheckAbilities({ action: Action.Update, subject: WorkerData })
+  async update(@Body() payload: UpdateWorkerDto, @GetReqUser('id') reqUserId) {
+    return await this.workersService.update(reqUserId, payload);
   }
 }

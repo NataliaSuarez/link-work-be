@@ -50,11 +50,6 @@ export class CreateEmployerDto {
   @ApiProperty()
   readonly customerId?: string;
 
-  @IsNumber()
-  @IsPositive()
-  @IsNotEmpty()
-  readonly userId: number;
-
   @IsString()
   @IsOptional()
   @ApiProperty()
@@ -109,7 +104,6 @@ export class FilterEmployersDto {
 }
 
 export class UpdateStarsDto {
-  @IsPositive()
   @IsNumber()
   @Min(0)
   @Max(5)

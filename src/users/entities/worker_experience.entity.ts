@@ -7,13 +7,12 @@ import {
   OneToOne,
   JoinColumn,
 } from 'typeorm';
+import { User } from './user.entity';
 
-import { Worker } from './worker.entity';
-
-@Entity('work_experiences')
-export class Experience {
-  @PrimaryGeneratedColumn()
-  id: number;
+@Entity('worker_experiences')
+export class WorkerExperience {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
   @Column({ type: 'varchar', length: 255, nullable: false })
   videoUrl: string;
@@ -30,7 +29,7 @@ export class Experience {
   })
   updateAt: Date;
 
-  @OneToOne(() => Worker, (worker) => worker.experience, { nullable: false })
-  @JoinColumn({ name: 'workerId' })
-  worker: Worker;
+  @OneToOne(() => User, (user) => user.workerExperience)
+  @JoinColumn({ name: 'workerUserId' })
+  workerUser: User;
 }

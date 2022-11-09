@@ -1,4 +1,5 @@
 import {
+  ConflictException,
   BadRequestException,
   ForbiddenException,
   Injectable,
@@ -14,52 +15,65 @@ import {
   StripeUserAccDto,
   UpdateWorkerDto,
 } from '../dtos/workers.dto';
-import { Worker } from '../entities/worker.entity';
+import { WorkerData } from '../entities/worker_data.entity';
 import { UsersService } from './users.service';
 import { StripeService } from '../../stripe/stripe.service';
 import { DOSpacesService } from '../../spaces/services/doSpacesService';
-import { Experience } from '../entities/experience.entity';
+import { WorkerExperience } from '../entities/worker_experience.entity';
+import { Role, User } from '../entities/user.entity';
+import { PostgresErrorCode } from 'src/common/enum/postgres-error-code.enum';
 import { Address } from '../entities/address.entity';
 
 @Injectable()
 export class WorkersService {
   constructor(
-    @InjectRepository(Worker) private workerRepository: Repository<Worker>,
-    @InjectRepository(Experience)
-    private experienceRepository: Repository<Experience>,
+    @InjectRepository(WorkerData)
+    private workerRepository: Repository<WorkerData>,
+    @InjectRepository(WorkerExperience)
+    private experienceRepository: Repository<WorkerExperience>,
+    @InjectRepository(User)
+    private userRepository: Repository<User>,
     @InjectRepository(Address) private addressRepository: Repository<Address>,
     private usersService: UsersService,
     private stripeService: StripeService,
     private doSpaceService: DOSpacesService,
   ) {}
 
-  findAll(params?: FilterWorkersDto) {
-    if (params) {
-      const where: FindOptionsWhere<Worker> = {};
-      const { limit, offset } = params;
-      return this.workerRepository.find({
-        where,
-        take: limit,
-        skip: offset,
-      });
-    }
-    return this.workerRepository.find();
+  async findAll(params?: FilterWorkersDto) {
+    return await this.userRepository.find({
+      where: { role: Role.WORKER },
+      relations: { workerData: true },
+      skip: params?.offset ?? 0,
+      take: params?.limit ?? 100,
+    });
   }
 
-  async findOne(id: number): Promise<Worker> {
-    const worker = await this.workerRepository.findOneBy({ id: id });
+  async findOne(workerUserId: string): Promise<User> {
+    const worker = await this.usersService.findOneById(workerUserId, {
+      workerData: true,
+    });
     if (!worker) {
-      throw new NotFoundException(`Worker #${id} not found`);
+      throw new NotFoundException(`Worker not found`);
     }
     return worker;
   }
 
-  async create(data: CreateWorkerDto) {
+  async findByUserId(workerUserId: string): Promise<WorkerData> {
+    const workerData = await this.workerRepository.findOneBy({
+      user: { id: workerUserId },
+    });
+    if (!workerData) {
+      throw new NotFoundException(`Worker data not found`);
+    }
+    return workerData;
+  }
+
+  async create(data: CreateWorkerDto, userId: string) {
+    const user = await this.usersService.findOneById(userId);
+    if (user.role !== Role.WORKER) {
+      throw new ConflictException('The user has to be registered as a worker');
+    }
     try {
-      const user = await this.usersService.findOneById(data.userId);
-      if (user.role != 2) {
-        throw new ForbiddenException("This user can't be a worker");
-      }
       const { address, city, state, postalCode } = data;
       const newAddress = this.addressRepository.create({
         address: address,
@@ -78,16 +92,14 @@ export class WorkersService {
         address: savedAddress,
       };
     } catch (error) {
-      console.log(error);
-      throw new InternalServerErrorException(error.response.message);
+      if (error.code === PostgresErrorCode.UNIQUE) {
+        throw new ConflictException('User already has worker data');
+      }
+      throw new InternalServerErrorException();
     }
   }
 
-  async update(id: number, changes: UpdateWorkerDto) {
-    const worker = await this.workerRepository.findOneBy({ id: id });
-    if (!worker) {
-      throw new NotFoundException(`Worker #${id} not found`);
-    }
+  async update(workerData: WorkerData, changes: UpdateWorkerDto) {
     if (
       changes.address ||
       changes.city ||
@@ -100,15 +112,17 @@ export class WorkersService {
         !changes.state ||
         !changes.postalCode
       ) {
-        throw new ForbiddenException(
+        throw new BadRequestException(
           'To update an address you have to send all the address info',
         );
       }
+    }
+    try {
       const { address, city, state, postalCode } = changes;
       const modifyAddress = await this.addressRepository.findOne({
         where: {
           user: {
-            id: worker.user.id,
+            id: workerData.user.id,
           },
         },
       });
@@ -120,50 +134,49 @@ export class WorkersService {
       };
       this.addressRepository.merge(modifyAddress, newAddress);
       await this.addressRepository.save(modifyAddress);
+
+      const updatedWorker = this.workerRepository.merge(workerData, changes);
+      const savedWorker = await this.workerRepository.save(updatedWorker);
+      return savedWorker;
+    } catch (error) {
+      console.log(error);
+      throw new InternalServerErrorException(error.response.message);
     }
-    this.workerRepository.merge(worker, changes);
-    const savedWorker = await this.workerRepository.save(worker);
-    return savedWorker;
   }
 
-  async updateStars(id: number, stars: number) {
-    const worker = await this.workerRepository.findOneBy({ id: id });
-    if (!worker) {
-      throw new NotFoundException(`Worker #${id} not found`);
-    }
-    const newTotal = worker.stars + stars;
-    const totalReviews = worker.totalReviews + 1;
+  async updateStars(workerData: WorkerData, stars: number) {
+    const newTotal = workerData.stars + stars;
+    const totalReviews = workerData.totalReviews + 1;
     const newAvg = newTotal / totalReviews;
     const changes = {
       stars: newTotal,
       totalReviews: totalReviews,
       avgStars: newAvg,
     };
-    return this.update(id, changes);
+    return await this.update(workerData, changes);
   }
 
-  async uploadExperienceVideo(workerId: number, file: Express.Multer.File) {
+  async uploadExperienceVideo(workerUserId: string, file: Express.Multer.File) {
     try {
-      const worker = await this.findOne(workerId);
+      const workerUser = await this.usersService.findOneById(workerUserId);
       const fileUrl = await this.doSpaceService.uploadWorkerVideo(
         file,
-        worker.id,
+        workerUserId,
       );
-      const experienceData = {
+      const newExperience = this.experienceRepository.create({
         videoUrl: fileUrl,
-        worker: worker,
-      };
-      const newExperience = this.experienceRepository.create(experienceData);
-      return this.experienceRepository.save(newExperience);
+        workerUser: workerUser,
+      });
+      return await this.experienceRepository.save(newExperience);
     } catch (error) {
       throw new InternalServerErrorException();
     }
   }
 
-  async getDownloadFileUrl(workerId: number) {
+  async getDownloadFileUrl(workerUserId: string) {
     try {
       const experience = await this.experienceRepository.findOne({
-        where: { worker: { id: workerId } },
+        where: { workerUser: { id: workerUserId } },
       });
       const url = await this.doSpaceService.downloadFile(experience.videoUrl);
       return url;
@@ -172,24 +185,12 @@ export class WorkersService {
     }
   }
 
-  async remove(id: number) {
-    const worker = await this.workerRepository.findOneBy({ id: id });
-    if (!worker) {
-      throw new NotFoundException(`Worker #${id} not found`);
-    }
-    return this.workerRepository.delete(id);
-  }
-
-  async createStripeAccount(id: number, data: StripeUserAccDto) {
+  async createStripeAccount(workerData: WorkerData, data: StripeUserAccDto) {
     try {
-      const worker = await this.workerRepository.findOneBy({ id: id });
-      if (!worker) {
-        throw new NotFoundException(`Worker #${id} not found`);
-      }
       const userAddress = await this.addressRepository.find({
         where: {
           user: {
-            id: worker.user.id,
+            id: workerData.user.id,
           },
           principal: true,
         },
@@ -200,16 +201,16 @@ export class WorkersService {
       const accountData = {
         type: 'custom',
         country: 'US',
-        email: worker.user.email,
+        email: workerData.user.email,
         capabilities: {
           card_payments: { requested: true },
           transfers: { requested: true },
         },
         business_type: 'individual',
         individual: {
-          first_name: worker.user.firstName,
-          last_name: worker.user.lastName,
-          ssn_last_4: worker.ssn.toString().slice(-4),
+          first_name: workerData.user.firstName,
+          last_name: workerData.user.lastName,
+          ssn_last_4: workerData.ssn.toString().slice(-4),
           address: {
             line1: userAddress[0].address,
             postal_code: userAddress[0].postalCode,
@@ -217,12 +218,12 @@ export class WorkersService {
             state: userAddress[0].state,
           },
           dob: {
-            day: worker.dayOfBirth,
-            month: worker.monthOfBirth,
-            year: worker.yearOfBirth,
+            day: workerData.dayOfBirth,
+            month: workerData.monthOfBirth,
+            year: workerData.yearOfBirth,
           },
-          email: worker.user.email,
-          phone: worker.phone,
+          email: workerData.user.email,
+          phone: workerData.phone,
         },
         external_account: {
           object: 'bank_account',
@@ -234,14 +235,14 @@ export class WorkersService {
         tos_acceptance: { date: Math.floor(Date.now() / 1000), ip: '8.8.8.8' },
         business_profile: {
           mcc: '7011',
-          url: worker.personalUrl,
+          url: workerData.personalUrl,
         },
       };
       const stripeAccount = await this.stripeService.createUserAccount(
         accountData,
       );
       if (stripeAccount.id) {
-        const workerUpdated = await this.update(worker.id, {
+        const workerUpdated = await this.update(workerData, {
           stripeId: stripeAccount.id,
         });
         return workerUpdated;

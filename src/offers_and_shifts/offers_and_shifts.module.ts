@@ -9,8 +9,8 @@ import { Shift } from './entities/shift.entity';
 import { ShiftsService } from './services/shifts.service';
 import { ShiftsController } from './controllers/shifts.controller';
 
-import { Worker } from '../users/entities/worker.entity';
-import { Employer } from '../users/entities/employer.entity';
+import { WorkerData } from '../users/entities/worker_data.entity';
+import { EmployerData } from '../users/entities/employer_data.entity';
 import { EmployersService } from '../users/services/employers.service';
 import { UsersService } from '../users/services/users.service';
 import { User } from '../users/entities/user.entity';
@@ -18,7 +18,7 @@ import { StripeService } from '../stripe/stripe.service';
 import { Clock } from './entities/clock.entity';
 import { DOSpacesService } from '../spaces/services/doSpacesService';
 import { DOSpacesServiceProvider } from '../spaces/services';
-import { BusinessImages } from '../users/entities/businessImg.entity';
+import { EmployerBusinessImage } from '../users/entities/employer_business_image.entity';
 import { Address } from '../users/entities/address.entity';
 
 @Module({
@@ -27,10 +27,10 @@ import { Address } from '../users/entities/address.entity';
       Offer,
       Shift,
       Clock,
-      Worker,
-      Employer,
+      WorkerData,
+      EmployerData,
       User,
-      BusinessImages,
+      EmployerBusinessImage,
       Address,
     ]),
   ],

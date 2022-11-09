@@ -2,7 +2,6 @@ import {
   Controller,
   Get,
   Param,
-  ParseIntPipe,
   Post,
   Put,
   Delete,
@@ -11,48 +10,85 @@ import {
   UseGuards,
   UploadedFile,
   UseInterceptors,
+  NotFoundException,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { Express } from 'express';
 import {
-  ApplyDto,
   CreateOfferDto,
   FilterOffersDto,
   UpdateOfferDto,
 } from '../dtos/offers.dto';
 import { OffersService } from '../services/offers.service';
-import { AccessTokenGuard } from '../../common/guards/accessToken.guard';
-import { DOSpacesService } from '../../spaces/services/doSpacesService';
+import { AccessTokenGuard } from '../../auth/jwt/accessToken.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
+import { AbilitiesGuard } from 'src/auth/abilities/abilities.guard';
+import { Offer } from '../entities/offer.entity';
+import { Action } from 'src/auth/abilities/ability.factory';
+import { CheckAbilities } from 'src/auth/abilities/abilities.decorator';
+import { GetReqUser } from 'src/auth/get-req-user.decorator';
 
-@ApiTags('offers')
 @Controller('offers')
+@ApiTags('offers')
+@UseGuards(AccessTokenGuard, AbilitiesGuard)
 export class OffersController {
   constructor(private offerService: OffersService) {}
 
   @Get()
-  getOffers(@Query() params: FilterOffersDto) {
-    return this.offerService.findAllFiltered(params);
+  @CheckAbilities({ action: Action.Read, subject: Offer })
+  async getOffers(@Query() params: FilterOffersDto) {
+    return await this.offerService.findAllFiltered(params);
+  }
+
+  @Post()
+  @CheckAbilities({ action: Action.Create, subject: Offer })
+  async create(@Body() payload: CreateOfferDto, @GetReqUser('id') reqUserId) {
+    return await this.offerService.create(payload, reqUserId);
+  }
+
+  @Get('by-employer')
+  @CheckAbilities({ action: Action.Read, subject: Offer })
+  async getOffersByLoggedEmployer(@GetReqUser('id') reqUserId) {
+    return await this.offerService.findAllByEmployerUserId(reqUserId);
+  }
+  @Get('by-employer/:employerId')
+  @CheckAbilities({ action: Action.Read, subject: Offer })
+  async getOffersByEmployer(
+    @Param('employerId', ParseUUIDPipe) employerUserId: string,
+  ) {
+    return await this.offerService.findAllByEmployerUserId(employerUserId);
   }
 
   @Get(':id')
-  get(@Param('id', ParseIntPipe) id: number) {
-    return this.offerService.findOne(id);
+  @CheckAbilities({ action: Action.Read, subject: Offer })
+  async get(@Param('id', ParseUUIDPipe) id: string) {
+    const offer = await this.offerService.findOneById(id, { applicants: true });
+    if (!offer) {
+      throw new NotFoundException('Offer not found');
+    }
+    return offer;
   }
 
   @Get(':id/applicants')
-  getApplicants(@Param('id', ParseIntPipe) id: number) {
-    return this.offerService.findApplicants(id);
-  }
+  @CheckAbilities({ action: Action.Read, subject: Offer })
+  async getApplicants(
+    @Param('id', ParseUUIDPipe) offerId: string,
+    @GetReqUser('id') reqUserId,
+  ) {
+    const offer = await this.offerService.findOneById(offerId, {
+      applicants: true,
+    });
 
-  //@UseGuards(AccessTokenGuard)
-  @Post()
-  create(@Body() payload: CreateOfferDto) {
-    return this.offerService.create(payload);
+    if (!offer || offer.employerUser.id !== reqUserId) {
+      throw new NotFoundException('Offer not found');
+    }
+    return offer.applicants;
   }
 
   @Post(':id/upload-video')
+  @CheckAbilities({ action: Action.Update, subject: Offer })
   @UseInterceptors(
     FileInterceptor('file', {
       storage: diskStorage({
@@ -61,37 +97,80 @@ export class OffersController {
     }),
   )
   async createByVideo(
-    @Param('id', ParseIntPipe) id: number,
+    @Param('id', ParseUUIDPipe) id: string,
     @UploadedFile() file: Express.Multer.File,
+    @GetReqUser('id') reqUserId,
   ) {
-    return await this.offerService.uploadOfferVideo(id, file);
+    const offer = await this.offerService.findOneById(id);
+    if (!offer || offer.employerUser.id !== reqUserId) {
+      throw new NotFoundException('Offer not found');
+    }
+    return await this.offerService.uploadOfferVideo(offer, file);
   }
 
   @Get(':id/video')
-  async downloadFileUrl(@Param('id') offerId: number) {
-    return this.offerService.getDownloadFileUrl(offerId);
+  @CheckAbilities({ action: Action.Read, subject: Offer })
+  async downloadFileUrl(@Param('id', ParseUUIDPipe) id: string) {
+    const offer = await this.offerService.findOneById(id);
+    if (!offer) {
+      throw new NotFoundException('Offer not found');
+    }
+    return await this.offerService.getDownloadFileUrl(offer);
   }
 
   @Put(':id')
-  update(@Param('id') id: number, @Body() payload: UpdateOfferDto) {
-    return this.offerService.update(id, payload);
+  @CheckAbilities({ action: Action.Update, subject: Offer })
+  async edit(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() payload: UpdateOfferDto,
+    @GetReqUser('id') reqUserId,
+  ) {
+    const offer = await this.offerService.findOneById(id);
+    if (!offer || offer.employerUser.id !== reqUserId) {
+      throw new NotFoundException('Offer not found');
+    }
+    return await this.offerService.edit(offer, payload);
   }
 
   @Delete(':id')
-  delete(@Param('id') id: number) {
-    return this.offerService.remove(id);
+  @CheckAbilities({ action: Action.Delete, subject: Offer })
+  async delete(
+    @Param('id', ParseUUIDPipe) id: string,
+    @GetReqUser('id') reqUserId,
+  ) {
+    const offer = await this.offerService.findOneById(id);
+    if (!offer || offer.employerUser.id !== reqUserId) {
+      throw new NotFoundException('Offer not found');
+    }
+    return await this.offerService.remove(id);
   }
 
-  @Delete(':id/applicant/:applicantId')
-  deleteApplicant(
-    @Param('id') id: number,
-    @Param('applicantId') applicantId: number,
+  @Delete(':id/applicant/:applicantUserId')
+  @CheckAbilities({ action: Action.Update, subject: Offer })
+  async deleteApplicant(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Param('applicantUserId', ParseUUIDPipe) applicantUserId: string,
+    @GetReqUser('id') reqUserId,
   ) {
-    return this.offerService.removeApplicant(id, applicantId);
+    const offer = await this.offerService.findOneById(id);
+    if (!offer || offer.employerUser.id !== reqUserId) {
+      throw new NotFoundException('Offer not found');
+    }
+    return await this.offerService.removeApplicant(id, applicantUserId);
   }
 
   @Post(':id/apply')
-  apply(@Param('id') id: number, @Body() payload: ApplyDto) {
-    return this.offerService.apply(id, payload);
+  @CheckAbilities({ action: Action.Read, subject: Offer })
+  async apply(
+    @Param('id', ParseUUIDPipe) offerId: string,
+    @GetReqUser('id') reqUserId,
+  ) {
+    const offer = await this.offerService.findOneById(offerId, {
+      applicants: true,
+    });
+    if (!offer) {
+      throw new NotFoundException(`Offer not found`);
+    }
+    return await this.offerService.apply(reqUserId, offer);
   }
 }

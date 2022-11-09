@@ -2,17 +2,18 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 
-import { Employer } from './employer.entity';
+import { User } from './user.entity';
 
 @Entity('business_images')
-export class BusinessImages {
-  @PrimaryGeneratedColumn()
-  id: number;
+export class EmployerBusinessImage {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
   @Column({ type: 'varchar', length: 255, nullable: false })
   imgUrl: string;
@@ -29,8 +30,9 @@ export class BusinessImages {
   })
   updateAt: Date;
 
-  @ManyToOne(() => Employer, (employer) => employer.businessImages, {
+  @ManyToOne(() => User, (user) => user.employerBusinessImages, {
     nullable: false,
   })
-  employer: Employer;
+  @JoinColumn({ name: 'employerUserId' })
+  employerUser: User;
 }

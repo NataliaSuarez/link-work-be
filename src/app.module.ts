@@ -18,6 +18,7 @@ import { TasksModule } from './tasks/tasks.module';
 import { SpacesModule } from './spaces/spaces.module';
 import config from './config';
 import { configValidationSchema } from './config.schema';
+import { AbilityModule } from './auth/abilities/ability.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { configValidationSchema } from './config.schema';
       validationSchema: configValidationSchema,
     }),
     TypeOrmModule.forRootAsync(typeOrmAsyncConfig),
+    AbilityModule,
     UsersModule,
     OffersAndShiftsModule,
     AuthModule,

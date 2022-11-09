@@ -10,8 +10,7 @@ import {
 } from 'typeorm';
 
 import { User } from './user.entity';
-import { Offer } from '../../offers_and_shifts/entities/offer.entity';
-import { BusinessImages } from './businessImg.entity';
+import { EmployerBusinessImage } from './employer_business_image.entity';
 
 export enum BusinessCode {
   HOTEL = 0,
@@ -19,10 +18,10 @@ export enum BusinessCode {
   OTHER = 2,
 }
 
-@Entity('employers')
-export class Employer {
-  @PrimaryGeneratedColumn()
-  id: number;
+@Entity('employers_data')
+export class EmployerData {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
   @Column({
     type: 'enum',
@@ -64,25 +63,20 @@ export class Employer {
   })
   updateAt: Date;
 
-  @OneToOne(() => User, (user) => user.employer, {
-    cascade: true,
-    eager: true,
+  @OneToOne(() => User, (user) => user.employerData, {
     onDelete: 'CASCADE',
     onUpdate: 'CASCADE',
   })
   @JoinColumn({ name: 'userId' })
   user: User;
 
-  @OneToMany(() => Offer, (offers) => offers.employer)
-  offers: Offer[];
-
   @OneToMany(
-    () => BusinessImages,
-    (businessImages) => businessImages.employer,
+    () => EmployerBusinessImage,
+    (businessImages) => businessImages.employerUser,
     {
       nullable: true,
       onDelete: 'CASCADE',
     },
   )
-  businessImages: BusinessImages[];
+  businessImages: EmployerBusinessImage[];
 }

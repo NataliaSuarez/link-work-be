@@ -14,9 +14,11 @@ import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CreateUserDto } from '../users/dtos/users.dto';
 import { AuthService } from './auth.service';
 import { AuthDto } from './dto/auth.dto';
-import { AccessTokenGuard } from '../common/guards/accessToken.guard';
-import { RefreshTokenGuard } from 'src/common/guards/refreshToken.guard';
+import { AccessTokenGuard } from './jwt/accessToken.guard';
+import { RefreshTokenGuard } from 'src/auth/jwt/refreshToken.guard';
 import { GoogleAuthenticationService } from './googleAuthentication.service';
+import { GetReqUser } from './get-req-user.decorator';
+import { RegisterType } from 'src/users/entities/user.entity';
 @ApiTags('auth')
 @Controller('auth')
 @UseInterceptors(ClassSerializerInterceptor)
@@ -29,9 +31,9 @@ export class AuthController {
   @Post('sign-up')
   @ApiOperation({ summary: 'Sign up an user account' })
   async signup(@Body() createUserDto: CreateUserDto) {
-    if (createUserDto.registerType == 0) {
+    if (createUserDto.registerType == RegisterType.EMAIL_AND_PASSWORD) {
       return await this.authService.signUp(createUserDto);
-    } else if (createUserDto.registerType === 1) {
+    } else if (createUserDto.registerType === RegisterType.GOOGLE) {
       return await this.googleAuthenticationService.authenticate(createUserDto);
     }
   }
@@ -42,19 +44,19 @@ export class AuthController {
     return await this.authService.signIn(data);
   }
 
-  @UseGuards(AccessTokenGuard)
   @Get('log-out')
+  @UseGuards(AccessTokenGuard)
   @ApiOperation({ summary: 'Log out an existing user' })
-  async logout(@Req() req: Request) {
-    await this.authService.logout(req.user['sub']);
+  async logout(@GetReqUser('id') reqUserId) {
+    await this.authService.logout(reqUserId);
   }
 
-  @UseGuards(RefreshTokenGuard)
   @Get('refresh')
+  @UseGuards(RefreshTokenGuard)
   @ApiOperation({ summary: 'Refresh auth tokens' })
   async refreshTokens(@Req() req: Request) {
-    const userId = req.user['sub'];
+    const email = req.user['email'];
     const refreshToken = req.user['refreshToken'];
-    return await this.authService.refreshTokens(userId, refreshToken);
+    return await this.authService.refreshTokens(email, refreshToken);
   }
 }

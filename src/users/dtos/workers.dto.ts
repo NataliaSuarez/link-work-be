@@ -5,9 +5,9 @@ import {
   IsOptional,
   Min,
   IsString,
-  IsDate,
   IsUrl,
   Max,
+  IsUUID,
 } from 'class-validator';
 import { ApiProperty, PartialType } from '@nestjs/swagger';
 
@@ -91,9 +91,8 @@ export class CreateWorkerDto {
   @ApiProperty()
   readonly postalCode: string;
 
-  @IsPositive()
-  @IsNotEmpty()
-  readonly userId: number;
+  @IsUUID()
+  readonly userId: string;
 }
 
 export class UpdateWorkerDto extends PartialType(CreateWorkerDto) {}
@@ -113,9 +112,8 @@ export class CreateWorkExperienceDto {
   @ApiProperty()
   readonly description: string;
 
-  @IsPositive()
-  @IsNotEmpty()
-  readonly workerId: number;
+  @IsUUID()
+  readonly workerId: string;
 }
 
 export class UpdateWorkExperience extends PartialType(

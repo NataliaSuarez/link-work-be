@@ -2,13 +2,12 @@ import {
   Body,
   Controller,
   Post,
-  Get,
   Param,
-  ParseIntPipe,
   Put,
-  Delete,
   UseInterceptors,
   UploadedFile,
+  UseGuards,
+  NotFoundException,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -20,28 +19,24 @@ import {
   UpdateStarsDto,
 } from '../dtos/employers.dto';
 import { EmployersService } from '../services/employers.service';
+import { GetReqUser } from 'src/auth/get-req-user.decorator';
+import { AccessTokenGuard } from 'src/auth/jwt/accessToken.guard';
 
-@ApiTags('employers')
 @Controller('employers')
+@ApiTags('employers')
+@UseGuards(AccessTokenGuard)
 export class EmployersController {
   constructor(private employersService: EmployersService) {}
 
-  @Get()
-  async findAll() {
-    return await this.employersService.findAll();
-  }
-
-  @Get(':id')
-  async get(@Param('id', ParseIntPipe) id: number) {
-    return await this.employersService.findOne(id);
-  }
-
   @Post()
-  async create(@Body() payload: CreateEmployerDto) {
-    return await this.employersService.create(payload);
+  async create(
+    @Body() payload: CreateEmployerDto,
+    @GetReqUser('id') reqUserId,
+  ) {
+    return await this.employersService.createEmployerData(payload, reqUserId);
   }
 
-  @Post(':id/upload-img')
+  @Post('upload-img')
   @UseInterceptors(
     FileInterceptor('file', {
       storage: diskStorage({
@@ -50,24 +45,32 @@ export class EmployersController {
     }),
   )
   async addBusinessImg(
-    @Param('id', ParseIntPipe) id: number,
+    @GetReqUser('id') reqUserId,
     @UploadedFile() file: Express.Multer.File,
   ) {
-    return await this.employersService.uploadBusinessImg(id, file);
+    return await this.employersService.uploadBusinessImg(reqUserId, file);
   }
 
   @Put(':id/add-review')
-  async addReview(@Param('id') id: number, @Body() payload: UpdateStarsDto) {
-    return await this.employersService.updateStars(id, payload.stars);
+  async addReview(
+    @Param('id') employerUserId: string,
+    @Body() payload: UpdateStarsDto,
+  ) {
+    const employerData = await this.employersService.findByUserId(
+      employerUserId,
+    );
+    return await this.employersService.updateStars(employerData, payload.stars);
   }
 
-  @Put(':id')
-  async update(@Param('id') id: number, @Body() payload: UpdateEmployerDto) {
-    return await this.employersService.update(id, payload);
-  }
-
-  @Delete(':id')
-  async delete(@Param('id') id: number) {
-    return await this.employersService.remove(id);
+  @Put()
+  async update(
+    @GetReqUser('id') reqUserId,
+    @Body() payload: UpdateEmployerDto,
+  ) {
+    const employerData = await this.employersService.findByUserId(reqUserId);
+    if (!employerData) {
+      throw new NotFoundException('User employer data not found');
+    }
+    return await this.employersService.update(employerData, payload);
   }
 }

@@ -6,15 +6,10 @@ import {
   UpdateDateColumn,
   OneToOne,
   JoinColumn,
-  ManyToMany,
-  JoinTable,
-  OneToMany,
 } from 'typeorm';
 
 import { User } from './user.entity';
-import { Offer } from '../../offers_and_shifts/entities/offer.entity';
-import { Shift } from '../../offers_and_shifts/entities/shift.entity';
-import { Experience } from './experience.entity';
+import { WorkerExperience } from './worker_experience.entity';
 
 export enum Gender {
   FEMALE = 0,
@@ -22,10 +17,10 @@ export enum Gender {
   OTHER = 2,
 }
 
-@Entity('workers')
-export class Worker {
-  @PrimaryGeneratedColumn()
-  id: number;
+@Entity('workers_data')
+export class WorkerData {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
   @Column({ type: 'int' })
   dayOfBirth: number;
@@ -78,33 +73,18 @@ export class Worker {
   })
   updateAt: Date;
 
-  @OneToOne(() => User, (user) => user.worker, {
-    cascade: true,
-    eager: true,
+  @OneToOne(() => User, (user) => user.workerData, {
     onDelete: 'CASCADE',
     onUpdate: 'CASCADE',
   })
   @JoinColumn({ name: 'userId' })
   user: User;
 
-  @ManyToMany(() => Offer, (offers) => offers.applicants, {
-    onDelete: 'CASCADE',
-    onUpdate: 'CASCADE',
-  })
-  @JoinTable()
-  offers: Offer[];
-
-  @OneToMany(() => Shift, (shift) => shift.worker, {
-    nullable: true,
-    onDelete: 'CASCADE',
-  })
-  shifts: Shift[];
-
-  @OneToOne(() => Experience, (experience) => experience.worker, {
+  @OneToOne(() => WorkerExperience, (experience) => experience.workerUser, {
     cascade: true,
     eager: true,
     onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'workerId' })
-  experience: Experience;
+  experience: WorkerExperience;
 }

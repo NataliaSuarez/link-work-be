@@ -6,8 +6,6 @@ import { DOSpacesServiceLib } from '.';
 const linkWorkBucket =
   process.env.DO_SPACES_USER_MEDIA_BUCKET ?? 'linkwork-user-media-dev';
 
-const audiencesBucket = process.env.DO_SPACES_AUDIENCE_FILES_BUCKET;
-
 @Injectable()
 export class DOSpacesService {
   constructor(@Inject(DOSpacesServiceLib) private readonly s3: AWS.S3) {}
@@ -56,10 +54,10 @@ export class DOSpacesService {
 
   async uploadOfferVideo(
     file: Express.Multer.File,
-    employerId: number,
-    offerId: number,
+    employerUserId: string,
+    offerId: string,
   ): Promise<string> {
-    const key = `video/offers/employer-${employerId}/offer-${offerId}`;
+    const key = `video/offers/employer-${employerUserId}/offer-${offerId}`;
     const fileReadStream = fs.createReadStream(file.path);
     return await this.uploadFile(fileReadStream, linkWorkBucket, key, {
       contentType: file.mimetype,
@@ -68,9 +66,9 @@ export class DOSpacesService {
 
   async uploadWorkerVideo(
     file: Express.Multer.File,
-    workerId: number,
+    workerUserId: string,
   ): Promise<string> {
-    const key = `video/workers/worker-${workerId}`;
+    const key = `video/workers/worker-${workerUserId}`;
     const fileReadStream = fs.createReadStream(file.path);
     return await this.uploadFile(fileReadStream, linkWorkBucket, key, {
       contentType: file.mimetype,
@@ -79,7 +77,7 @@ export class DOSpacesService {
 
   async uploadProfileImg(
     file: Express.Multer.File,
-    userId: number,
+    userId: string,
   ): Promise<string> {
     const key = `img/profiles/user-${userId}`;
     const fileReadStream = fs.createReadStream(file.path);
@@ -90,9 +88,9 @@ export class DOSpacesService {
 
   async uploadBusinessImg(
     file: Express.Multer.File,
-    employerId: number,
+    employerUserId: string,
   ): Promise<string> {
-    const key = `img/employers/employer-${employerId}`;
+    const key = `img/employers/employer-${employerUserId}`;
     const fileReadStream = fs.createReadStream(file.path);
     return await this.uploadFile(fileReadStream, linkWorkBucket, key, {
       contentType: file.mimetype,

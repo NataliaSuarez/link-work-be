@@ -11,21 +11,21 @@ import {
 } from 'typeorm';
 
 import { Offer } from './offer.entity';
-import { Worker } from '../../users/entities/worker.entity';
 import { Clock } from './clock.entity';
+import { User } from 'src/users/entities/user.entity';
 
-export enum Status {
-  ACCEPTED = 0,
+export enum ShiftStatus {
+  CREATED = 0,
   ACTIVE = 1,
   DONE = 2,
-  CANCELLED = 3,
+  CANCELED = 3,
   UNCONFIRMED = 4,
 }
 
 @Entity('shifts')
 export class Shift {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
   @CreateDateColumn({
     type: 'timestamptz',
@@ -56,16 +56,16 @@ export class Shift {
 
   @Column({
     type: 'enum',
-    enum: Status,
-    default: Status.ACCEPTED,
+    enum: ShiftStatus,
+    default: ShiftStatus.CREATED,
   })
-  status: Status;
+  status: ShiftStatus;
 
-  @ManyToOne(() => Worker, (worker) => worker.shifts, {
+  @ManyToOne(() => User, {
     nullable: false,
     onDelete: 'CASCADE',
   })
-  worker: Worker;
+  workerUser: User;
 
   @OneToOne(() => Offer, (offer) => offer.shift, {
     cascade: true,

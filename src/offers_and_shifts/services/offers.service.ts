@@ -3,32 +3,40 @@ import {
   NotFoundException,
   ForbiddenException,
   InternalServerErrorException,
+  BadRequestException,
+  ConflictException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Equal, FindOptionsWhere } from 'typeorm';
+import {
+  Repository,
+  Equal,
+  FindOptionsWhere,
+  FindOptionsRelations,
+  Between,
+  LessThanOrEqual,
+  MoreThanOrEqual,
+  Not,
+  In,
+} from 'typeorm';
+import * as moment from 'moment';
 
 import {
-  ApplyDto,
   CreateOfferDto,
   FilterOffersDto,
   UpdateOfferDto,
 } from '../dtos/offers.dto';
-import { Offer } from '../entities/offer.entity';
-import { Worker } from '../../users/entities/worker.entity';
-import { Employer } from '../../users/entities/employer.entity';
-import { EmployersService } from '../../users/services/employers.service';
-import { Shift } from '../entities/shift.entity';
-import { getDay0, getDay6, getHoursDiff } from 'src/utils/dates';
+import { Offer, OfferStatus } from '../entities/offer.entity';
+import { Shift, ShiftStatus } from '../entities/shift.entity';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { DOSpacesService } from '../../spaces/services/doSpacesService';
+import { Role, User } from 'src/users/entities/user.entity';
 
 @Injectable()
 export class OffersService {
   constructor(
-    @InjectRepository(Offer) private offerRepo: Repository<Offer>,
-    @InjectRepository(Worker) private workerRepo: Repository<Worker>,
-    @InjectRepository(Employer) private employerRepo: Repository<Employer>,
-    @InjectRepository(Shift) private shiftRepo: Repository<Shift>,
+    @InjectRepository(Offer) private offersRepo: Repository<Offer>,
+    @InjectRepository(User) private usersRepo: Repository<User>,
+    @InjectRepository(Shift) private shiftsRepo: Repository<Shift>,
     private doSpaceService: DOSpacesService,
   ) {}
 
@@ -43,95 +51,94 @@ export class OffersService {
       if (status) {
         where.status = Equal(status);
       }
-      return await this.offerRepo.find({
+      return await this.offersRepo.find({
         where,
         take: limit,
         skip: offset,
-        relations: ['applicants', 'employer'],
+        loadEagerRelations: false,
+        loadRelationIds: { relations: ['employerUser'] },
       });
+    } else {
+      return await this.offersRepo.find();
     }
-    return await this.offerRepo.find();
   }
 
-  async findOne(id: number): Promise<Offer> {
-    const offer = await this.offerRepo.findOne({
-      where: { id: id },
-      relations: ['applicants', 'employer'],
+  async findOneById(
+    id: string,
+    relations?: FindOptionsRelations<Offer>,
+  ): Promise<Offer> {
+    const offer = await this.offersRepo.findOne({
+      where: { id },
+      relations,
     });
-    if (!offer) {
-      throw new NotFoundException(`Offer #${id} not found`);
-    }
     return offer;
   }
 
-  async findApplicants(offerId: number): Promise<Worker[]> {
-    const offer = await this.offerRepo.findOne({
-      where: {
-        id: offerId,
-      },
-      relations: ['applicants'],
+  async findAllByEmployerUserId(employerUserId: string) {
+    const offers = await this.offersRepo.find({
+      where: { employerUser: { id: employerUserId } },
+      loadEagerRelations: false,
     });
-    if (!offer) {
-      throw new NotFoundException(`Offer #${offerId} not found`);
-    }
-    return offer.applicants;
+    return offers;
   }
 
-  async findByEmployer(
-    employerId: number,
+  async findByEmployerUserId(
+    employerUserId: string,
     pagination?: PaginationDto,
   ): Promise<Offer[]> {
-    const offers = await this.offerRepo.find({
-      relations: {
-        employer: true,
-      },
+    const offers = await this.offersRepo.find({
       where: {
-        employer: {
-          id: employerId,
+        employerUser: {
+          id: employerUserId,
         },
       },
       skip: pagination.offset,
       take: pagination.limit,
     });
-    if (!offers) {
-      throw new NotFoundException(`Employer #${employerId} has not any offer`);
-    }
     return offers;
   }
 
-  async create(data: CreateOfferDto) {
-    const employer = await this.employerRepo.findOneBy({ id: data.employerId });
-    if (!employer) {
-      throw new NotFoundException('Employer not found');
+  async create(data: CreateOfferDto, employerUserId: string) {
+    if (moment(data.from) < moment().add(2, 'hours')) {
+      throw new BadRequestException(
+        'Offer starting time has to be atleast 2 hours from now',
+      );
+    }
+    const datesHoursDiff = moment(data.to).diff(data.from, 'hours');
+    if (datesHoursDiff < 0.5 || datesHoursDiff > 16) {
+      throw new BadRequestException(
+        'Offer time cannot be less than 30 minutes or longer than 16 hours',
+      );
     }
     try {
-      const newOffer = this.offerRepo.create(data);
-      newOffer.employer = employer;
-      return this.offerRepo.save(newOffer);
+      const newOffer = this.offersRepo.create({
+        ...data,
+        employerUser: { id: employerUserId },
+      });
+      return await this.offersRepo.save(newOffer);
     } catch (error) {
       throw new InternalServerErrorException();
     }
   }
 
-  async uploadOfferVideo(offerId: number, file: Express.Multer.File) {
+  async uploadOfferVideo(offer: Offer, file: Express.Multer.File) {
     try {
-      const offer = await this.findOne(offerId);
       const fileUrl = await this.doSpaceService.uploadOfferVideo(
         file,
-        offer.employer.id,
-        offerId,
+        offer.employerUser.id,
+        offer.id,
       );
-      const updatedOffer = await this.update(offerId, { videoUrl: fileUrl });
-      return updatedOffer;
+
+      offer.videoUrl = fileUrl;
+      return await this.offersRepo.save(offer);
     } catch (error) {
       console.log(error);
       throw new InternalServerErrorException();
     }
   }
 
-  async getDownloadFileUrl(offerId: number) {
+  async getDownloadFileUrl(offer: Offer) {
     try {
-      const offer = await this.findOne(offerId);
       const url = await this.doSpaceService.downloadFile(offer.videoUrl);
       return url;
     } catch (error) {
@@ -139,136 +146,138 @@ export class OffersService {
     }
   }
 
-  async remove(id: number) {
+  async remove(id: string) {
     try {
-      await this.offerRepo.delete(id);
+      await this.offersRepo.delete(id);
       return { message: 'Offer removed' };
     } catch (error) {
       throw new InternalServerErrorException();
     }
   }
 
-  async update(id: number, changes: UpdateOfferDto) {
-    const offer = await this.offerRepo.findOne({
-      where: {
-        id: id,
-      },
-      relations: ['applicants'],
-    });
-    if (!offer) {
-      throw new NotFoundException(`Offer #${id} not found`);
+  async edit(offer: Offer, changes: UpdateOfferDto) {
+    if (offer.status !== OfferStatus.CREATED) {
+      throw new ForbiddenException('Cannot edit an accepted or done offer');
     }
-    if (
-      offer.applicants.length != 0 &&
-      changes.status != 1 &&
-      changes.status != 2
-    ) {
-      throw new ForbiddenException("Can't edit an offer with applicants");
-    }
-    if (changes.applicantsIds) {
-      const worker = await this.workerRepo.findOneBy({
-        id: changes.applicantsIds[0],
-      });
-      if (!worker) {
-        throw new NotFoundException(
-          `Worker #${changes.applicantsIds[0]} not found`,
-        );
-      }
-      offer.applicants.push(worker);
+    if (offer.applicants.length > 0) {
+      throw new ForbiddenException('Cannot edit an offer with applicants');
     }
     try {
-      this.offerRepo.merge(offer, changes);
-      return this.offerRepo.save(offer);
+      this.offersRepo.merge(offer, changes);
+      return await this.offersRepo.save(offer);
     } catch (error) {
       throw new InternalServerErrorException();
     }
   }
 
-  async removeApplicant(offerId: number, applicantId: number) {
-    const offer = await this.offerRepo.findOne({
-      where: {
-        id: offerId,
-      },
-      relations: ['applicants'],
-    });
+  async updateStatus(offer: Offer, status: OfferStatus) {
+    try {
+      offer.status = status;
+      return await this.offersRepo.save(offer);
+    } catch (error) {
+      throw new InternalServerErrorException();
+    }
+  }
+
+  async removeApplicant(offerId: string, applicantUserId: string) {
+    const offer = await this.findOneById(offerId, { applicants: true });
     if (!offer) {
       throw new NotFoundException('Offer not found');
     }
     offer.applicants = offer.applicants.filter(
-      (item) => item.id != applicantId,
+      (applicant) => applicant.id != applicantUserId,
     );
+    offer.applicantsCount -= 1;
     try {
-      await this.offerRepo.save(offer);
+      await this.offersRepo.save(offer);
       return { message: 'Applicant removed from offer' };
     } catch (error) {
       throw new InternalServerErrorException();
     }
   }
 
-  async apply(offerId: number, data: ApplyDto) {
-    const applicantId = data.workerId;
-    const offer = await this.offerRepo.findOne({
-      where: {
-        id: offerId,
-      },
-      relations: ['applicants'],
+  async apply(workerUserId: string, offer: Offer) {
+    const workerUser = await this.usersRepo.findOneBy({
+      id: workerUserId,
+      role: Role.WORKER,
     });
-    if (!offer) {
-      throw new NotFoundException(`Offer #${offerId} not found`);
+    if (!workerUser) {
+      throw new ForbiddenException('Only workers can apply');
     }
-    const worker = await this.workerRepo.findOneBy({ id: applicantId });
-    if (!worker) {
-      throw new NotFoundException(`Worker #${applicantId} not found`);
+    if (!workerUser.workerData?.stripeId) {
+      throw new ConflictException(`Worker doesn't have a payment method set`);
     }
+
+    // Reject application if offer starts in less than 15 minutes or if it was already accepted
+    if (
+      offer.status !== OfferStatus.CREATED ||
+      moment(offer.from).diff(moment(), 'minutes') < 15
+    ) {
+      throw new ConflictException('Offer cannot be applied to anymore');
+    }
+
+    // Check if worker already applied
+    if (offer.applicants.find((applicant) => applicant.id === workerUserId)) {
+      throw new ConflictException('Worker already applied');
+    }
+
+    // Check if worker already has an accepted offer
     const valid = await this.validWorkerForShift(
-      data.workerId,
+      workerUser,
       offer.from,
       offer.to,
     );
-    if (valid === false) {
-      throw new ForbiddenException(
-        `Worker #${applicantId} is full of shift hours at this week`,
+    if (!valid) {
+      throw new ConflictException(
+        `Worker reached max hours for this week or has a shift in this time`,
       );
     }
-    offer.applicants.push(worker);
+    offer.applicants.push(workerUser);
+    offer.applicantsCount += 1;
     try {
-      await this.offerRepo.save(offer);
+      await this.offersRepo.save(offer);
     } catch (error) {
       throw new InternalServerErrorException();
     }
   }
 
-  async validWorkerForShift(workerId: number, offerFrom: Date, offerTo: Date) {
+  async validWorkerForShift(
+    workerUser: User,
+    offerFrom: Date,
+    offerTo: Date,
+  ): Promise<boolean> {
     try {
-      const shifts = await this.shiftRepo.find({
-        relations: {
-          offer: true,
-          worker: true,
+      // check if worker has a shift in the offer time
+      const shift = await this.shiftsRepo.findOne({
+        where: {
+          workerUser: { id: workerUser.id },
+          offer: {
+            from: LessThanOrEqual(offerTo),
+            to: MoreThanOrEqual(offerFrom),
+          },
+          status: Not(In([ShiftStatus.CANCELED, ShiftStatus.DONE])),
         },
-        where: [
-          { worker: { id: workerId }, status: 0 },
-          { worker: { id: workerId }, status: 1 },
-        ],
       });
-
-      const weekDay0 = getDay0(offerFrom);
-      const weekDay6 = getDay6(offerFrom);
-      const offerHours = getHoursDiff(offerFrom, offerTo);
-
-      let hoursWeek = 0;
-
-      for (const object of shifts) {
-        if (object.offer.from >= weekDay0 && object.offer.from <= weekDay6) {
-          const hoursDiff = getHoursDiff(object.offer.from, object.offer.to);
-          hoursWeek += hoursDiff;
-        }
-      }
-
-      const totalHours = hoursWeek + offerHours;
-      if (totalHours >= 40) {
+      if (shift) {
         return false;
       }
-      return true;
+
+      // check if worker has reached max hours for the week
+      const weekStartDate = moment(offerFrom).startOf('isoWeek').toDate();
+      const weekEndDate = moment(offerFrom).endOf('isoWeek').toDate();
+
+      const shifts = await this.shiftsRepo.find({
+        where: {
+          workerUser: { id: workerUser.id },
+          offer: { from: Between(weekStartDate, weekEndDate) },
+        },
+      });
+      const hours = shifts.reduce((acc, shift) => {
+        const duration = moment(shift.offer.to).diff(shift.offer.from, 'hours');
+        return acc + duration;
+      }, 0);
+
+      return hours < 40;
     } catch (error) {
       throw new InternalServerErrorException();
     }

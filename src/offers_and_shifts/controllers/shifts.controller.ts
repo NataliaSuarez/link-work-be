@@ -2,21 +2,25 @@ import {
   Controller,
   Get,
   Param,
-  ParseIntPipe,
   Post,
   Put,
   Delete,
   Body,
-  Req,
   UseGuards,
+  NotFoundException,
+  Query,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { Request } from 'express';
 
 import { CreateShiftDto, UpdateShiftDto } from '../dtos/shift.dto';
 import { ShiftsService } from '../services/shifts.service';
-import { AccessTokenGuard } from '../../common/guards/accessToken.guard';
-import { UserIdDto } from '../../users/dtos/users.dto';
+import { AccessTokenGuard } from '../../auth/jwt/accessToken.guard';
+import { GetReqUser } from 'src/auth/get-req-user.decorator';
+import { CheckAbilities } from 'src/auth/abilities/abilities.decorator';
+import { Action } from 'src/auth/abilities/ability.factory';
+import { Shift } from '../entities/shift.entity';
+import { Role } from 'src/users/entities/user.entity';
+import { PaginationDto } from 'src/common/dto/pagination.dto';
 @UseGuards(AccessTokenGuard)
 @ApiTags('shifts')
 @Controller('shifts')
@@ -24,42 +28,116 @@ export class ShiftsController {
   constructor(private shiftService: ShiftsService) {}
 
   @Get()
-  getShifts(@Req() req: Request) {
-    return this.shiftService.findShifts(req.user);
+  async getShifts(@GetReqUser() reqUser, @Query() pagination?: PaginationDto) {
+    if (reqUser.role === Role.EMPLOYER) {
+      return await this.shiftService.findByEmployerUserId(
+        reqUser.id,
+        pagination,
+      );
+    }
+    if (reqUser.role === Role.WORKER) {
+      return await this.shiftService.findByWorkerUserId(reqUser.id, pagination);
+    }
   }
 
   @Get(':id')
-  get(@Param('id', ParseIntPipe) id: number) {
-    return this.shiftService.findOneById(id);
+  @CheckAbilities({ action: Action.Read, subject: Shift })
+  async get(@Param('id') shiftId: string, @GetReqUser('id') reqUserId) {
+    const shift = await this.shiftService.findOneById(shiftId, {
+      workerUser: true,
+      offer: true,
+    });
+    if (
+      !shift ||
+      (shift.workerUser.id !== reqUserId &&
+        shift.offer.employerUser.id !== reqUserId)
+    ) {
+      throw new NotFoundException('Shift not found');
+    }
+    return shift;
   }
 
   @Get('by-status/:status')
-  getByStatus(@Param('status') status: number, @Req() req: Request) {
-    return this.shiftService.findByStatus(req.user, status);
+  @CheckAbilities({ action: Action.Read, subject: Shift })
+  async getByStatus(
+    @Param('status') status: number,
+    @GetReqUser('id') reqUserId,
+  ) {
+    return await this.shiftService.findByStatus(reqUserId, status);
   }
 
   @Post()
-  create(@Body() payload: CreateShiftDto) {
-    return this.shiftService.create(payload);
+  @CheckAbilities({ action: Action.Create, subject: Shift })
+  async create(
+    @Body() payload: CreateShiftDto,
+    @GetReqUser('id') reqEmployerUserId,
+  ) {
+    return await this.shiftService.create(payload, reqEmployerUserId);
   }
 
-  @Post('/clock-in/:shiftId')
-  clockIn(@Param('shiftId') shiftId: number, @Body() userId: UserIdDto) {
-    return this.shiftService.clockIn(shiftId, userId.userId);
+  @Post('clock-in/:shiftId')
+  @CheckAbilities({ action: Action.Read, subject: Shift })
+  async clockIn(@Param('shiftId') shiftId: string, @GetReqUser() reqUser) {
+    const shift = await this.shiftService.findOneById(shiftId, {
+      workerUser: true,
+      offer: true,
+    });
+    if (
+      !shift ||
+      (shift.workerUser.id !== reqUser.id &&
+        shift.offer.employerUser.id !== reqUser.id)
+    ) {
+      throw new NotFoundException('Shift not found');
+    }
+    if (reqUser.role === Role.EMPLOYER) {
+      return await this.shiftService.clockInByEmployer(shift);
+    }
+    if (reqUser.role === Role.WORKER) {
+      return await this.shiftService.clockInByWorker(shift);
+    }
   }
 
-  @Post('/clock-out/:shiftId')
-  clockOut(@Param('shiftId') shiftId: number, @Body() userId: UserIdDto) {
-    return this.shiftService.clockOut(shiftId, userId.userId);
+  @Post('clock-out/:shiftId')
+  @CheckAbilities({ action: Action.Read, subject: Shift })
+  async clockOut(@Param('shiftId') shiftId: string, @GetReqUser() reqUser) {
+    const shift = await this.shiftService.findOneById(shiftId, {
+      workerUser: true,
+      offer: true,
+    });
+    if (
+      !shift ||
+      (shift.workerUser.id !== reqUser.id &&
+        shift.offer.employerUser.id !== reqUser.id)
+    ) {
+      throw new NotFoundException('Shift not found');
+    }
+    if (reqUser.role === Role.EMPLOYER) {
+      return await this.shiftService.confirmShift(shift);
+    }
+    if (reqUser.role === Role.WORKER) {
+      return await this.shiftService.clockOutByWorker(shift);
+    }
   }
 
   @Put(':id')
-  update(@Param('íd') id: number, @Body() payload: UpdateShiftDto) {
-    return this.shiftService.update(id, payload);
+  @CheckAbilities({ action: Action.Update, subject: Shift })
+  async update(
+    @Param('íd') id: string,
+    @Body() payload: UpdateShiftDto,
+    @GetReqUser() reqUser,
+  ) {
+    const shift = await this.shiftService.findOneById(id, {
+      offer: { employerUser: true },
+    });
+    if (!shift || shift.offer.employerUser.id !== reqUser.id) {
+      throw new NotFoundException('Shift not found');
+    }
+    return await this.shiftService.update(shift, payload);
   }
 
   @Delete(':id')
-  delete(@Param('id') id: number) {
-    return this.shiftService.remove(id);
+  @CheckAbilities({ action: Action.Delete, subject: Shift })
+  async delete(@Param('id') id: string) {
+    return await this.shiftService.remove(id);
   }
 }

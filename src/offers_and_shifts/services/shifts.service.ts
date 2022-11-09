@@ -7,19 +7,22 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Equal, FindOptionsWhere, LessThanOrEqual } from 'typeorm';
+import {
+  Repository,
+  Equal,
+  FindOptionsWhere,
+  LessThanOrEqual,
+  FindOptionsRelations,
+} from 'typeorm';
 
-import { Offer } from '../entities/offer.entity';
+import { OfferStatus } from '../entities/offer.entity';
 import { OffersService } from './offers.service';
-import { Worker } from '../../users/entities/worker.entity';
-import { User } from '../../users/entities/user.entity';
-import { Shift } from '../entities/shift.entity';
+import { Shift, ShiftStatus } from '../entities/shift.entity';
 import {
   CreateShiftDto,
   FilterShiftsDto,
   UpdateShiftDto,
 } from '../dtos/shift.dto';
-import { Employer } from '../../users/entities/employer.entity';
 import { StripeService } from '../../stripe/stripe.service';
 import { Clock } from '../entities/clock.entity';
 import * as moment from 'moment';
@@ -29,97 +32,34 @@ import { PaginationDto } from 'src/common/dto/pagination.dto';
 export class ShiftsService {
   constructor(
     @InjectRepository(Shift) private shiftRepo: Repository<Shift>,
-    @InjectRepository(Offer) private offerRepo: Repository<Offer>,
-    @InjectRepository(Worker) private workerRepo: Repository<Worker>,
-    @InjectRepository(Employer) private employerRepo: Repository<Employer>,
-    @InjectRepository(User) private userRepo: Repository<User>,
     @InjectRepository(Clock) private clocksRepo: Repository<Clock>,
-    private offerService: OffersService,
+    private offersService: OffersService,
     private stripeService: StripeService,
   ) {}
 
-  async findShifts(data) {
-    const user = await this.userRepo.findOne({
-      where: { email: data.email },
-      relations: ['employer', 'worker'],
-    });
-    if (!user) {
-      throw new NotFoundException(`User ${data.email} not found`);
-    }
-    if (user.role === 1) {
-      if (!user.employer) {
-        throw new NotFoundException(
-          `User ${data.email} employer profile not found`,
-        );
-      }
-      return this.findByEmployer(user.employer.id);
-    } else if (user.role === 2) {
-      if (!user.worker) {
-        throw new NotFoundException(
-          `User ${data.email} worker profile not found`,
-        );
-      }
-      return this.findByWorker(user.worker.id);
-    }
-  }
-
-  async findByStatus(data, status) {
-    const user = await this.userRepo.findOne({
-      where: { id: data.sub },
-      relations: ['employer', 'worker'],
-    });
-    if (!user) {
-      throw new NotFoundException(`User ${data.sub} not found`);
-    }
-    if (user.role === 1) {
-      if (!user.employer) {
-        throw new NotFoundException(
-          `User ${data.sub} employer profile not found`,
-        );
-      }
-      const doneShifts = await this.shiftRepo.find({
-        relations: {
-          offer: true,
-          worker: true,
-        },
-        where: {
+  async findByStatus(reqUserId: string, status: ShiftStatus) {
+    const shifts = await this.shiftRepo.find({
+      relations: {
+        offer: { employerUser: true },
+        workerUser: true,
+      },
+      where: [
+        {
           status: status,
           offer: {
-            employer: {
-              id: user.employer.id,
+            employerUser: {
+              id: reqUserId,
             },
           },
         },
-      });
-      if (doneShifts.length > 0) {
-        return doneShifts;
-      } else {
-        return { message: 'No shifts available' };
-      }
-    } else if (user.role === 2) {
-      if (!user.worker) {
-        throw new NotFoundException(
-          `User ${data.sub} worker profile not found`,
-        );
-      }
-      const doneShifts = await this.shiftRepo.find({
-        relations: {
-          offer: true,
-          worker: true,
-        },
-        where: {
-          worker: {
-            id: user.worker.id,
-          },
+        {
           status: status,
+          workerUser: { id: reqUserId },
         },
-      });
-      if (doneShifts.length > 0) {
-        return doneShifts;
-      } else {
-        return { message: 'No shifts available' };
-      }
-    }
+      ],
+    });
+
+    return shifts;
   }
 
   async findAllFiltered(params?: FilterShiftsDto) {
@@ -135,7 +75,7 @@ export class ShiftsService {
           where,
           take: limit,
           skip: offset,
-          relations: ['offer', 'worker'],
+          relations: { offer: true, workerUser: true },
         });
       }
       return await this.shiftRepo.find();
@@ -144,35 +84,30 @@ export class ShiftsService {
     }
   }
 
-  async findOneById(id: number): Promise<Shift> {
-    let shift: Shift;
-    try {
-      shift = await this.shiftRepo.findOne({
-        where: { id: id },
-        relations: ['offer', 'worker'],
-      });
-    } catch (error) {
-      throw error;
-    }
-    if (!shift) {
-      throw new NotFoundException(`Shift #${id} not found`);
-    }
+  async findOneById(
+    id: string,
+    relations?: FindOptionsRelations<Shift>,
+  ): Promise<Shift> {
+    const shift = await this.shiftRepo.findOne({
+      where: { id },
+      relations,
+    });
     return shift;
   }
 
-  async findByWorker(workerId: number, pagination?: PaginationDto) {
+  async findByWorkerUserId(workerUserId: string, pagination?: PaginationDto) {
     let shifts: { activeShifts: Shift[]; acceptedShifts: Shift[] };
     try {
       const activeShifts = await this.shiftRepo.find({
         relations: {
           offer: true,
-          worker: true,
+          workerUser: true,
         },
         where: {
-          worker: {
-            id: workerId,
+          workerUser: {
+            id: workerUserId,
           },
-          status: 1,
+          status: ShiftStatus.ACTIVE,
         },
         skip: pagination.offset,
         take: pagination.limit,
@@ -180,13 +115,13 @@ export class ShiftsService {
       const acceptedShifts = await this.shiftRepo.find({
         relations: {
           offer: true,
-          worker: true,
+          workerUser: true,
         },
         where: {
-          worker: {
-            id: workerId,
+          workerUser: {
+            id: workerUserId,
           },
-          status: 0,
+          status: ShiftStatus.CREATED,
         },
         skip: pagination.offset,
         take: pagination.limit,
@@ -202,98 +137,78 @@ export class ShiftsService {
     return shifts;
   }
 
-  async findByEmployer(employerId: number, pagination?: PaginationDto) {
-    let shifts: { activeShifts: Shift[]; acceptedShifts: Shift[] };
-
+  async findByEmployerUserId(
+    employerUserId: string,
+    pagination?: PaginationDto,
+  ) {
     try {
-      const offers = await this.offerService.findByEmployer(employerId);
       const activeShifts = [];
       const acceptedShifts = [];
 
-      for (const object of offers) {
-        const shift = await this.shiftRepo.find({
-          relations: {
-            offer: true,
-            worker: true,
+      const shifts = await this.shiftRepo.find({
+        relations: {
+          offer: { employerUser: true },
+          workerUser: true,
+        },
+        where: {
+          offer: {
+            employerUser: { id: employerUserId },
           },
-          where: {
-            offer: {
-              id: object.id,
-            },
-          },
-          skip: pagination.offset,
-          take: pagination.limit,
-        });
-        if (shift[0]) {
-          if (shift[0].status === 0) {
-            acceptedShifts.push(shift);
-          } else if (shift[0].status === 1) {
-            activeShifts.push(shift);
-          }
+        },
+        skip: pagination?.offset ?? 0,
+        take: pagination?.limit ?? 100,
+      });
+      for (const shift of shifts) {
+        if (shift.status === ShiftStatus.CREATED) {
+          acceptedShifts.push(shift);
+        } else if (shift.status === ShiftStatus.ACTIVE) {
+          activeShifts.push(shift);
         }
       }
 
-      shifts = {
+      return {
         activeShifts: activeShifts,
         acceptedShifts: acceptedShifts,
       };
     } catch (error) {
       throw new InternalServerErrorException();
     }
-    return shifts;
   }
 
-  async create(data: CreateShiftDto) {
-    const offer = await this.offerRepo.findOne({
-      relations: {
-        employer: true,
-      },
-      where: {
-        id: data.offerId,
-      },
+  async create(
+    { workerUserId, offerId }: CreateShiftDto,
+    employerUserId: string,
+  ) {
+    const offer = await this.offersService.findOneById(offerId, {
+      employerUser: { employerData: true },
+      applicants: true,
     });
-    const worker = await this.workerRepo.findOneBy({
-      id: data.workerId,
-    });
-    if (!offer) {
-      throw new NotFoundException(`Offer #${data.offerId} not found`);
+    if (!offer || offer.employerUser.id !== employerUserId) {
+      throw new NotFoundException(`Offer not found`);
     }
-    const employer = await this.employerRepo.findOneBy({
-      id: offer.employer.id,
-    });
-    const applicants = await this.offerService.findApplicants(data.offerId);
-    if (!worker) {
-      throw new NotFoundException(`Worker #${data.workerId} not found`);
+    const workerUser = offer.applicants.find(
+      (applicant) => applicant.id === workerUserId,
+    );
+    if (!workerUser) {
+      throw new ConflictException(`Worker didn't apply to the offer`);
     }
-    let aux = 0;
-    for (const object of applicants) {
-      if (object.id === worker.id) {
-        aux = 1;
-      }
-    }
-    if (aux != 1) {
-      throw new NotFoundException(
-        `Worker #${worker.id} is not an applicant of this offer`,
-      );
-    }
-    const valid = await this.offerService.validWorkerForShift(
-      worker.id,
+    const valid = await this.offersService.validWorkerForShift(
+      workerUser,
       offer.from,
       offer.to,
     );
     if (!valid) {
-      throw new ForbiddenException(
-        `Worker #${worker.id} is full of shift hours at this week`,
-      );
+      throw new ConflictException(`Worker reached max hours for this week`);
     }
+    const employerStripeCustomerId = offer.employerUser.employerData.customerId;
     const paymentMethod = await this.stripeService.retrievePaymentMethod(
-      employer.customerId,
+      employerStripeCustomerId,
     );
     const amount = offer.usdTotal * 100;
     const paymentData = {
       amount: amount,
       currency: 'usd',
-      customer: employer.customerId,
+      customer: employerStripeCustomerId,
       description: offer.title,
       payment_method: paymentMethod.data[0].id,
       confirm: true,
@@ -303,107 +218,43 @@ export class ShiftsService {
         paymentData,
       );
       if (paymentIntent.status != 'succeeded') {
-        throw new ConflictException('Payment intent not succeeded');
+        throw new ConflictException('Payment intent unsuccessful');
       }
-      this.offerService.update(data.offerId, { status: 1 });
-      this.offerService.removeApplicant(data.offerId, data.workerId);
-      const newShift = this.shiftRepo.create(data);
-      newShift.worker = worker;
+      await this.offersService.updateStatus(offer, OfferStatus.ACCEPTED);
+      const newShift = this.shiftRepo.create();
+      newShift.workerUser = workerUser;
       newShift.offer = offer;
-      return this.shiftRepo.save(newShift);
+      return await this.shiftRepo.save(newShift);
     } catch (error) {
-      throw new ConflictException('Error with payment intent');
+      throw new InternalServerErrorException('Error with payment intent');
     }
   }
 
-  async clockIn(shiftId: number, userId: number) {
-    const user = await this.userRepo.findOne({
-      where: { id: userId },
-      relations: ['employer', 'worker'],
-    });
-    if (!user) {
-      throw new NotFoundException(`User ${userId} not found`);
+  async clockInByEmployer(shift: Shift) {
+    if (shift.offer.from > new Date()) {
+      throw new ConflictException('Shift has not started yet');
     }
-    if (user.role === 1) {
-      if (!user.employer) {
-        throw new NotFoundException(
-          `User ${userId} employer profile not found`,
-        );
-      }
-      return this.clockInByEmployer(shiftId, user.employer.id);
-    } else if (user.role === 2) {
-      if (!user.worker) {
-        throw new NotFoundException(`User ${userId} worker profile not found`);
-      }
-      return this.clockInByWorker(shiftId, user.worker.id);
-    }
-  }
-
-  async clockOut(shiftId: number, userId: number) {
-    const user = await this.userRepo.findOne({
-      where: { id: userId },
-      relations: ['employer', 'worker'],
-    });
-    if (!user) {
-      throw new NotFoundException(`User ${userId} not found`);
-    }
-    if (user.role === 1) {
-      if (!user.employer) {
-        throw new NotFoundException(
-          `User ${userId} employer profile not found`,
-        );
-      }
-      return this.confirmShift(shiftId, user.employer.id);
-    } else if (user.role === 2) {
-      if (!user.worker) {
-        throw new NotFoundException(`User ${userId} worker profile not found`);
-      }
-      return this.clockOutByWorker(shiftId, user.worker.id);
-    }
-  }
-
-  async clockInByEmployer(id: number, employerId: number) {
-    const shift = await this.shiftRepo.findOneBy({ id: id });
-    if (!shift) {
-      throw new NotFoundException(`Shift #${id} not found`);
-    }
-    if (shift.offer.employer.id != employerId) {
-      throw new ForbiddenException(
-        `Employer #${employerId} can't clock-in this shift`,
-      );
+    if (shift.offer.to < new Date()) {
+      throw new ConflictException('Shift already ended');
     }
     try {
       shift.clockIn = true;
       const clockHistory = {
         clockType: 1,
         shift: shift,
-        user: shift.offer.employer.user,
+        user: shift.offer.employerUser,
       };
       const newClock = this.clocksRepo.create(clockHistory);
       await this.clocksRepo.save(newClock);
-      return this.shiftRepo.save(shift);
+      return await this.shiftRepo.save(shift);
     } catch (error) {
       throw new InternalServerErrorException();
     }
   }
 
-  async clockInByWorker(id: number, workerId: number) {
-    const shift = await this.shiftRepo.findOne({
-      where: { id: id },
-      relations: ['worker'],
-    });
-    if (!shift) {
-      throw new NotFoundException(`Shift #${id} not found`);
-    }
+  async clockInByWorker(shift: Shift) {
     if (!shift.clockIn) {
-      throw new BadRequestException(
-        `Shift #${id} need clock in request by Employer`,
-      );
-    }
-    if (shift.worker.id != workerId) {
-      throw new ForbiddenException(
-        `Worker #${workerId} can't clock-in this shift`,
-      );
+      throw new BadRequestException(`Clock-in pending by Employer`);
     }
     try {
       shift.confirmedClockIn = true;
@@ -411,31 +262,19 @@ export class ShiftsService {
       const clockHistory = {
         clockType: 1,
         shift: shift,
-        user: shift.worker.user,
+        user: shift.workerUser,
       };
       const newClock = this.clocksRepo.create(clockHistory);
       await this.clocksRepo.save(newClock);
-      return this.shiftRepo.save(shift);
+      return await this.shiftRepo.save(shift);
     } catch (error) {
       throw new InternalServerErrorException();
     }
   }
 
-  async clockOutByWorker(id: number, workerId: number) {
-    const shift = await this.shiftRepo.findOne({
-      where: { id: id },
-      relations: ['worker'],
-    });
-    if (!shift) {
-      throw new NotFoundException(`Shift #${id} not found`);
-    }
+  async clockOutByWorker(shift: Shift) {
     if (!shift.confirmedClockIn) {
-      throw new BadRequestException(`Shift #${id} need clock in confirm`);
-    }
-    if (shift.worker.id != workerId) {
-      throw new ForbiddenException(
-        `Worker #${workerId} can't clock-out this shift`,
-      );
+      throw new BadRequestException(`Clock-in confirmation pending`);
     }
     try {
       shift.clockOut = true;
@@ -445,35 +284,25 @@ export class ShiftsService {
       const clockHistory = {
         clockType: 2,
         shift: shift,
-        user: shift.worker.user,
+        user: shift.workerUser,
       };
       const newClock = this.clocksRepo.create(clockHistory);
       await this.clocksRepo.save(newClock);
-      return this.shiftRepo.save(shift);
+      return await this.shiftRepo.save(shift);
     } catch (error) {
       throw new InternalServerErrorException();
     }
   }
 
-  async confirmShift(id: number, employerId: number) {
+  async confirmShift(shift: Shift) {
     try {
-      const shift = await this.shiftRepo.findOneBy({ id: id });
-      if (!shift) {
-        throw new NotFoundException(`Shift #${id} not found`);
-      }
       if (!shift.clockOut) {
-        throw new BadRequestException(
-          `Shift #${id} need clock out request by Worker`,
-        );
+        throw new BadRequestException(`Clock-out pending by Worker`);
       }
-      if (shift.offer.employer.id != employerId) {
-        throw new ForbiddenException(
-          `Employer #${employerId} can't confirm this shift`,
-        );
-      }
-      if (!shift.worker.stripeId) {
+      const workerUserStripeId = shift.workerUser.workerData.stripeId;
+      if (!workerUserStripeId) {
         throw new BadRequestException(
-          `Error Worker ID ${shift.worker.id} has not payment stripe ID`,
+          `Error Worker user ID ${shift.workerUser.id} has not payment stripe ID`,
         );
       }
       const amount = shift.offer.usdTotal * 100;
@@ -481,77 +310,71 @@ export class ShiftsService {
       const transferData = {
         amount: amount,
         currency: 'usd',
-        destination: shift.worker.stripeId,
+        destination: workerUserStripeId,
         description: description,
       };
       const transfer = await this.stripeService.createTransfer(transferData);
       if (transfer.created) {
-        await this.offerService.update(shift.offer.id, { status: 2 });
+        await this.offersService.updateStatus(shift.offer, OfferStatus.DONE);
         const clockHistory = {
           clockType: 2,
           shift: shift,
-          user: shift.offer.employer.user,
+          user: shift.offer.employerUser,
         };
         const newClock = this.clocksRepo.create(clockHistory);
         await this.clocksRepo.save(newClock);
-        return await this.update(shift.id, {
-          status: 2,
+        return await this.update(shift, {
+          status: ShiftStatus.DONE,
           confirmedClockOut: true,
         });
       }
     } catch (error) {
       console.log(error);
-      throw new ConflictException(`Error with shift id #${id} confirmation`);
+      throw new InternalServerErrorException(`Error with shift confirmation`);
     }
   }
 
   async autoConfirmShifts() {
     const date = new Date();
-    console.log(date);
     const shifts = await this.shiftRepo.find({
       where: {
-        status: 4,
+        status: ShiftStatus.UNCONFIRMED,
         autoConfirmed: LessThanOrEqual(date),
       },
-      relations: ['worker'],
+      relations: { workerUser: { workerData: true } },
     });
     if (shifts.length > 0) {
-      for (const obj of shifts) {
-        if (!obj.worker.stripeId) {
-          throw new ConflictException(
-            `Error Worker ID ${obj.worker.id} has not payment stripe ID`,
-          );
-        }
+      for (const shift of shifts) {
         try {
-          const amount = obj.offer.usdTotal * 100;
-          const description = obj.offer.title + obj.offer.from + obj.offer.to;
+          const amount = shift.offer.usdTotal * 100;
+          const description =
+            shift.offer.title + shift.offer.from + shift.offer.to;
           const transferData = {
             amount: amount,
             currency: 'usd',
-            destination: obj.worker.stripeId,
+            destination: shift.workerUser.workerData.stripeId,
             description: description,
           };
           const transfer = await this.stripeService.createTransfer(
             transferData,
           );
           if (transfer.created) {
-            await this.update(obj.id, { status: 2 });
-            await this.offerService.update(obj.offer.id, { status: 2 });
-            console.log(transferData);
+            await this.update(shift, { status: ShiftStatus.DONE });
+            await this.offersService.updateStatus(
+              shift.offer,
+              OfferStatus.DONE,
+            );
           }
         } catch (error) {
-          console.log(error);
           throw new ConflictException(
-            `Error with shift id #${obj.id} auto-confirmation`,
+            `Error with shift id #${shift.id} auto-confirmation`,
           );
         }
       }
-    } else {
-      console.log('Nothing to confirm');
     }
   }
 
-  async remove(id: number) {
+  async remove(id: string) {
     try {
       await this.shiftRepo.delete(id);
       return { message: 'Shift removed' };
@@ -560,11 +383,7 @@ export class ShiftsService {
     }
   }
 
-  async update(id: number, changes: UpdateShiftDto) {
-    const shift = await this.shiftRepo.findOneBy({ id: id });
-    if (!shift) {
-      throw new NotFoundException(`Shift #${id} not found`);
-    }
+  async update(shift: Shift, changes: UpdateShiftDto) {
     try {
       this.shiftRepo.merge(shift, changes);
       return await this.shiftRepo.save(shift);

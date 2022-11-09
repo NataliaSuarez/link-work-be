@@ -2,8 +2,8 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { User } from '../users/entities/user.entity';
-import { Employer } from '../users/entities/employer.entity';
-import { Worker } from '../users/entities/worker.entity';
+import { EmployerData } from '../users/entities/employer_data.entity';
+import { WorkerData } from '../users/entities/worker_data.entity';
 import { Offer } from '../offers_and_shifts/entities/offer.entity';
 import { Shift } from '../offers_and_shifts/entities/shift.entity';
 import { ShiftsService } from '../offers_and_shifts/services/shifts.service';
@@ -16,8 +16,8 @@ import { UsersService } from '../users/services/users.service';
 import { Clock } from '../offers_and_shifts/entities/clock.entity';
 import { DOSpacesService } from '../spaces/services/doSpacesService';
 import { DOSpacesServiceProvider } from '../spaces/services';
-import { Experience } from '../users/entities/experience.entity';
-import { BusinessImages } from '../users/entities/businessImg.entity';
+import { WorkerExperience } from '../users/entities/worker_experience.entity';
+import { EmployerBusinessImage } from '../users/entities/employer_business_image.entity';
 import { Address } from '../users/entities/address.entity';
 
 @Module({
@@ -25,12 +25,12 @@ import { Address } from '../users/entities/address.entity';
     TypeOrmModule.forFeature([
       Shift,
       Offer,
-      Worker,
-      Employer,
+      WorkerData,
+      EmployerData,
       User,
       Clock,
-      Experience,
-      BusinessImages,
+      WorkerExperience,
+      EmployerBusinessImage,
       Address,
     ]),
   ],

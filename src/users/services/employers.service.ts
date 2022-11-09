@@ -3,31 +3,29 @@ import {
   ForbiddenException,
   Injectable,
   InternalServerErrorException,
-  NotFoundException,
+  ConflictException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, FindOptionsWhere } from 'typeorm';
+import { Repository } from 'typeorm';
 
-import {
-  CreateEmployerDto,
-  FilterEmployersDto,
-  UpdateEmployerDto,
-} from '../dtos/employers.dto';
-import { Employer } from '../entities/employer.entity';
+import { CreateEmployerDto, UpdateEmployerDto } from '../dtos/employers.dto';
+import { EmployerData } from '../entities/employer_data.entity';
 import { UsersService } from './users.service';
 import { StripeService } from '../../stripe/stripe.service';
-import { BusinessImages } from '../entities/businessImg.entity';
+import { EmployerBusinessImage } from '../entities/employer_business_image.entity';
 import { DOSpacesService } from '../../spaces/services/doSpacesService';
 import { ShiftsService } from '../../offers_and_shifts/services/shifts.service';
+import { Role } from '../entities/user.entity';
+import { PostgresErrorCode } from '../../common/enum/postgres-error-code.enum';
 import { Address } from '../entities/address.entity';
 
 @Injectable()
 export class EmployersService {
   constructor(
-    @InjectRepository(Employer)
-    private employerRepository: Repository<Employer>,
-    @InjectRepository(BusinessImages)
-    private imgRepository: Repository<BusinessImages>,
+    @InjectRepository(EmployerData)
+    private employerRepository: Repository<EmployerData>,
+    @InjectRepository(EmployerBusinessImage)
+    private imgRepository: Repository<EmployerBusinessImage>,
     @InjectRepository(Address) private addressRepository: Repository<Address>,
     private usersService: UsersService,
     private stripeService: StripeService,
@@ -35,35 +33,18 @@ export class EmployersService {
     private shiftService: ShiftsService,
   ) {}
 
-  findAll(params?: FilterEmployersDto) {
-    if (params) {
-      const where: FindOptionsWhere<Employer> = {};
-      const { limit, offset } = params;
-      return this.employerRepository.find({
-        where,
-        take: limit,
-        skip: offset,
-      });
-    }
-    return this.employerRepository.find();
-  }
-
-  async findOne(id: number): Promise<Employer> {
-    const employer = await this.employerRepository.findOneBy({ id: id });
-    if (!employer) {
-      throw new NotFoundException(`Employer #${id} not found`);
-    }
+  async findByUserId(id: string): Promise<EmployerData> {
+    const employer = await this.employerRepository.findOneBy({ user: { id } });
     return employer;
   }
 
-  async create(data: CreateEmployerDto) {
+  async createEmployerData(data: CreateEmployerDto, userId: string) {
     try {
-      const user = await this.usersService.findOneById(data.userId);
-      if (!user) {
-        throw new NotFoundException(`User #${data.userId} not found`);
-      }
-      if (user.role != 1) {
-        throw new ForbiddenException("This user can't be an employer");
+      const user = await this.usersService.findOneById(userId, {
+        employerData: true,
+      });
+      if (user.role !== Role.EMPLOYER) {
+        throw new ForbiddenException('User needs to be registered as employer');
       }
       const { address, city, state, postalCode } = data;
       const newAddress = this.addressRepository.create({
@@ -106,19 +87,17 @@ export class EmployersService {
       } else {
         const newEmployer = await this.employerRepository.create(data);
         newEmployer.user = user;
-        const employerSaved = await this.employerRepository.save(newEmployer);
-        return employerSaved;
+        return await this.employerRepository.save(newEmployer);
       }
     } catch (error) {
-      throw new InternalServerErrorException(error.response.message);
+      if (error.code === PostgresErrorCode.UNIQUE) {
+        throw new ConflictException('User already has employer data');
+      }
+      throw new InternalServerErrorException();
     }
   }
 
-  async update(id: number, changes: UpdateEmployerDto) {
-    const employer = await this.employerRepository.findOneBy({ id: id });
-    if (!employer) {
-      throw new NotFoundException(`Employer #${id} not found`);
-    }
+  async update(employerData: EmployerData, changes: UpdateEmployerDto) {
     try {
       if (
         changes.address ||
@@ -140,7 +119,7 @@ export class EmployersService {
         const modifyAddress = await this.addressRepository.findOne({
           where: {
             user: {
-              id: employer.user.id,
+              id: employerData.user.id,
             },
           },
         });
@@ -155,8 +134,10 @@ export class EmployersService {
       }
       if (changes.number) {
         if (changes.exp_month && changes.exp_year && changes.cvc) {
-          if (employer.customerId) {
-            const shifts = await this.shiftService.findByEmployer(employer.id);
+          if (employerData.customerId) {
+            const shifts = await this.shiftService.findByEmployerUserId(
+              employerData.user.id,
+            );
             if (
               shifts.acceptedShifts.length > 0 ||
               shifts.activeShifts.length > 0
@@ -173,17 +154,17 @@ export class EmployersService {
               cvc: cvc,
             };
             await this.stripeService.updatePaymentMethod(
-              employer.customerId,
+              employerData.customerId,
               card,
             );
           } else {
             const { number, exp_month, exp_year, cvc } = changes;
             const fullName =
-              employer.user.firstName + ' ' + employer.user.lastName;
+              employerData.user.firstName + ' ' + employerData.user.lastName;
             const customerData = {
-              email: employer.user.email,
+              email: employerData.user.email,
               name: fullName,
-              description: employer.businessName,
+              description: employerData.businessName,
             };
             const customer = await this.stripeService.createCustomer(
               customerData,
@@ -195,55 +176,43 @@ export class EmployersService {
               cvc: cvc,
             };
             await this.stripeService.createPaymentMethod(customer.id, card);
-            employer.customerId = customer.id;
+            employerData.customerId = customer.id;
           }
         } else {
           throw new BadRequestException('All card information needed');
         }
       }
-      this.employerRepository.merge(employer, changes);
-      return this.employerRepository.save(employer);
+      this.employerRepository.merge(employerData, changes);
+      return await this.employerRepository.save(employerData);
     } catch (error) {
       throw new InternalServerErrorException(error.response.message);
     }
   }
 
-  async updateStars(id: number, stars: number) {
-    const employer = await this.employerRepository.findOneBy({ id: id });
-    if (!employer) {
-      throw new NotFoundException(`Employer #${id} not found`);
-    }
-    const newTotal = employer.stars + stars;
-    const totalReviews = employer.totalReviews + 1;
+  async updateStars(employerData: EmployerData, stars: number) {
+    const newTotal = employerData.stars + stars;
+    const totalReviews = employerData.totalReviews + 1;
     const newAvg = newTotal / totalReviews;
     const changes = {
       stars: newTotal,
       totalReviews: totalReviews,
       avgStars: newAvg,
     };
-    return this.update(id, changes);
+    return await this.update(employerData, changes);
   }
 
-  async uploadBusinessImg(employerId: number, file: Express.Multer.File) {
+  async uploadBusinessImg(employerUserId: string, file: Express.Multer.File) {
     try {
-      const employer = await this.findOne(employerId);
+      const employerUser = await this.usersService.findOneById(employerUserId);
       const fileUrl = await this.doSpaceService.uploadBusinessImg(
         file,
-        employerId,
+        employerUserId,
       );
       const newImg = this.imgRepository.create({ imgUrl: fileUrl });
-      newImg.employer = employer;
-      return this.imgRepository.save(newImg);
+      newImg.employerUser = employerUser;
+      return await this.imgRepository.save(newImg);
     } catch (error) {
       throw new InternalServerErrorException();
     }
-  }
-
-  async remove(id: number) {
-    const employer = await this.employerRepository.findOneBy({ id: id });
-    if (!employer) {
-      throw new NotFoundException(`Employer #${id} not found`);
-    }
-    return this.employerRepository.delete(id);
   }
 }

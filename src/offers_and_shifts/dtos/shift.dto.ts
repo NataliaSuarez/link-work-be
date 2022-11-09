@@ -1,15 +1,29 @@
-import {
-  IsNumber,
-  IsNotEmpty,
-  IsPositive,
-  IsOptional,
-  IsDate,
-  IsBoolean,
-} from 'class-validator';
-import { ApiProperty, PartialType } from '@nestjs/swagger';
+import { IsOptional, IsDate, IsBoolean, IsUUID, IsEnum } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
+import { ShiftStatus } from '../entities/shift.entity';
 
 export class CreateShiftDto {
+  @IsUUID()
+  @ApiProperty()
+  readonly workerUserId: string;
+
+  @IsUUID()
+  @ApiProperty()
+  readonly offerId: string;
+}
+
+export class UpdateShiftDto {
+  @IsEnum(ShiftStatus)
+  @IsOptional()
+  @ApiProperty()
+  readonly status?: number;
+
+  @IsBoolean()
+  @IsOptional()
+  @ApiProperty()
+  readonly clockOut?: boolean;
+
   @IsBoolean()
   @IsOptional()
   @ApiProperty()
@@ -23,40 +37,17 @@ export class CreateShiftDto {
   @IsBoolean()
   @IsOptional()
   @ApiProperty()
-  readonly clockOut?: boolean;
-
-  @IsBoolean()
-  @IsOptional()
-  @ApiProperty()
   readonly confirmedClockOut?: boolean;
 
   @IsDate()
   @IsOptional()
   @ApiProperty()
   readonly autoConfirmed?: Date;
+}
 
-  @IsNumber()
+export class FilterShiftsDto extends PaginationDto {
+  @IsEnum(ShiftStatus)
   @IsOptional()
   @ApiProperty()
   readonly status?: number;
-
-  @IsNumber()
-  @IsNotEmpty()
-  @IsPositive()
-  @ApiProperty()
-  readonly workerId: number;
-
-  @IsNumber()
-  @IsNotEmpty()
-  @IsPositive()
-  @ApiProperty()
-  readonly offerId: number;
-}
-
-export class UpdateShiftDto extends PartialType(CreateShiftDto) {}
-
-export class FilterShiftsDto extends PaginationDto {
-  @IsOptional()
-  @IsNumber()
-  status: number;
 }
