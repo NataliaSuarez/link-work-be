@@ -11,6 +11,7 @@ import {
   Delete,
   Get,
   BadRequestException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -96,6 +97,9 @@ export class EmployersController {
     const employerData = await this.employersService.findByUserId(reqUserId);
     if (!employerData) {
       throw new NotFoundException('User employer data not found');
+    }
+    if (payload.customerId) {
+      throw new ForbiddenException("Can't update stripe id");
     }
     return await this.employersService.update(employerData, payload);
   }

@@ -225,6 +225,7 @@ export class ShiftsService {
       newShift.offer = offer;
       return await this.shiftRepo.save(newShift);
     } catch (error) {
+      console.error(error);
       throw new InternalServerErrorException('Error with payment intent');
     }
   }

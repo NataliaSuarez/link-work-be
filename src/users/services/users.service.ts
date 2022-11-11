@@ -45,9 +45,12 @@ export class UsersService {
     id: string,
     relations?: FindOptionsRelations<User>,
   ): Promise<User> {
+    if (!relations) {
+      relations = { employerBusinessImages: true };
+    }
     const user = await this.userRepository.findOne({
       where: { id: id },
-      relations: { employerBusinessImages: true, workerExperience: true },
+      relations,
     });
     if (user.profileImg) {
       const signedURL = await this.doSpaceService.tempAccessToPrivateFileUrl(

@@ -4,7 +4,6 @@ import {
   Injectable,
   InternalServerErrorException,
   ConflictException,
-  NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -51,6 +50,7 @@ export class EmployersService {
     try {
       const user = await this.usersService.findOneById(userId, {
         employerData: true,
+        employerBusinessImages: true,
       });
       if (user.role !== Role.EMPLOYER) {
         throw new ForbiddenException('User needs to be registered as employer');
@@ -99,10 +99,11 @@ export class EmployersService {
         return await this.employerRepository.save(newEmployer);
       }
     } catch (error) {
+      console.error(error);
       if (error.code === PostgresErrorCode.UNIQUE) {
         throw new ConflictException('User already has employer data');
       }
-      throw new InternalServerErrorException();
+      throw new InternalServerErrorException(error.message);
     }
   }
 

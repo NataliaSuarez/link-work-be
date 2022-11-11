@@ -58,6 +58,8 @@ export class CreateOfferDto {
   readonly videoUrl?: string;
 
   @IsUUID()
+  @IsNotEmpty()
+  @ApiProperty()
   readonly addressId: string;
 }
 
@@ -72,7 +74,11 @@ export class FilterOffersDto extends PaginationDto {
   @IsOptional()
   @IsNumber()
   @Min(0)
-  usdHour: number;
+  minUsdHour: number;
+
+  @IsOptional()
+  @IsEnum(OfferCategory)
+  category: number;
 
   @IsOptional()
   @IsEnum(OfferStatus)

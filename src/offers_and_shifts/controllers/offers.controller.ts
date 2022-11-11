@@ -12,8 +12,9 @@ import {
   UseInterceptors,
   NotFoundException,
   ParseUUIDPipe,
+  ForbiddenException,
 } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Express } from 'express';
 import {
   CreateOfferDto,
@@ -29,6 +30,7 @@ import { Offer } from '../entities/offer.entity';
 import { Action } from 'src/auth/abilities/ability.factory';
 import { CheckAbilities } from 'src/auth/abilities/abilities.decorator';
 import { GetReqUser } from 'src/auth/get-req-user.decorator';
+import { Role } from 'src/users/entities/user.entity';
 
 @Controller('offers')
 @ApiTags('offers')
@@ -37,6 +39,7 @@ export class OffersController {
   constructor(private offerService: OffersService) {}
 
   @Get()
+  @ApiOperation({ summary: 'Filtro y paginación de ofertas' })
   @CheckAbilities({ action: Action.Read, subject: Offer })
   async getOffers(@Query() params: FilterOffersDto) {
     return await this.offerService.findAllFiltered(params);
@@ -44,19 +47,33 @@ export class OffersController {
 
   @Post()
   @CheckAbilities({ action: Action.Create, subject: Offer })
-  async create(@Body() payload: CreateOfferDto, @GetReqUser('id') reqUserId) {
+  async create(
+    @Body() payload: CreateOfferDto,
+    @GetReqUser('id') reqUserId,
+    @GetReqUser('role') reqUserRole,
+  ) {
+    if (reqUserRole !== Role.EMPLOYER) {
+      throw new ForbiddenException('Only employers can create an offer');
+    }
     return await this.offerService.create(payload, reqUserId);
   }
 
-  @Get('by-employer')
+  @Get('created-by-myself')
   @CheckAbilities({ action: Action.Read, subject: Offer })
   async getOffersByLoggedEmployer(@GetReqUser('id') reqUserId) {
     return await this.offerService.findAllByEmployerUserId(reqUserId);
   }
-  @Get('by-employer/:employerId')
+
+  @Get('favorites')
+  @CheckAbilities({ action: Action.Read, subject: Offer })
+  async getFavs(@GetReqUser('id') reqUserId) {
+    return await this.offerService.findFavsbyUserId(reqUserId);
+  }
+
+  @Get('by-employer/:userId')
   @CheckAbilities({ action: Action.Read, subject: Offer })
   async getOffersByEmployer(
-    @Param('employerId', ParseUUIDPipe) employerUserId: string,
+    @Param('userId', ParseUUIDPipe) employerUserId: string,
   ) {
     return await this.offerService.findAllByEmployerUserId(employerUserId);
   }
@@ -87,7 +104,7 @@ export class OffersController {
     return offer.applicants;
   }
 
-  @Post(':id/upload-video')
+  @Post(':offerId/upload-video')
   @CheckAbilities({ action: Action.Update, subject: Offer })
   @UseInterceptors(
     FileInterceptor('file', {
@@ -97,7 +114,7 @@ export class OffersController {
     }),
   )
   async createByVideo(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param('offerId', ParseUUIDPipe) id: string,
     @UploadedFile() file: Express.Multer.File,
     @GetReqUser('id') reqUserId,
   ) {
@@ -106,16 +123,6 @@ export class OffersController {
       throw new NotFoundException('Offer not found');
     }
     return await this.offerService.uploadOfferVideo(offer, file);
-  }
-
-  @Get(':id/video')
-  @CheckAbilities({ action: Action.Read, subject: Offer })
-  async downloadFileUrl(@Param('id', ParseUUIDPipe) id: string) {
-    const offer = await this.offerService.findOneById(id);
-    if (!offer) {
-      throw new NotFoundException('Offer not found');
-    }
-    return await this.offerService.getDownloadFileUrl(offer);
   }
 
   @Put(':id')
@@ -142,7 +149,7 @@ export class OffersController {
     if (!offer || offer.employerUser.id !== reqUserId) {
       throw new NotFoundException('Offer not found');
     }
-    return await this.offerService.remove(id);
+    return await this.offerService.remove(offer);
   }
 
   @Delete(':id/applicant/:applicantUserId')
@@ -159,10 +166,10 @@ export class OffersController {
     return await this.offerService.removeApplicant(id, applicantUserId);
   }
 
-  @Post(':id/apply')
+  @Post(':offerId/apply')
   @CheckAbilities({ action: Action.Read, subject: Offer })
   async apply(
-    @Param('id', ParseUUIDPipe) offerId: string,
+    @Param('offerId', ParseUUIDPipe) offerId: string,
     @GetReqUser('id') reqUserId,
   ) {
     const offer = await this.offerService.findOneById(offerId, {
@@ -172,5 +179,20 @@ export class OffersController {
       throw new NotFoundException(`Offer not found`);
     }
     return await this.offerService.apply(reqUserId, offer);
+  }
+
+  @Post(':offerId/add-fav')
+  @CheckAbilities({ action: Action.Read, subject: Offer })
+  async addToFav(
+    @Param('offerId', ParseUUIDPipe) offerId: string,
+    @GetReqUser('id') reqUserId,
+  ) {
+    const offer = await this.offerService.findOneById(offerId, {
+      favoritedBy: true,
+    });
+    if (!offer) {
+      throw new NotFoundException(`Offer not found`);
+    }
+    return await this.offerService.addToFavs(reqUserId, offer);
   }
 }

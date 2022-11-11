@@ -10,7 +10,7 @@ import {
   NotFoundException,
   Query,
 } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 
 import { CreateShiftDto, UpdateShiftDto } from '../dtos/shift.dto';
 import { ShiftsService } from '../services/shifts.service';
@@ -28,6 +28,7 @@ export class ShiftsController {
   constructor(private shiftService: ShiftsService) {}
 
   @Get()
+  @ApiOperation({ summary: 'Obtener los shifts del usuario' })
   async getShifts(@GetReqUser() reqUser, @Query() pagination?: PaginationDto) {
     if (reqUser.role === Role.EMPLOYER) {
       return await this.shiftService.findByEmployerUserId(
@@ -58,6 +59,7 @@ export class ShiftsController {
   }
 
   @Get('by-status/:status')
+  @ApiOperation({ summary: 'Obtener los shifts del usuario por status' })
   @CheckAbilities({ action: Action.Read, subject: Shift })
   async getByStatus(
     @Param('status') status: number,
@@ -117,27 +119,5 @@ export class ShiftsController {
     if (reqUser.role === Role.WORKER) {
       return await this.shiftService.clockOutByWorker(shift);
     }
-  }
-
-  @Put(':id')
-  @CheckAbilities({ action: Action.Update, subject: Shift })
-  async update(
-    @Param('íd') id: string,
-    @Body() payload: UpdateShiftDto,
-    @GetReqUser() reqUser,
-  ) {
-    const shift = await this.shiftService.findOneById(id, {
-      offer: { employerUser: true },
-    });
-    if (!shift || shift.offer.employerUser.id !== reqUser.id) {
-      throw new NotFoundException('Shift not found');
-    }
-    return await this.shiftService.update(shift, payload);
-  }
-
-  @Delete(':id')
-  @CheckAbilities({ action: Action.Delete, subject: Shift })
-  async delete(@Param('id') id: string) {
-    return await this.shiftService.remove(id);
   }
 }

@@ -37,7 +37,10 @@ export class UsersController {
   @Get(':id')
   @ApiOperation({ summary: 'Obtener usuario por ID' })
   async get(@Param('id') id: string) {
-    return await this.usersService.findOneById(id);
+    return await this.usersService.findOneById(id, {
+      employerBusinessImages: true,
+      workerExperience: true,
+    });
   }
 
   @Post('upload-profile-img')

@@ -73,7 +73,13 @@ export class WorkersController {
   async addExperienceVideo(
     @UploadedFile() file: Express.Multer.File,
     @GetReqUser('id') reqUserId,
+    @GetReqUser('role') reqUserRole,
   ) {
+    if (reqUserRole !== Role.WORKER) {
+      throw new ForbiddenException(
+        'Only workers can add work experience videos',
+      );
+    }
     return await this.workersService.uploadExperienceVideo(reqUserId, file);
   }
 
@@ -94,6 +100,9 @@ export class WorkersController {
   @Put()
   @CheckAbilities({ action: Action.Update, subject: WorkerData })
   async update(@Body() payload: UpdateWorkerDto, @GetReqUser('id') reqUserId) {
+    if (payload.stripeId) {
+      throw new ForbiddenException("Can't update stripe id");
+    }
     return await this.workersService.update(reqUserId, payload);
   }
 }

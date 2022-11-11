@@ -31,6 +31,9 @@ import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { DOSpacesService } from '../../spaces/services/doSpacesService';
 import { Role, User } from 'src/users/entities/user.entity';
 import { Address } from '../../users/entities/address.entity';
+import { WorkersService } from '../../users/services/workers.service';
+import { EmployerData } from '../../users/entities/employer_data.entity';
+import { StripeService } from '../../stripe/stripe.service';
 
 @Injectable()
 export class OffersService {
@@ -39,19 +42,26 @@ export class OffersService {
     @InjectRepository(User) private usersRepo: Repository<User>,
     @InjectRepository(Shift) private shiftsRepo: Repository<Shift>,
     @InjectRepository(Address) private addressRepo: Repository<Address>,
+    @InjectRepository(EmployerData)
+    private employerRepo: Repository<EmployerData>,
     private doSpaceService: DOSpacesService,
+    private workerService: WorkersService,
+    private stripeService: StripeService,
   ) {}
 
   async findAllFiltered(params?: FilterOffersDto) {
     if (params) {
       const where: FindOptionsWhere<Offer> = {};
       const { limit, offset } = params;
-      const { usdHour, status } = params;
-      if (usdHour) {
-        where.usdHour = Equal(usdHour);
+      const { minUsdHour, status, category } = params;
+      if (minUsdHour) {
+        where.usdHour = MoreThanOrEqual(minUsdHour);
       }
       if (status) {
         where.status = Equal(status);
+      }
+      if (category) {
+        where.category = Equal(category);
       }
       return await this.offersRepo.find({
         where,
@@ -73,6 +83,12 @@ export class OffersService {
       where: { id },
       relations,
     });
+    if (offer.videoUrl) {
+      const signedURL = await this.doSpaceService.tempAccessToPrivateFileUrl(
+        offer.videoUrl,
+      );
+      offer.videoUrl = signedURL;
+    }
     return offer;
   }
 
@@ -81,6 +97,16 @@ export class OffersService {
       where: { employerUser: { id: employerUserId } },
       loadEagerRelations: false,
     });
+    return offers;
+  }
+
+  async findFavsbyUserId(workerUserId: string) {
+    const offers = await this.offersRepo.find({
+      where: { favoritedBy: { id: workerUserId } },
+    });
+    if (!offers) {
+      return { message: 'This user has not favourites offers' };
+    }
     return offers;
   }
 
@@ -101,9 +127,29 @@ export class OffersService {
   }
 
   async create(data: CreateOfferDto, employerUserId: string) {
+    const employer = await this.employerRepo.findOne({
+      where: {
+        user: {
+          id: employerUserId,
+        },
+      },
+    });
+    if (!employer.customerId) {
+      throw new ForbiddenException(
+        'Cannot create an offer without stripe user',
+      );
+    }
+    const stripeData = await this.stripeService.retrieveCustomer(
+      employer.customerId,
+    );
+    if (!stripeData.invoice_settings.default_payment_method) {
+      throw new ForbiddenException(
+        'Cannot create an offer without payment method',
+      );
+    }
     if (moment(data.from) < moment().add(2, 'hours')) {
       throw new BadRequestException(
-        'Offer starting time has to be atleast 2 hours from now',
+        'Offer starting time has to be at least 2 hours from now',
       );
     }
     const datesHoursDiff = moment(data.to).diff(data.from, 'hours');
@@ -125,8 +171,8 @@ export class OffersService {
       });
       return await this.offersRepo.save(newOffer);
     } catch (error) {
-      console.log(error);
-      throw new InternalServerErrorException(error.response.message);
+      console.error(error);
+      throw new InternalServerErrorException(error.message);
     }
   }
 
@@ -155,11 +201,16 @@ export class OffersService {
     }
   }
 
-  async remove(id: string) {
+  async remove(offer: Offer) {
+    if (offer.status !== OfferStatus.CREATED) {
+      throw new ForbiddenException('Cannot delete an accepted or done offer');
+    }
     try {
-      await this.offersRepo.delete(id);
+      await this.offersRepo.delete(offer.id);
+      console.log(`Offer #${offer.id} removed`);
       return { message: 'Offer removed' };
     } catch (error) {
+      console.error(error);
       throw new InternalServerErrorException();
     }
   }
@@ -168,14 +219,15 @@ export class OffersService {
     if (offer.status !== OfferStatus.CREATED) {
       throw new ForbiddenException('Cannot edit an accepted or done offer');
     }
-    if (offer.applicants.length > 0) {
+    if (offer.applicantsCount > 0) {
       throw new ForbiddenException('Cannot edit an offer with applicants');
     }
     try {
       this.offersRepo.merge(offer, changes);
       return await this.offersRepo.save(offer);
     } catch (error) {
-      throw new InternalServerErrorException();
+      console.error(error);
+      throw new InternalServerErrorException(error.message);
     }
   }
 
@@ -216,6 +268,13 @@ export class OffersService {
     if (!workerUser.workerData?.stripeId) {
       throw new ConflictException(`Worker doesn't have a payment method set`);
     }
+    // Reject application if worker does not has stripe transfers active
+    const workerStripeData = await this.workerService.checkStripeAccount(
+      workerUserId,
+    );
+    if (workerStripeData.capabilities.transfers !== 'active') {
+      throw new ConflictException(`Worker doesn't have transfers active`);
+    }
 
     // Reject application if offer starts in less than 15 minutes or if it was already accepted
     if (
@@ -245,8 +304,10 @@ export class OffersService {
     offer.applicantsCount += 1;
     try {
       await this.offersRepo.save(offer);
+      return { message: 'applied ok' };
     } catch (error) {
-      throw new InternalServerErrorException();
+      console.error(error);
+      throw new InternalServerErrorException(error.message);
     }
   }
 
@@ -289,6 +350,24 @@ export class OffersService {
       return hours < 40;
     } catch (error) {
       throw new InternalServerErrorException();
+    }
+  }
+
+  async addToFavs(workerUserId: string, offer: Offer) {
+    const workerUser = await this.usersRepo.findOneBy({
+      id: workerUserId,
+      role: Role.WORKER,
+    });
+    if (!workerUser) {
+      throw new ForbiddenException('Only workers can add to fav');
+    }
+    offer.favoritedBy.push(workerUser);
+    try {
+      await this.offersRepo.save(offer);
+      return { message: 'offer added to fav' };
+    } catch (error) {
+      console.error(error);
+      throw new InternalServerErrorException(error.message);
     }
   }
 }
