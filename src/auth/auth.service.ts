@@ -82,7 +82,9 @@ export class AuthService {
       return objRta;
     } catch (error) {
       console.error(error);
-      throw new InternalServerErrorException(error.message);
+      if (error instanceof ConflictException) {
+        throw new ConflictException(error.message);
+      }
     }
   }
 
