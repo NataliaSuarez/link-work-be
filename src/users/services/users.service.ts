@@ -58,25 +58,28 @@ export class UsersService {
       );
       user.profileImg = signedURL;
     }
-    if (user.employerBusinessImages.length > 0) {
-      let i = 0;
-      for (const img of user.employerBusinessImages) {
-        console.log(img.imgUrl);
-        const signedimg = await this.doSpaceService.tempAccessToPrivateFileUrl(
-          img.imgUrl,
-        );
-        user.employerBusinessImages[i].imgUrl = signedimg;
-        i++;
+    if (user.role === Role.EMPLOYER) {
+      if (user.employerBusinessImages.length > 0) {
+        let i = 0;
+        for (const img of user.employerBusinessImages) {
+          console.log(img.imgUrl);
+          const signedimg =
+            await this.doSpaceService.tempAccessToPrivateFileUrl(img.imgUrl);
+          user.employerBusinessImages[i].imgUrl = signedimg;
+          i++;
+        }
       }
+      return user;
+    } else if (user.role === Role.WORKER) {
+      if (user.workerExperience) {
+        const signedExperience =
+          await this.doSpaceService.tempAccessToPrivateFileUrl(
+            user.workerExperience.videoUrl,
+          );
+        user.workerExperience.videoUrl = signedExperience;
+      }
+      return user;
     }
-    if (user.workerExperience) {
-      const signedExperience =
-        await this.doSpaceService.tempAccessToPrivateFileUrl(
-          user.workerExperience.videoUrl,
-        );
-      user.workerExperience.videoUrl = signedExperience;
-    }
-    return user;
   }
 
   async findByEmail(email: string): Promise<User> {
@@ -131,7 +134,7 @@ export class UsersService {
 
   async uploadProfileImg(userId: string, file: Express.Multer.File) {
     try {
-      const user = await this.findOneById(userId);
+      const user = await this.userRepository.findOneBy({ id: userId });
       const fileUrl = await this.doSpaceService.uploadProfileImg(file, userId);
       const updatedUser = await this.update(user, { profileImg: fileUrl });
       return updatedUser;

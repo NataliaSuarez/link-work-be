@@ -38,14 +38,15 @@ export class CreateOfferDto {
   readonly usdHour: number;
 
   @IsNumber()
-  @IsNotEmpty()
+  @IsOptional()
   @IsPositive()
   @ApiProperty()
-  readonly usdTotal: number;
+  usdTotal?: number;
 
   @IsEnum(OfferCategory)
+  @IsOptional()
   @ApiProperty()
-  readonly category: number;
+  readonly category?: number;
 
   @IsString()
   @IsOptional()

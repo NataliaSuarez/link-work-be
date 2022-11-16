@@ -21,6 +21,7 @@ import { FilterUsersDto, UpdateUserDto } from '../dtos/users.dto';
 import { UsersService } from '../services/users.service';
 import { AccessTokenGuard } from 'src/auth/jwt/accessToken.guard';
 import { GetReqUser } from 'src/auth/get-req-user.decorator';
+import { Role } from '../entities/user.entity';
 
 @Controller('users')
 @ApiTags('users')
@@ -37,10 +38,17 @@ export class UsersController {
   @Get(':id')
   @ApiOperation({ summary: 'Obtener usuario por ID' })
   async get(@Param('id') id: string) {
-    return await this.usersService.findOneById(id, {
+    const user = await this.usersService.findOneById(id, {
       employerBusinessImages: true,
       workerExperience: true,
     });
+    if (user.role === Role.EMPLOYER) {
+      const { workerExperience, workerData, ...userClean } = user;
+      return userClean;
+    } else if (user.role === Role.WORKER) {
+      const { employerBusinessImages, employerData, ...userClean } = user;
+      return userClean;
+    }
   }
 
   @Post('upload-profile-img')

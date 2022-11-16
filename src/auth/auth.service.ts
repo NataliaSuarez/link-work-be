@@ -3,7 +3,6 @@ import {
   ConflictException,
   ForbiddenException,
   Injectable,
-  InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
@@ -90,6 +89,7 @@ export class AuthService {
 
   async signIn({ email, password }: AuthDto) {
     const checkUser = await this.usersService.findByEmail(email);
+    if (!checkUser) throw new BadRequestException('User does not exist');
     if (checkUser.desactivatedAt) {
       const reactivateUser = await this.usersService.desactivate(
         checkUser.id,

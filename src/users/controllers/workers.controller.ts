@@ -34,12 +34,6 @@ import { Role } from '../entities/user.entity';
 export class WorkersController {
   constructor(private workersService: WorkersService) {}
 
-  @Get()
-  @CheckAbilities({ action: Action.Read, subject: WorkerData })
-  async findAllWorkers() {
-    return await this.workersService.findAll();
-  }
-
   @Get('stripe-account-data')
   @CheckAbilities({ action: Action.Read, subject: WorkerData })
   async getStripeData(@GetReqUser('id') workerUserId) {

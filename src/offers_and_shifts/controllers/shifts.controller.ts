@@ -3,8 +3,6 @@ import {
   Get,
   Param,
   Post,
-  Put,
-  Delete,
   Body,
   UseGuards,
   NotFoundException,
@@ -12,7 +10,7 @@ import {
 } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 
-import { CreateShiftDto, UpdateShiftDto } from '../dtos/shift.dto';
+import { CreateShiftDto } from '../dtos/shift.dto';
 import { ShiftsService } from '../services/shifts.service';
 import { AccessTokenGuard } from '../../auth/jwt/accessToken.guard';
 import { GetReqUser } from 'src/auth/get-req-user.decorator';

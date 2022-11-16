@@ -34,6 +34,7 @@ import { Address } from '../../users/entities/address.entity';
 import { WorkersService } from '../../users/services/workers.service';
 import { EmployerData } from '../../users/entities/employer_data.entity';
 import { StripeService } from '../../stripe/stripe.service';
+import { getHoursDiff } from 'src/utils/dates';
 
 @Injectable()
 export class OffersService {
@@ -127,6 +128,9 @@ export class OffersService {
   }
 
   async create(data: CreateOfferDto, employerUserId: string) {
+    if (!data.usdTotal) {
+      data.usdTotal = data.usdHour * getHoursDiff(data.from, data.to);
+    }
     const employer = await this.employerRepo.findOne({
       where: {
         user: {
