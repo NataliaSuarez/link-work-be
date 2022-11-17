@@ -29,7 +29,9 @@ export class AppleService {
 
         if (userExists) {
           if (userExists.registerType === 2) {
-            return { message: 'login con apple' };
+            return this.authService.signIn({
+              email: email,
+            });
           }
           throw new ConflictException(`User ${email} already exists`);
         }
