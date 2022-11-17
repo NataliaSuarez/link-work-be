@@ -11,7 +11,7 @@ export class AppleService {
     const accountId = decodedObj.sub || '';
     //console.info(`Apple Account ID: ${accountId}`);
     let email = '';
-    let userData = {};
+
     //Email address
     if (decodedObj.hasOwnProperty('email')) {
       email = decodedObj['email'];
@@ -20,13 +20,17 @@ export class AppleService {
 
     //You can also extract the firstName and lastName from the user, but they are only shown in the first time.
     if (payload.hasOwnProperty('user')) {
-      userData = JSON.parse(payload.user);
+      const userData = JSON.parse(payload.user);
       //const { firstName, lastName } = userData.name || {};
+      return {
+        accountId: accountId,
+        email: email,
+        userData: userData,
+      };
     }
     return {
       accountId: accountId,
       email: email,
-      userData: userData,
     };
     //.... you logic for registration and login here
   }
