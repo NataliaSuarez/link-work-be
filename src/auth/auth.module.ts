@@ -9,15 +9,19 @@ import { UsersModule } from '../users/users.module';
 
 import { GoogleAuthenticationService } from './googleAuthentication.service';
 
+import { AppleController } from './apple/apple.controller';
+import { AppleService } from './apple/apple.service';
+
 @Module({
   imports: [UsersModule, JwtModule],
-  controllers: [AuthController],
+  controllers: [AuthController, AppleController],
   providers: [
     AuthService,
     JwtService,
     AccessTokenStrategy,
     RefreshTokenStrategy,
     GoogleAuthenticationService,
+    AppleService,
   ],
 })
 export class AuthModule {}

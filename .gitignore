@@ -37,6 +37,8 @@ lerna-debug.log*
 *.env
 !.env.example
 
+/log_auth/*.p8
+
 # Temporary
 /tmp
 

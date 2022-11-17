@@ -22,4 +22,9 @@ export const configValidationSchema = Joi.object({
   DO_SPACES_KEY: Joi.string().required(),
   DO_SPACES_SECRET: Joi.string().required(),
   DO_SPACES_USER_MEDIA_BUCKET: Joi.string().required(),
+  APPLE_CLIENTID: Joi.string().required(),
+  APPLE_TEAMID: Joi.string().required(),
+  APPLE_KEYID: Joi.string().required(),
+  APPLE_CALLBACK: Joi.string().required(),
+  APPLE_KEYFILE_PATH: Joi.string().required(),
 });

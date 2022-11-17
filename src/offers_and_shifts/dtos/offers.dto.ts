@@ -9,7 +9,6 @@ import {
   IsUrl,
   IsEnum,
   Length,
-  ValidateIf,
   IsUUID,
 } from 'class-validator';
 import { ApiProperty, PartialType } from '@nestjs/swagger';
