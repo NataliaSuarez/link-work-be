@@ -1,6 +1,11 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  ConflictException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 
+import { UsersService } from '../../users/services/users.service';
 import { AuthService } from '../auth.service';
 
 @Injectable()
@@ -8,6 +13,7 @@ export class AppleService {
   constructor(
     private jwtService: JwtService,
     private authService: AuthService,
+    private usersService: UsersService,
   ) {}
 
   async registerByIDtoken(payload: any) {
@@ -18,6 +24,15 @@ export class AppleService {
 
       if (decodedObj.hasOwnProperty('email')) {
         const email = decodedObj['email'];
+
+        const userExists = await this.usersService.findByEmail(email);
+
+        if (userExists) {
+          if (userExists.registerType === 2) {
+            return { message: 'login con apple' };
+          }
+          throw new ConflictException(`User ${email} already exists`);
+        }
 
         // Extract the firstName and lastName from the user, but they are only shown in the first time.
         if (payload.hasOwnProperty('user')) {

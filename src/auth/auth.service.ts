@@ -28,16 +28,14 @@ export class AuthService {
       const userExists = await this.usersService.findByEmail(
         createUserDto.email,
       );
+
+      if (userExists) {
+        throw new ConflictException(
+          `User ${createUserDto.email} already exists`,
+        );
+      }
+
       if (createUserDto.registerType === RegisterType.APPLE) {
-        if (userExists) {
-          if (userExists.registerType === RegisterType.APPLE) {
-            return { message: 'log user with apple' };
-          } else {
-            throw new ConflictException(
-              `User ${createUserDto.email} already exists`,
-            );
-          }
-        }
         const newUser = await this.usersService.create(createUserDto);
         const tokens = await this.getTokens({
           sub: newUser.id,
@@ -54,11 +52,6 @@ export class AuthService {
         };
         console.log(`User ${newUser.email} registered with Apple ID`);
         return ObjRta;
-      }
-      if (userExists) {
-        throw new ConflictException(
-          `User ${createUserDto.email} already exists`,
-        );
       }
 
       if (createUserDto.registerType === RegisterType.GOOGLE) {
