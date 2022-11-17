@@ -16,7 +16,11 @@ export class AppleController {
   @Get()
   @UseGuards(AuthGuard('apple'))
   async login(): Promise<any> {
-    return HttpStatus.OK;
+    try {
+      return HttpStatus.OK;
+    } catch (error) {
+      return error;
+    }
   }
 
   @Post('/redirect')
