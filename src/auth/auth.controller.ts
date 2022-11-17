@@ -7,6 +7,7 @@ import {
   UseGuards,
   ClassSerializerInterceptor,
   UseInterceptors,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { Request } from 'express';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
@@ -19,6 +20,7 @@ import { RefreshTokenGuard } from 'src/auth/jwt/refreshToken.guard';
 import { GoogleAuthenticationService } from './googleAuthentication.service';
 import { GetReqUser } from './get-req-user.decorator';
 import { RegisterType } from 'src/users/entities/user.entity';
+import { AppleService } from './apple/apple.service';
 @ApiTags('auth')
 @Controller('auth')
 @UseInterceptors(ClassSerializerInterceptor)
@@ -26,6 +28,7 @@ export class AuthController {
   constructor(
     private authService: AuthService,
     private readonly googleAuthenticationService: GoogleAuthenticationService,
+    private appleService: AppleService,
   ) {}
 
   @Post('sign-up')
@@ -58,5 +61,13 @@ export class AuthController {
     const email = req.user['email'];
     const refreshToken = req.user['refreshToken'];
     return await this.authService.refreshTokens(email, refreshToken);
+  }
+
+  @Post('apple/redirect')
+  async redirect(@Body() payload): Promise<any> {
+    if (payload.id_token) {
+      return this.appleService.registerByIDtoken(payload);
+    }
+    throw new UnauthorizedException('Unauthorized');
   }
 }
