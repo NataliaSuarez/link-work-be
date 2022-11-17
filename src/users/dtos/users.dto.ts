@@ -17,13 +17,11 @@ import { RegisterType, Role } from '../entities/user.entity';
 
 export class CreateUserDto {
   @IsString()
-  @IsNotEmpty()
   @IsOptional()
   @ApiProperty()
   readonly firstName?: string;
 
   @IsString()
-  @IsNotEmpty()
   @IsOptional()
   @ApiProperty()
   readonly lastName?: string;
