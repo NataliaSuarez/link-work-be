@@ -11,6 +11,7 @@ import { GoogleAuthenticationService } from './googleAuthentication.service';
 
 import { AppleController } from './apple/apple.controller';
 import { AppleService } from './apple/apple.service';
+import { AppleStrategy } from './apple/apple.strategy';
 
 @Module({
   imports: [UsersModule, JwtModule],
@@ -22,6 +23,7 @@ import { AppleService } from './apple/apple.service';
     RefreshTokenStrategy,
     GoogleAuthenticationService,
     AppleService,
+    AppleStrategy,
   ],
 })
 export class AuthModule {}
