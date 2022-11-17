@@ -65,11 +65,9 @@ export class AuthController {
 
   @Post('apple/redirect')
   async redirect(@Body() payload): Promise<any> {
-    console.log(payload);
-    return payload;
-    // if (payload.id_token) {
-    //   return this.appleService.registerByIDtoken(payload);
-    // }
-    // throw new UnauthorizedException('Unauthorized');
+    if (payload.id_token) {
+      return this.appleService.registerByIDtoken(payload);
+    }
+    throw new UnauthorizedException('Unauthorized');
   }
 }

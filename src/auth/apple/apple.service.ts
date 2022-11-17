@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
@@ -6,26 +6,28 @@ export class AppleService {
   constructor(private jwtService: JwtService) {}
 
   async registerByIDtoken(payload: any) {
-    if (payload.hasOwnProperty('id_token')) {
-      //You can decode the id_token which returned from Apple,
-      const decodedObj = await this.jwtService.decode(payload.id_token);
-      const accountId = decodedObj.sub || '';
-      console.info(`Apple Account ID: ${accountId}`);
-
-      //Email address
-      if (decodedObj.hasOwnProperty('email')) {
-        const email = decodedObj['email'];
-        console.info(`Apple Email: ${email}`);
-      }
-
-      //You can also extract the firstName and lastName from the user, but they are only shown in the first time.
-      if (payload.hasOwnProperty('user')) {
-        const userData = JSON.parse(payload.user);
-        const { firstName, lastName } = userData.name || {};
-      }
-
-      //.... you logic for registration and login here
+    //You can decode the id_token which returned from Apple,
+    const decodedObj = await this.jwtService.decode(payload.id_token);
+    const accountId = decodedObj.sub || '';
+    //console.info(`Apple Account ID: ${accountId}`);
+    let email = '';
+    let userData = {};
+    //Email address
+    if (decodedObj.hasOwnProperty('email')) {
+      email = decodedObj['email'];
+      //console.info(`Apple Email: ${email}`);
     }
-    throw new UnauthorizedException('Unauthorized');
+
+    //You can also extract the firstName and lastName from the user, but they are only shown in the first time.
+    if (payload.hasOwnProperty('user')) {
+      userData = JSON.parse(payload.user);
+      //const { firstName, lastName } = userData.name || {};
+    }
+    return {
+      accountId: accountId,
+      email: email,
+      userData: userData,
+    };
+    //.... you logic for registration and login here
   }
 }
