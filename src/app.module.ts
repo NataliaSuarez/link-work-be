@@ -20,6 +20,7 @@ import config from './config';
 import { configValidationSchema } from './config.schema';
 import { AbilityModule } from './auth/abilities/ability.module';
 import { LoggerService } from './loggerService/logger.service';
+import { SendgridService } from './sendgrid/sendgrid.service';
 @Module({
   imports: [
     DatabaseModule,
@@ -43,6 +44,6 @@ import { LoggerService } from './loggerService/logger.service';
   ],
   controllers: [AppController],
 
-  providers: [AppService, LoggerService],
+  providers: [AppService, LoggerService, SendgridService],
 })
 export class AppModule {}

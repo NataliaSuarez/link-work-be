@@ -19,6 +19,8 @@ import { Action } from 'src/auth/abilities/ability.factory';
 import { Shift } from '../entities/shift.entity';
 import { Role } from 'src/users/entities/user.entity';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
+import { EmailConfirmationGuard } from '../../auth/mail/emailConfirmation.guard';
+@UseGuards(EmailConfirmationGuard)
 @UseGuards(AccessTokenGuard)
 @ApiTags('shifts')
 @Controller('shifts')

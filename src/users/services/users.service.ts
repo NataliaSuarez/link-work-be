@@ -272,4 +272,13 @@ export class UsersService {
       throw new InternalServerErrorException();
     }
   }
+
+  async verifyUser(email: string) {
+    return this.userRepository.update(
+      { email },
+      {
+        verified: true,
+      },
+    );
+  }
 }

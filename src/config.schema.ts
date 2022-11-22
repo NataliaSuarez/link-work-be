@@ -27,4 +27,9 @@ export const configValidationSchema = Joi.object({
   APPLE_KEYID: Joi.string().required(),
   APPLE_CALLBACK: Joi.string().required(),
   APPLE_KEYFILE_PATH: Joi.string().required(),
+  SEND_GRID_KEY: Joi.string().required(),
+  JWT_VERIFICATION_TOKEN_SECRET: Joi.string().required(),
+  JWT_VERIFICATION_TOKEN_EXPIRATION_TIME: Joi.string().required(),
+  EMAIL_CONFIRMATION_URL: Joi.string().required(),
+  CRYPTR_SECRET: Joi.string().required(),
 });

@@ -27,7 +27,9 @@ import { CheckAbilities } from 'src/auth/abilities/abilities.decorator';
 import { Action } from 'src/auth/abilities/ability.factory';
 import { WorkerData } from '../entities/worker_data.entity';
 import { Role } from '../entities/user.entity';
+import { EmailConfirmationGuard } from '../../auth/mail/emailConfirmation.guard';
 
+@UseGuards(EmailConfirmationGuard)
 @UseGuards(AccessTokenGuard)
 @ApiTags('workers')
 @Controller('workers')

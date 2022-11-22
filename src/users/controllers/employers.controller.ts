@@ -26,9 +26,11 @@ import { EmployersService } from '../services/employers.service';
 import { CreateAddressDto } from '../dtos/users.dto';
 import { GetReqUser } from 'src/auth/get-req-user.decorator';
 import { AccessTokenGuard } from 'src/auth/jwt/accessToken.guard';
+import { EmailConfirmationGuard } from '../../auth/mail/emailConfirmation.guard';
 
 @Controller('employers')
 @ApiTags('employers')
+@UseGuards(EmailConfirmationGuard)
 @UseGuards(AccessTokenGuard)
 export class EmployersController {
   constructor(private employersService: EmployersService) {}

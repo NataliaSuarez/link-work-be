@@ -14,6 +14,8 @@ import { UsersService } from '../users/services/users.service';
 import { AuthDto } from './dto/auth.dto';
 import { JwtPayload } from './jwt/jwt-payload.interface';
 import { RegisterType } from 'src/users/entities/user.entity';
+import { SendgridService } from '../sendgrid/sendgrid.service';
+import { EmailConfirmationService } from './mail/emailConfirmation.service';
 
 @Injectable()
 export class AuthService {
@@ -21,6 +23,8 @@ export class AuthService {
     private usersService: UsersService,
     private jwtService: JwtService,
     private configService: ConfigService,
+    private sendGridService: SendgridService,
+    private emailService: EmailConfirmationService,
   ) {}
 
   async signUp(createUserDto: CreateUserDto): Promise<any> {
@@ -90,15 +94,9 @@ export class AuthService {
         role: newUser.role,
       });
       await this.updateRefreshToken(newUser.id, tokens.refreshToken);
-      const objRta = {
-        tokens: tokens,
-        userData: {
-          id: newUser.id,
-          role: newUser.role,
-        },
-      };
+      this.emailService.sendVerificationLink(newUser.email);
       console.log(`User ${newUser.email} registered`);
-      return objRta;
+      return { message: `Email sended to ${newUser.email}` };
     } catch (error) {
       console.error(error);
       if (error instanceof ConflictException) {

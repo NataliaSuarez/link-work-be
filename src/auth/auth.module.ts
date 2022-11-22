@@ -12,10 +12,13 @@ import { GoogleAuthenticationService } from './googleAuthentication.service';
 import { AppleController } from './apple/apple.controller';
 import { AppleService } from './apple/apple.service';
 import { AppleStrategy } from './apple/apple.strategy';
+import { SendgridService } from '../sendgrid/sendgrid.service';
+import { EmailConfirmationService } from './mail/emailConfirmation.service';
+import { EmailConfirmationController } from './mail/emailConfirmation.controller';
 
 @Module({
   imports: [UsersModule, JwtModule],
-  controllers: [AuthController, AppleController],
+  controllers: [AuthController, AppleController, EmailConfirmationController],
   providers: [
     AuthService,
     JwtService,
@@ -24,6 +27,8 @@ import { AppleStrategy } from './apple/apple.strategy';
     GoogleAuthenticationService,
     AppleService,
     AppleStrategy,
+    SendgridService,
+    EmailConfirmationService,
   ],
 })
 export class AuthModule {}
