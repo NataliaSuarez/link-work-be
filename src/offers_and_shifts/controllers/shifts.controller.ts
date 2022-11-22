@@ -43,6 +43,10 @@ export class ShiftsController {
 
   @Get(':id')
   @CheckAbilities({ action: Action.Read, subject: Shift })
+  @ApiOperation({
+    summary:
+      'Obtener shift por su ID solo si pertenece al usuario que lo consulta',
+  })
   async get(@Param('id') shiftId: string, @GetReqUser('id') reqUserId) {
     const shift = await this.shiftService.findOneById(shiftId, {
       workerUser: true,
@@ -70,6 +74,7 @@ export class ShiftsController {
 
   @Post()
   @CheckAbilities({ action: Action.Create, subject: Shift })
+  @ApiOperation({ summary: 'Crear shift al seleccionar aplicante' })
   async create(
     @Body() payload: CreateShiftDto,
     @GetReqUser('id') reqEmployerUserId,
@@ -79,6 +84,7 @@ export class ShiftsController {
 
   @Post('clock-in/:shiftId')
   @CheckAbilities({ action: Action.Read, subject: Shift })
+  @ApiOperation({ summary: 'Realizar clock-in' })
   async clockIn(@Param('shiftId') shiftId: string, @GetReqUser() reqUser) {
     const shift = await this.shiftService.findOneById(shiftId, {
       workerUser: true,
@@ -101,6 +107,7 @@ export class ShiftsController {
 
   @Post('clock-out/:shiftId')
   @CheckAbilities({ action: Action.Read, subject: Shift })
+  @ApiOperation({ summary: 'Realizar clock-out' })
   async clockOut(@Param('shiftId') shiftId: string, @GetReqUser() reqUser) {
     const shift = await this.shiftService.findOneById(shiftId, {
       workerUser: true,

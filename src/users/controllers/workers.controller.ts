@@ -10,7 +10,7 @@ import {
   UseGuards,
   ForbiddenException,
 } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 
@@ -38,18 +38,24 @@ export class WorkersController {
 
   @Get('stripe-account-data')
   @CheckAbilities({ action: Action.Read, subject: WorkerData })
+  @ApiOperation({ summary: 'Obtener data del worker en Stripe' })
   async getStripeData(@GetReqUser('id') workerUserId) {
     return await this.workersService.checkStripeAccount(workerUserId);
   }
 
   @Post()
   @CheckAbilities({ action: Action.Create, subject: WorkerData })
+  @ApiOperation({ summary: 'Crear perfil con datos de trabajador' })
   async create(@Body() payload: CreateWorkerDto, @GetReqUser('id') reqUserId) {
     return await this.workersService.create(payload, reqUserId);
   }
 
   @Post('create-stripe-account')
   @CheckAbilities({ action: Action.Update, subject: WorkerData })
+  @ApiOperation({
+    summary:
+      'Crear perfil de Stripe con datos de cuenta para recibir transferencias',
+  })
   async createStripeUserAccount(
     @GetReqUser('id') reqUserId,
     @Body() payload: StripeUserAccDto,
@@ -66,6 +72,9 @@ export class WorkersController {
     }),
   )
   @CheckAbilities({ action: Action.Update, subject: WorkerData })
+  @ApiOperation({
+    summary: 'Subir video de perfil de experiencia del trabajador',
+  })
   async addExperienceVideo(
     @UploadedFile() file: Express.Multer.File,
     @GetReqUser('id') reqUserId,
@@ -81,6 +90,7 @@ export class WorkersController {
 
   @Put(':userId/add-review')
   @CheckAbilities({ action: Action.Read, subject: WorkerData })
+  @ApiOperation({ summary: 'Puntuar a un trabajador con estrellas' })
   async addReview(
     @Param('userId') workerUserId: string,
     @Body() payload: UpdateStarsDto,
@@ -95,6 +105,7 @@ export class WorkersController {
 
   @Put()
   @CheckAbilities({ action: Action.Update, subject: WorkerData })
+  @ApiOperation({ summary: 'Actualizar datos del perfil de trabajador' })
   async update(@Body() payload: UpdateWorkerDto, @GetReqUser('id') reqUserId) {
     if (payload.stripeId) {
       throw new ForbiddenException("Can't update stripe id");

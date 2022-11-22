@@ -64,6 +64,10 @@ export class AuthController {
   }
 
   @Post('apple/redirect')
+  @ApiOperation({
+    summary:
+      'Endpoint al que apunta automáticamente el login de apple para realizar registro con Apple ID',
+  })
   async redirect(@Body() payload): Promise<any> {
     if (payload.id_token) {
       return this.appleService.registerByIDtoken(payload);

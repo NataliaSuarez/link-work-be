@@ -47,6 +47,7 @@ export class OffersController {
 
   @Post()
   @CheckAbilities({ action: Action.Create, subject: Offer })
+  @ApiOperation({ summary: 'Crear una oferta' })
   async create(
     @Body() payload: CreateOfferDto,
     @GetReqUser('id') reqUserId,
@@ -60,18 +61,25 @@ export class OffersController {
 
   @Get('created-by-myself')
   @CheckAbilities({ action: Action.Read, subject: Offer })
+  @ApiOperation({
+    summary: 'Obtener las ofertas creadas por el empleador que consulta',
+  })
   async getOffersByLoggedEmployer(@GetReqUser('id') reqUserId) {
     return await this.offerService.findAllByEmployerUserId(reqUserId);
   }
 
   @Get('favorites')
   @CheckAbilities({ action: Action.Read, subject: Offer })
+  @ApiOperation({ summary: 'Obtener las ofertas que agregué a favs' })
   async getFavs(@GetReqUser('id') reqUserId) {
     return await this.offerService.findFavsbyUserId(reqUserId);
   }
 
   @Get('by-employer/:userId')
   @CheckAbilities({ action: Action.Read, subject: Offer })
+  @ApiOperation({
+    summary: 'Obtener las ofertas creadas por un empleador en particular',
+  })
   async getOffersByEmployer(
     @Param('userId', ParseUUIDPipe) employerUserId: string,
   ) {
@@ -80,6 +88,7 @@ export class OffersController {
 
   @Get(':id')
   @CheckAbilities({ action: Action.Read, subject: Offer })
+  @ApiOperation({ summary: 'Obtener oferta por su ID' })
   async get(@Param('id', ParseUUIDPipe) id: string) {
     const offer = await this.offerService.findOneById(id, { applicants: true });
     if (!offer) {
@@ -90,6 +99,7 @@ export class OffersController {
 
   @Get(':id/applicants')
   @CheckAbilities({ action: Action.Read, subject: Offer })
+  @ApiOperation({ summary: 'Obtener los aplicantes de una oferta' })
   async getApplicants(
     @Param('id', ParseUUIDPipe) offerId: string,
     @GetReqUser('id') reqUserId,
@@ -113,6 +123,9 @@ export class OffersController {
       }),
     }),
   )
+  @ApiOperation({
+    summary: 'Subir video presentando una oferta creada previamente',
+  })
   async createByVideo(
     @Param('offerId', ParseUUIDPipe) id: string,
     @UploadedFile() file: Express.Multer.File,
@@ -127,6 +140,7 @@ export class OffersController {
 
   @Put(':id')
   @CheckAbilities({ action: Action.Update, subject: Offer })
+  @ApiOperation({ summary: 'Editar oferta' })
   async edit(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() payload: UpdateOfferDto,
@@ -141,6 +155,7 @@ export class OffersController {
 
   @Delete(':id')
   @CheckAbilities({ action: Action.Delete, subject: Offer })
+  @ApiOperation({ summary: 'Eliminar oferta' })
   async delete(
     @Param('id', ParseUUIDPipe) id: string,
     @GetReqUser('id') reqUserId,
@@ -154,6 +169,7 @@ export class OffersController {
 
   @Delete(':id/applicant/:applicantUserId')
   @CheckAbilities({ action: Action.Update, subject: Offer })
+  @ApiOperation({ summary: 'Eliminar aplicante de una oferta' })
   async deleteApplicant(
     @Param('id', ParseUUIDPipe) id: string,
     @Param('applicantUserId', ParseUUIDPipe) applicantUserId: string,
@@ -168,6 +184,7 @@ export class OffersController {
 
   @Post(':offerId/apply')
   @CheckAbilities({ action: Action.Read, subject: Offer })
+  @ApiOperation({ summary: 'Aplicar a una oferta' })
   async apply(
     @Param('offerId', ParseUUIDPipe) offerId: string,
     @GetReqUser('id') reqUserId,
@@ -183,6 +200,7 @@ export class OffersController {
 
   @Post(':offerId/add-fav')
   @CheckAbilities({ action: Action.Read, subject: Offer })
+  @ApiOperation({ summary: 'Agregar oferta a mis favoritos' })
   async addToFav(
     @Param('offerId', ParseUUIDPipe) offerId: string,
     @GetReqUser('id') reqUserId,

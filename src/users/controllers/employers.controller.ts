@@ -13,7 +13,7 @@ import {
   BadRequestException,
   ForbiddenException,
 } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 
@@ -36,11 +36,13 @@ export class EmployersController {
   constructor(private employersService: EmployersService) {}
 
   @Get('stripe-customer-data')
+  @ApiOperation({ summary: 'Obtener data del usuario en Stripe' })
   async getStripeData(@GetReqUser('id') reqUserId) {
     return await this.employersService.retrieveStripeData(reqUserId);
   }
 
   @Post()
+  @ApiOperation({ summary: 'Crear perfil con datos de empleador' })
   async create(
     @Body() payload: CreateEmployerDto,
     @GetReqUser('id') reqUserId,
@@ -56,6 +58,7 @@ export class EmployersController {
       }),
     }),
   )
+  @ApiOperation({ summary: 'Subir imagen del local' })
   async addBusinessImg(
     @GetReqUser('id') reqUserId,
     @UploadedFile() file: Express.Multer.File,
@@ -64,6 +67,7 @@ export class EmployersController {
   }
 
   @Post('add-address')
+  @ApiOperation({ summary: 'Agregar dirección alternativa' })
   async addAddress(
     @GetReqUser('id') reqUserId,
     @Body() payload: CreateAddressDto,
@@ -72,11 +76,13 @@ export class EmployersController {
   }
 
   @Delete('delete-address/:addressId')
+  @ApiOperation({ summary: 'Eliminar dirección alternativa' })
   async deleteAddress(@Param('addressId') addressId: string) {
     return await this.employersService.deleteAddress(addressId);
   }
 
   @Put(':toUserId/add-review')
+  @ApiOperation({ summary: 'Puntuar con estrellas a un empleador' })
   async addReview(
     @Param('toUserId') employerUserId: string,
     @GetReqUser('id') reqUserId,
@@ -92,6 +98,7 @@ export class EmployersController {
   }
 
   @Put()
+  @ApiOperation({ summary: 'Actualizar datos de empleador' })
   async update(
     @GetReqUser('id') reqUserId,
     @Body() payload: UpdateEmployerDto,

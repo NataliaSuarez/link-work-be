@@ -73,6 +73,7 @@ export class UsersController {
   }
 
   @Put(':id')
+  @ApiOperation({ summary: 'Actualizar usuario' })
   async update(@Param('id') id: string, @Body() payload: UpdateUserDto) {
     const user = await this.usersService.findOneById(id);
     if (!user) {
@@ -82,6 +83,7 @@ export class UsersController {
   }
 
   @Patch(':id/desactivate')
+  @ApiOperation({ summary: 'Desactivar un usuario' })
   async desactivate(@Param('id') userId: string) {
     const user = await this.usersService.findOneById(userId);
     if (!user) {
@@ -91,6 +93,7 @@ export class UsersController {
   }
 
   @Delete(':id')
+  @ApiOperation({ summary: 'Eliminar usuario' })
   async delete(@Param('id') id: string) {
     return await this.usersService.delete(id);
   }
