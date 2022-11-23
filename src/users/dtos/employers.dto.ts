@@ -6,13 +6,16 @@ import {
   IsOptional,
   Min,
   Max,
+  IsObject,
 } from 'class-validator';
-import { ApiProperty, PartialType } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
+
+import { CardDto } from '../../stripe/stripe.dto';
 
 export class CreateEmployerDto {
   @IsNumber()
   @IsOptional()
-  @ApiProperty()
+  @ApiPropertyOptional()
   readonly businessCode?: number;
 
   @IsString()
@@ -22,53 +25,42 @@ export class CreateEmployerDto {
 
   @IsString()
   @IsOptional()
-  @ApiProperty()
+  @ApiPropertyOptional()
   readonly businessUrl?: string;
 
   @IsString()
   @IsOptional()
-  @ApiProperty()
+  @ApiPropertyOptional()
   readonly description?: string;
 
   @IsNumber()
   @IsOptional()
-  @ApiProperty()
+  @ApiPropertyOptional()
   readonly stars?: number;
 
   @IsNumber()
   @IsOptional()
-  @ApiProperty()
+  @ApiPropertyOptional()
   readonly totalReviews?: number;
 
   @IsNumber()
   @IsOptional()
-  @ApiProperty()
+  @ApiPropertyOptional()
   readonly avgStars?: number;
 
   @IsString()
   @IsOptional()
-  @ApiProperty()
+  @ApiPropertyOptional()
+  readonly lastFour?: string;
+
+  @IsString()
+  @IsOptional()
   readonly customerId?: string;
 
-  @IsString()
+  @IsObject()
   @IsOptional()
-  @ApiProperty()
-  readonly number?: string;
-
-  @IsNumber()
-  @IsOptional()
-  @ApiProperty()
-  readonly exp_month?: number;
-
-  @IsNumber()
-  @IsOptional()
-  @ApiProperty()
-  readonly exp_year?: number;
-
-  @IsString()
-  @IsOptional()
-  @ApiProperty()
-  readonly cvc?: string;
+  @ApiPropertyOptional()
+  readonly cardData?: CardDto;
 
   @IsString()
   @IsNotEmpty()

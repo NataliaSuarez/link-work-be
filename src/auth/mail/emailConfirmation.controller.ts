@@ -7,11 +7,13 @@ import {
   Post,
   Body,
 } from '@nestjs/common';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 
 import { ConfirmEmailDto, EmailDto } from './confirmEmail.dto';
 import { EmailConfirmationService } from './emailConfirmation.service';
 
 @Controller('email-confirmation')
+@ApiTags('email-confirmation')
 @UseInterceptors(ClassSerializerInterceptor)
 export class EmailConfirmationController {
   constructor(
@@ -19,6 +21,7 @@ export class EmailConfirmationController {
   ) {}
 
   @Get('confirm-email')
+  @ApiOperation({ summary: 'Endpoint al que le pega la confirmación del mail' })
   async confirm(@Query() params: ConfirmEmailDto) {
     const email = await this.emailConfirmationService.decodeConfirmationToken(
       params.token,
@@ -27,6 +30,7 @@ export class EmailConfirmationController {
   }
 
   @Post('resend-confirmation-link')
+  @ApiOperation({ summary: 'Reenviar mail de confirmación de usuario' })
   async resendConfirmationLink(@Body() payload: EmailDto) {
     return await this.emailConfirmationService.resendConfirmationLink(
       payload.email,

@@ -11,7 +11,7 @@ import {
   IsEnum,
   IsUUID,
 } from 'class-validator';
-import { ApiProperty, PartialType } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { RegisterType, Role } from '../entities/user.entity';
 
@@ -66,8 +66,8 @@ export class CreateUserDto {
   readonly profileImg?: string;
 
   @IsEnum(Role)
-  @ApiProperty()
-  readonly role: Role;
+  @ApiPropertyOptional()
+  readonly role?: Role;
 
   @IsString()
   @IsOptional()

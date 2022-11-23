@@ -46,7 +46,7 @@ export class AppleService {
             email: email,
             registerType: 2,
             verified: true,
-            role: 1,
+            role: 0,
           };
           return this.authService.signUp(userByApple);
         }

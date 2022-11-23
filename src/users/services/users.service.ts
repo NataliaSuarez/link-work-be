@@ -17,7 +17,7 @@ import {
   FilterUsersDto,
   UpdateUserDto,
 } from '../dtos/users.dto';
-import { Role, User } from '../entities/user.entity';
+import { RegisterType, Role, User } from '../entities/user.entity';
 import { DOSpacesService } from '../../spaces/services/doSpacesService';
 
 @Injectable()
@@ -80,6 +80,7 @@ export class UsersService {
       }
       return user;
     }
+    return user;
   }
 
   async findByEmail(email: string): Promise<User> {
@@ -126,7 +127,7 @@ export class UsersService {
       lastName,
       registerType: 1,
       verified: true,
-      role,
+      role: 0,
     });
     await this.userRepository.save(newUser);
     return newUser;
@@ -149,7 +150,7 @@ export class UsersService {
       changes.email ||
       changes.firstName ||
       changes.lastName ||
-      changes.role
+      (changes.role && user.role != Role.UNASSIGNED)
     ) {
       throw new BadRequestException('You cannot change this data');
     }

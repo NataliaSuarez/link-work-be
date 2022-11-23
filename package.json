@@ -49,6 +49,7 @@
     "aws-sdk": "2.1232.0",
     "class-transformer": "0.5.1",
     "class-validator": "0.13.2",
+    "cryptr": "^6.0.3",
     "dotenv": "16.0.3",
     "googleapis": "108.0.0",
     "joi": "17.6.3",

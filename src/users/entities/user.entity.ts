@@ -27,8 +27,16 @@ export enum RegisterType {
 }
 
 export enum Role {
+  UNASSIGNED = 0,
   EMPLOYER = 1,
   WORKER = 2,
+}
+
+export enum ProfileStatus {
+  INCOMPLETE = 0,
+  COMPLETE = 1,
+  CARD_PENDING = 2,
+  BANK_PENDING = 3,
 }
 
 @Entity('users')
@@ -67,6 +75,13 @@ export class User {
     enum: Role,
   })
   role: Role;
+
+  @Column({
+    type: 'enum',
+    enum: ProfileStatus,
+    default: ProfileStatus.INCOMPLETE,
+  })
+  profileStatus: ProfileStatus;
 
   @CreateDateColumn({
     type: 'timestamptz',

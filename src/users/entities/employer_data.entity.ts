@@ -47,6 +47,9 @@ export class EmployerData {
   avgStars: number;
 
   @Column({ type: 'varchar', length: 255, nullable: true })
+  lastFour: string;
+
+  @Column({ type: 'varchar', length: 255, nullable: true })
   customerId: string;
 
   @CreateDateColumn({

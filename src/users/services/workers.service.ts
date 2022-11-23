@@ -19,7 +19,7 @@ import { UsersService } from './users.service';
 import { StripeService } from '../../stripe/stripe.service';
 import { DOSpacesService } from '../../spaces/services/doSpacesService';
 import { WorkerExperience } from '../entities/worker_experience.entity';
-import { Role, User } from '../entities/user.entity';
+import { Role, ProfileStatus, User } from '../entities/user.entity';
 import { PostgresErrorCode } from 'src/common/enum/postgres-error-code.enum';
 import { Address } from '../entities/address.entity';
 
@@ -92,6 +92,10 @@ export class WorkersService {
       });
       newAddress.user = user;
       await this.addressRepository.save(newAddress);
+      await this.userRepository.update(
+        { id: userId },
+        { profileStatus: ProfileStatus.BANK_PENDING },
+      );
       return worker;
     } catch (error) {
       if (error.code === PostgresErrorCode.UNIQUE) {
@@ -278,6 +282,15 @@ export class WorkersService {
       const stripeData = await this.stripeService.retrieveAccount(
         worker.stripeId,
       );
+      if (
+        stripeData.capabilities.transfers === 'active' &&
+        stripeData.capabilities.card_payments === 'active'
+      ) {
+        await this.userRepository.update(
+          { id: userId },
+          { profileStatus: ProfileStatus.COMPLETE },
+        );
+      }
       return stripeData;
     } catch (error) {
       console.error(error);

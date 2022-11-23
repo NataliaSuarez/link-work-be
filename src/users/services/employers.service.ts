@@ -7,6 +7,8 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { ConfigService } from '@nestjs/config';
+import * as Cryptr from 'cryptr';
 
 import { CreateEmployerDto, UpdateEmployerDto } from '../dtos/employers.dto';
 import { UsersService } from './users.service';
@@ -32,6 +34,7 @@ export class EmployersService {
     private stripeService: StripeService,
     private doSpaceService: DOSpacesService,
     private shiftService: ShiftsService,
+    private readonly configService: ConfigService,
   ) {}
 
   async findByUserId(id: string): Promise<EmployerData> {
@@ -65,12 +68,9 @@ export class EmployersService {
       });
       newAddress.user = user;
       await this.addressRepository.save(newAddress);
-      if (data.number) {
-        if (!data.exp_month || !data.exp_year || !data.cvc) {
-          throw new BadRequestException();
-        }
+      if (data.cardData) {
         const newEmployer = await this.employerRepository.create(data);
-        const { number, exp_month, exp_year, cvc } = data;
+        const { number, exp_month, exp_year, cvc } = data.cardData;
         const fullName = user.firstName + ' ' + user.lastName;
         const customerData = {
           email: user.email,
@@ -143,54 +143,50 @@ export class EmployersService {
         this.addressRepository.merge(modifyAddress, newAddress);
         await this.addressRepository.save(modifyAddress);
       }
-      if (changes.number) {
-        if (changes.exp_month && changes.exp_year && changes.cvc) {
-          if (employerData.customerId) {
-            const shifts = await this.shiftService.findByEmployerUserId(
-              employerData.user.id,
+      if (changes.cardData) {
+        if (employerData.customerId) {
+          const shifts = await this.shiftService.findByEmployerUserId(
+            employerData.user.id,
+          );
+          if (
+            shifts.acceptedShifts.length > 0 ||
+            shifts.activeShifts.length > 0
+          ) {
+            throw new ForbiddenException(
+              "Can't change payment method with shifts in course",
             );
-            if (
-              shifts.acceptedShifts.length > 0 ||
-              shifts.activeShifts.length > 0
-            ) {
-              throw new ForbiddenException(
-                "Can't change payment method with shifts in course",
-              );
-            }
-            const { number, exp_month, exp_year, cvc } = changes;
-            const card = {
-              number: number,
-              exp_month: exp_month,
-              exp_year: exp_year,
-              cvc: cvc,
-            };
-            await this.stripeService.updatePaymentMethod(
-              employerData.customerId,
-              card,
-            );
-          } else {
-            const { number, exp_month, exp_year, cvc } = changes;
-            const fullName =
-              employerData.user.firstName + ' ' + employerData.user.lastName;
-            const customerData = {
-              email: employerData.user.email,
-              name: fullName,
-              description: employerData.businessName,
-            };
-            const customer = await this.stripeService.createCustomer(
-              customerData,
-            );
-            const card = {
-              number: number,
-              exp_month: exp_month,
-              exp_year: exp_year,
-              cvc: cvc,
-            };
-            await this.stripeService.createPaymentMethod(customer.id, card);
-            employerData.customerId = customer.id;
           }
+          const { number, exp_month, exp_year, cvc } = changes.cardData;
+          const card = {
+            number: number,
+            exp_month: exp_month,
+            exp_year: exp_year,
+            cvc: cvc,
+          };
+          await this.stripeService.updatePaymentMethod(
+            employerData.customerId,
+            card,
+          );
         } else {
-          throw new BadRequestException('All card information needed');
+          const { number, exp_month, exp_year, cvc } = changes.cardData;
+          const fullName =
+            employerData.user.firstName + ' ' + employerData.user.lastName;
+          const customerData = {
+            email: employerData.user.email,
+            name: fullName,
+            description: employerData.businessName,
+          };
+          const customer = await this.stripeService.createCustomer(
+            customerData,
+          );
+          const card = {
+            number: number,
+            exp_month: exp_month,
+            exp_year: exp_year,
+            cvc: cvc,
+          };
+          await this.stripeService.createPaymentMethod(customer.id, card);
+          employerData.customerId = customer.id;
         }
       }
       this.employerRepository.merge(employerData, changes);
