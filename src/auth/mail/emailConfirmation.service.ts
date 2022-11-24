@@ -15,7 +15,7 @@ export class EmailConfirmationService {
     private userService: UsersService,
   ) {}
 
-  public sendVerificationLink(email: string) {
+  public sendVerificationLink(email: string, userName: string) {
     const payload: VerificationTokenPayload = { email };
     const token = this.jwtService.sign(payload, {
       secret: this.configService.get('JWT_VERIFICATION_TOKEN_SECRET'),
@@ -30,9 +30,13 @@ export class EmailConfirmationService {
 
     return this.sendGridService.send({
       to: email,
-      from: 'LinkWork Team <zelmar.ramirez@getwonder.tech>',
-      subject: `Welcome to LinkWork`,
-      html: `<a href="${url}">Confirmar cuenta</a>`,
+      from: 'LinkWork Team <matias.viano@getwonder.tech>',
+      subject: `Welcome to LinkWork!`,
+      templateId: 'd-50336614d4c24651baf4f4a44daf38e9',
+      dynamicTemplateData: {
+        first_name: userName,
+        url_confirm: url,
+      },
     });
   }
 
@@ -68,7 +72,7 @@ export class EmailConfirmationService {
     if (user.verified) {
       throw new BadRequestException('Email already confirmed');
     }
-    await this.sendVerificationLink(user.email);
+    await this.sendVerificationLink(user.email, user.firstName);
     return { message: `Email sended to ${email}` };
   }
 }

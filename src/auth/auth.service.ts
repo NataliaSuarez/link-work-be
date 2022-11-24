@@ -94,7 +94,7 @@ export class AuthService {
         role: newUser.role,
       });
       await this.updateRefreshToken(newUser.id, tokens.refreshToken);
-      this.emailService.sendVerificationLink(newUser.email);
+      this.emailService.sendVerificationLink(newUser.email, newUser.firstName);
       console.log(`User ${newUser.email} registered`);
       return { message: `Email sended to ${newUser.email}` };
     } catch (error) {
@@ -102,6 +102,7 @@ export class AuthService {
       if (error instanceof ConflictException) {
         throw new ConflictException(error.message);
       }
+      return error;
     }
   }
 
