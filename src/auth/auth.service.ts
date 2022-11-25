@@ -13,9 +13,10 @@ import { CreateUserDto } from '../users/dtos/users.dto';
 import { UsersService } from '../users/services/users.service';
 import { AuthDto } from './dto/auth.dto';
 import { JwtPayload } from './jwt/jwt-payload.interface';
-import { RegisterType } from 'src/users/entities/user.entity';
+import { RegisterType, User } from 'src/users/entities/user.entity';
 import { SendgridService } from '../sendgrid/sendgrid.service';
 import { EmailConfirmationService } from './mail/emailConfirmation.service';
+import { EmailDto } from './mail/confirmEmail.dto';
 
 @Injectable()
 export class AuthService {
@@ -213,5 +214,47 @@ export class AuthService {
     });
     await this.updateRefreshToken(user.id, tokens.refreshToken);
     return tokens;
+  }
+
+  async forgotPassword(emailDto: EmailDto): Promise<void> {
+    const user = await this.usersService.findByEmail(emailDto.email);
+    if (!user) {
+      throw new NotFoundException('User does not exist');
+    }
+    const token = await this.signUser(user);
+    const forgotLink = `http://localhost/auth/forgotPassword?token=${token}`;
+    const firstMsg = 'Here is your request for password recovery';
+    const secondMsg =
+      'Please click the button below, if it was not you who requested it, ignore the message';
+    const buttonMsg = 'Set New Password';
+    const subjectMsg = 'Password recovery request';
+    return this.sendGridService.send({
+      to: user.email,
+      from: 'LinkWork Team <matias.viano@getwonder.tech>',
+      subject: `Forgot Password`,
+      templateId: 'd-50336614d4c24651baf4f4a44daf38e9',
+      dynamicTemplateData: {
+        first_name: user.firstName,
+        url_confirm: forgotLink,
+        first_msg: firstMsg,
+        second_msg: secondMsg,
+        button_msg: buttonMsg,
+        subject_msg: subjectMsg,
+      },
+    });
+  }
+
+  async signUser(user: User): Promise<string> {
+    const tokenPayload = {
+      id: user.id,
+      email: user.email,
+      role: user.role,
+    };
+    const token = this.jwtService.sign(tokenPayload, {
+      secret: this.configService.get('JWT_VERIFICATION_TOKEN_SECRET'),
+      expiresIn: '120m',
+    });
+
+    return token;
   }
 }

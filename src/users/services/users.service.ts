@@ -17,7 +17,7 @@ import {
   FilterUsersDto,
   UpdateUserDto,
 } from '../dtos/users.dto';
-import { RegisterType, Role, User } from '../entities/user.entity';
+import { Role, User } from '../entities/user.entity';
 import { DOSpacesService } from '../../spaces/services/doSpacesService';
 
 @Injectable()
@@ -185,7 +185,7 @@ export class UsersService {
       withDeleted: true,
     });
     if (!user) {
-      throw new BadRequestException('User dont exists');
+      throw new BadRequestException('User does not exist');
     }
     if (user.role === Role.EMPLOYER) {
       if (user.offersOwnedByEmployer) {

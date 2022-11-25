@@ -28,6 +28,12 @@ export class EmailConfirmationService {
       'EMAIL_CONFIRMATION_URL',
     )}?token=${token}`;
 
+    const firstMsg = 'Thanks for signing up';
+    const secondMsg =
+      'Please verify your email address to access a huge network of job offers.';
+    const buttonMsg = 'Verify Email Now';
+    const subjectMsg = `Welcome to LinkWork, ${userName}`;
+
     return this.sendGridService.send({
       to: email,
       from: 'LinkWork Team <matias.viano@getwonder.tech>',
@@ -36,6 +42,10 @@ export class EmailConfirmationService {
       dynamicTemplateData: {
         first_name: userName,
         url_confirm: url,
+        first_msg: firstMsg,
+        second_msg: secondMsg,
+        button_msg: buttonMsg,
+        subject_msg: subjectMsg,
       },
     });
   }

@@ -84,9 +84,11 @@ export class EmployersService {
           exp_year: exp_year,
           cvc: cvc,
         };
+        const cardLastFour = number.toString().slice(-4);
         await this.stripeService.createPaymentMethod(customer.id, card);
         newEmployer.user = user;
         newEmployer.customerId = customer.id;
+        newEmployer.lastFour = cardLastFour;
         const savedEmployer = await this.employerRepository.save(newEmployer);
         const rta = {
           employer: savedEmployer,
@@ -163,6 +165,8 @@ export class EmployersService {
             exp_year: exp_year,
             cvc: cvc,
           };
+          const cardLastFour = number.toString().slice(-4);
+          employerData.lastFour = cardLastFour;
           await this.stripeService.updatePaymentMethod(
             employerData.customerId,
             card,
@@ -185,6 +189,8 @@ export class EmployersService {
             exp_year: exp_year,
             cvc: cvc,
           };
+          const cardLastFour = number.toString().slice(-4);
+          employerData.lastFour = cardLastFour;
           await this.stripeService.createPaymentMethod(customer.id, card);
           employerData.customerId = customer.id;
         }

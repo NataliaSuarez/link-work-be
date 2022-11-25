@@ -21,6 +21,7 @@ import { GoogleAuthenticationService } from './googleAuthentication.service';
 import { GetReqUser } from './get-req-user.decorator';
 import { RegisterType } from 'src/users/entities/user.entity';
 import { AppleService } from './apple/apple.service';
+import { EmailDto } from './mail/confirmEmail.dto';
 @ApiTags('auth')
 @Controller('auth')
 @UseInterceptors(ClassSerializerInterceptor)
@@ -45,6 +46,12 @@ export class AuthController {
   @ApiOperation({ summary: 'Sign in an existing user' })
   async signin(@Body() data: AuthDto) {
     return await this.authService.signIn(data);
+  }
+
+  @Post('retrieve-password')
+  @ApiOperation({ summary: 'Envio de correo para recuperar contraseña' })
+  async retrievePassword(@Body() payload: EmailDto) {
+    return await this.authService.forgotPassword(payload);
   }
 
   @Get('log-out')
