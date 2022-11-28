@@ -8,6 +8,7 @@ import {
   ClassSerializerInterceptor,
   UseInterceptors,
   UnauthorizedException,
+  Render,
 } from '@nestjs/common';
 import { Request } from 'express';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
@@ -31,6 +32,13 @@ export class AuthController {
     private readonly googleAuthenticationService: GoogleAuthenticationService,
     private appleService: AppleService,
   ) {}
+
+  @Get('forgotPassword')
+  @ApiOperation({ summary: 'Prueba HTML recuperación de password' })
+  @Render('password.hbs')
+  async forgotPassword() {
+    return { message: 'Hello world!' };
+  }
 
   @Post('sign-up')
   @ApiOperation({ summary: 'Sign up an user account' })

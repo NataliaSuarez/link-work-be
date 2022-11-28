@@ -6,6 +6,7 @@ import {
   Query,
   Post,
   Body,
+  Render,
 } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 
@@ -21,11 +22,15 @@ export class EmailConfirmationController {
   ) {}
 
   @Get('confirm-email')
+  @Render('confirmation.hbs')
   @ApiOperation({ summary: 'Endpoint al que le pega la confirmación del mail' })
   async confirm(@Query() params: ConfirmEmailDto) {
     const email = await this.emailConfirmationService.decodeConfirmationToken(
       params.token,
     );
+    if (email.message) {
+      return email;
+    }
     return await this.emailConfirmationService.confirmEmail(email);
   }
 

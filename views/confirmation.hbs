@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <title>Confirm Account</title>
+  <style type="text/css">
+
+  body {
+            font-family: 'Overpass', sans-serif;
+            font-weight: normal;
+            font-size: 100%;
+            margin: 0;
+  }
+
+  #contenedor {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        margin: 0;
+        padding: 0;
+        min-width: 100vw;
+        min-height: 100vh;
+        width: 100%;
+        height: 100%;
+  }
+
+  #central {
+        width: 100%;
+  }
+
+  #hijo {
+        width: 100%;
+        padding: 50px 30px; 
+            
+        -webkit-box-shadow: 0px 0px 5px 5px rgba(0,0,0,0.15);
+        -moz-box-shadow: 0px 0px 5px 5px rgba(0,0,0,0.15);
+        box-shadow: 0px 0px 5px 5px rgba(0,0,0,0.15);
+    
+        border-radius: 3px 3px 3px 3px;
+        -moz-border-radius: 3px 3px 3px 3px;
+        -webkit-border-radius: 3px 3px 3px 3px;
+    
+        box-sizing: border-box;
+
+        background-color: #98DDDF;
+  }
+
+  #mensaje {
+            font-size: 180%;
+            color: #00787A;
+            text-align: center;
+  }
+
+  </style>
+
+</head>
+
+<body>
+    <div id="contenedor">
+        <div id="central">
+          <div id="hijo">
+            <div id="mensaje">
+                {{ message }}
+            </div>
+          </div>
+        </div>
+    </div> 
+</body>
+</html>

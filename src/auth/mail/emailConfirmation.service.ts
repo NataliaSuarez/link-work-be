@@ -51,12 +51,16 @@ export class EmailConfirmationService {
   }
 
   public async confirmEmail(email: string) {
-    const user = await this.userService.findByEmail(email);
-    if (user.verified) {
-      throw new BadRequestException('Email already confirmed');
+    try {
+      const user = await this.userService.findByEmail(email);
+      if (user.verified) {
+        throw new BadRequestException('Email already confirmed');
+      }
+      await this.userService.verifyUser(email);
+      return { message: `${email} verified ok` };
+    } catch (error) {
+      return { message: `${error.message}` };
     }
-    await this.userService.verifyUser(email);
-    return `${email} verified ok`;
   }
 
   public async decodeConfirmationToken(token: string) {
@@ -71,9 +75,9 @@ export class EmailConfirmationService {
       throw new BadRequestException();
     } catch (error) {
       if (error?.name === 'TokenExpiredError') {
-        throw new BadRequestException('Email confirmation token expired');
+        return { message: 'Email confirmation token expired' };
       }
-      throw new BadRequestException('Bad confirmation token');
+      return { message: 'Bad confirmation token' };
     }
   }
 

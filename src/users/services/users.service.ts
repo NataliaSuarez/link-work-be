@@ -260,7 +260,8 @@ export class UsersService {
       console.log(`User ${userId} deleted permanently`);
       return { message: 'User deleted permanently' };
     } catch (error) {
-      throw new InternalServerErrorException();
+      console.error(error);
+      throw new InternalServerErrorException(error.message);
     }
   }
 

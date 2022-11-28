@@ -222,7 +222,7 @@ export class AuthService {
       throw new NotFoundException('User does not exist');
     }
     const token = await this.signUser(user);
-    const forgotLink = `http://localhost/auth/forgotPassword?token=${token}`;
+    const forgotLink = `https://fr21309mu.getwonder.tech/auth/forgotPassword?token=${token}`;
     const firstMsg = 'Here is your request for password recovery';
     const secondMsg =
       'Please click the button below, if it was not you who requested it, ignore the message';
