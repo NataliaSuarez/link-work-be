@@ -115,6 +115,16 @@ export class CreateAddressDto {
   @ApiProperty()
   postalCode: string;
 
+  @IsString()
+  @IsNotEmpty()
+  @ApiProperty()
+  lat: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @ApiProperty()
+  long: string;
+
   @IsBoolean()
   @IsOptional()
   @ApiProperty()

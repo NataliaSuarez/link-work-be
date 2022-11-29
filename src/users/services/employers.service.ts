@@ -8,7 +8,6 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
-import * as Cryptr from 'cryptr';
 
 import { CreateEmployerDto, UpdateEmployerDto } from '../dtos/employers.dto';
 import { UsersService } from './users.service';
@@ -49,21 +48,26 @@ export class EmployersService {
     return employer;
   }
 
-  async createEmployerData(data: CreateEmployerDto, userId: string) {
+  async createEmployerData(
+    data: CreateEmployerDto,
+    userId: string,
+  ): Promise<EmployerData> {
     try {
       const user = await this.usersService.findOneById(userId, {
         employerData: true,
         employerBusinessImages: true,
+        address: true,
       });
       if (user.role !== Role.EMPLOYER) {
         throw new ForbiddenException('User needs to be registered as employer');
       }
-      const { address, city, state, postalCode } = data;
       const newAddress = this.addressRepository.create({
-        address: address,
-        city: city,
-        state: state,
-        postalCode: postalCode,
+        address: data.addressData.address,
+        city: data.addressData.city,
+        state: data.addressData.state,
+        postalCode: data.addressData.postalCode,
+        lat: data.addressData.lat,
+        long: data.addressData.long,
         principal: true,
       });
       newAddress.user = user;
@@ -90,15 +94,30 @@ export class EmployersService {
         newEmployer.customerId = customer.id;
         newEmployer.lastFour = cardLastFour;
         const savedEmployer = await this.employerRepository.save(newEmployer);
-        const rta = {
-          employer: savedEmployer,
-          cardNumber: card.number,
-        };
-        return rta;
+        return await this.employerRepository.findOne({
+          relations: {
+            user: true,
+          },
+          where: {
+            user: {
+              id: savedEmployer.user.id,
+            },
+          },
+        });
       } else {
         const newEmployer = await this.employerRepository.create(data);
         newEmployer.user = user;
-        return await this.employerRepository.save(newEmployer);
+        const savedEmployer = await this.employerRepository.save(newEmployer);
+        return await this.employerRepository.findOne({
+          relations: {
+            user: true,
+          },
+          where: {
+            user: {
+              id: savedEmployer.user.id,
+            },
+          },
+        });
       }
     } catch (error) {
       console.error(error);
@@ -111,23 +130,7 @@ export class EmployersService {
 
   async update(employerData: EmployerData, changes: UpdateEmployerDto) {
     try {
-      if (
-        changes.address ||
-        changes.city ||
-        changes.state ||
-        changes.postalCode
-      ) {
-        if (
-          !changes.address ||
-          !changes.city ||
-          !changes.state ||
-          !changes.postalCode
-        ) {
-          throw new ForbiddenException(
-            'To update an address you have to send all the address info',
-          );
-        }
-        const { address, city, state, postalCode } = changes;
+      if (changes.addressData) {
         const modifyAddress = await this.addressRepository.findOne({
           where: {
             user: {
@@ -137,10 +140,12 @@ export class EmployersService {
           },
         });
         const newAddress = {
-          address: address,
-          city: city,
-          state: state,
-          postalCode: postalCode,
+          address: changes.addressData.address,
+          city: changes.addressData.city,
+          state: changes.addressData.state,
+          postalCode: changes.addressData.postalCode,
+          lat: changes.addressData.lat,
+          long: changes.addressData.long,
         };
         this.addressRepository.merge(modifyAddress, newAddress);
         await this.addressRepository.save(modifyAddress);

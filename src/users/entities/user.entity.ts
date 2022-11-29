@@ -39,6 +39,11 @@ export enum ProfileStatus {
   BANK_PENDING = 3,
 }
 
+export enum BlockedReason {
+  NO_BLOCKED = 0,
+  MULTIPLE_LOGIN_ATTEMPTS = 1,
+}
+
 @Entity('users')
 export class User {
   @PrimaryGeneratedColumn('uuid')
@@ -66,6 +71,19 @@ export class User {
 
   @Column({ type: 'bool', default: false })
   verified: boolean;
+
+  @Column({ type: 'bool', default: false })
+  blocked: boolean;
+
+  @Column({
+    type: 'enum',
+    enum: BlockedReason,
+    default: BlockedReason.NO_BLOCKED,
+  })
+  blockedReason: BlockedReason;
+
+  @Column({ type: 'int', default: 0 })
+  failedAttemptsToLogin: number;
 
   @Column({ type: 'varchar', length: 255, nullable: true })
   profileImg?: string;
@@ -97,6 +115,9 @@ export class User {
 
   @DeleteDateColumn()
   desactivatedAt: Date;
+
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  retrieveToken: string;
 
   @Column({ type: 'varchar', length: 255, nullable: true, select: false })
   refreshToken: string;

@@ -72,22 +72,23 @@ export class WorkersService {
     return workerData;
   }
 
-  async create(data: CreateWorkerDto, userId: string) {
+  async create(data: CreateWorkerDto, userId: string): Promise<WorkerData> {
     const user = await this.usersService.findOneById(userId);
     if (user.role !== Role.WORKER) {
       console.warn(`The user ${userId} is not a worker`);
       throw new ConflictException('The user cant be registered as a worker');
     }
     try {
-      const { address, city, state, postalCode } = data;
       const newWorker = this.workerRepository.create(data);
       newWorker.user = user;
       const worker = await this.workerRepository.save(newWorker);
       const newAddress = this.addressRepository.create({
-        address: address,
-        city: city,
-        state: state,
-        postalCode: postalCode,
+        address: data.addressData.address,
+        city: data.addressData.city,
+        state: data.addressData.state,
+        postalCode: data.addressData.postalCode,
+        lat: data.addressData.lat,
+        long: data.addressData.long,
         principal: true,
       });
       newAddress.user = user;
@@ -96,9 +97,17 @@ export class WorkersService {
         { id: userId },
         { profileStatus: ProfileStatus.BANK_PENDING },
       );
-      return worker;
+      return await this.workerRepository.findOne({
+        relations: {
+          user: true,
+        },
+        where: {
+          id: worker.id,
+        },
+      });
     } catch (error) {
       if (error.code === PostgresErrorCode.UNIQUE) {
+        console.error(error);
         throw new ConflictException('User already has worker data');
       }
       console.error(error);
@@ -107,41 +116,26 @@ export class WorkersService {
   }
 
   async update(userId: string, changes: UpdateWorkerDto) {
-    if (
-      changes.address ||
-      changes.city ||
-      changes.state ||
-      changes.postalCode
-    ) {
-      if (
-        !changes.address ||
-        !changes.city ||
-        !changes.state ||
-        !changes.postalCode
-      ) {
-        throw new BadRequestException(
-          'To update an address you have to send all the address info',
-        );
-      }
-    }
     try {
-      const { address, city, state, postalCode } = changes;
-      const modifyAddress = await this.addressRepository.findOne({
-        where: {
-          user: {
-            id: userId,
+      if (changes.addressData) {
+        const modifyAddress = await this.addressRepository.findOne({
+          where: {
+            user: {
+              id: userId,
+            },
           },
-        },
-      });
-      const newAddress = {
-        address: address,
-        city: city,
-        state: state,
-        postalCode: postalCode,
-      };
-      this.addressRepository.merge(modifyAddress, newAddress);
-      await this.addressRepository.save(modifyAddress);
-
+        });
+        const newAddress = {
+          address: changes.addressData.address,
+          city: changes.addressData.city,
+          state: changes.addressData.state,
+          postalCode: changes.addressData.postalCode,
+          lat: changes.addressData.lat,
+          long: changes.addressData.long,
+        };
+        this.addressRepository.merge(modifyAddress, newAddress);
+        await this.addressRepository.save(modifyAddress);
+      }
       const worker = await this.findByUserId(userId);
 
       const updatedWorker = this.workerRepository.merge(worker, changes);

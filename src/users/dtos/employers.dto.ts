@@ -11,6 +11,7 @@ import {
 import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
 
 import { CardDto } from '../../stripe/stripe.dto';
+import { CreateAddressDto } from './users.dto';
 
 export class CreateEmployerDto {
   @IsNumber()
@@ -62,25 +63,10 @@ export class CreateEmployerDto {
   @ApiPropertyOptional()
   readonly cardData?: CardDto;
 
-  @IsString()
+  @IsObject()
   @IsNotEmpty()
   @ApiProperty()
-  readonly address: string;
-
-  @IsString()
-  @IsNotEmpty()
-  @ApiProperty()
-  readonly city: string;
-
-  @IsString()
-  @IsNotEmpty()
-  @ApiProperty()
-  readonly state: string;
-
-  @IsString()
-  @IsNotEmpty()
-  @ApiProperty()
-  readonly postalCode: string;
+  readonly addressData: CreateAddressDto;
 }
 
 export class UpdateEmployerDto extends PartialType(CreateEmployerDto) {}

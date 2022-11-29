@@ -27,19 +27,25 @@ export class Address {
   })
   updateAt: Date;
 
-  @Column({ type: 'varchar', length: 255 })
+  @Column({ type: 'varchar', length: 255, nullable: false })
   address: string;
 
-  @Column({ type: 'varchar', length: 255 })
+  @Column({ type: 'varchar', length: 255, nullable: false })
   city: string;
 
-  @Column({ type: 'varchar', length: 255 })
+  @Column({ type: 'varchar', length: 255, nullable: false })
   state: string;
 
-  @Column({ type: 'varchar', length: 255 })
+  @Column({ type: 'varchar', length: 255, nullable: false })
   postalCode: string;
 
-  @Column({ type: 'bool' })
+  @Column({ type: 'varchar', length: 255, nullable: false })
+  lat: string;
+
+  @Column({ type: 'varchar', length: 255, nullable: false })
+  long: string;
+
+  @Column({ type: 'bool', nullable: false })
   principal: boolean;
 
   @ManyToOne(() => User, (user) => user.address, {

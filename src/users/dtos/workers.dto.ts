@@ -8,8 +8,10 @@ import {
   IsUrl,
   Max,
   IsUUID,
+  IsObject,
 } from 'class-validator';
 import { ApiProperty, PartialType } from '@nestjs/swagger';
+import { CreateAddressDto } from './users.dto';
 
 export class CreateWorkerDto {
   @IsNumber()
@@ -71,25 +73,10 @@ export class CreateWorkerDto {
   @ApiProperty()
   readonly stripeId?: string;
 
-  @IsString()
+  @IsObject()
   @IsNotEmpty()
   @ApiProperty()
-  readonly address: string;
-
-  @IsString()
-  @IsNotEmpty()
-  @ApiProperty()
-  readonly city: string;
-
-  @IsString()
-  @IsNotEmpty()
-  @ApiProperty()
-  readonly state: string;
-
-  @IsString()
-  @IsNotEmpty()
-  @ApiProperty()
-  readonly postalCode: string;
+  readonly addressData: CreateAddressDto;
 }
 
 export class UpdateWorkerDto extends PartialType(CreateWorkerDto) {}
