@@ -14,7 +14,7 @@ import {
   ParseUUIDPipe,
   ForbiddenException,
 } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { Express } from 'express';
 import {
   CreateOfferDto,
@@ -32,6 +32,7 @@ import { CheckAbilities } from 'src/auth/abilities/abilities.decorator';
 import { GetReqUser } from 'src/auth/get-req-user.decorator';
 import { Role } from 'src/users/entities/user.entity';
 
+@ApiBearerAuth()
 @Controller('offers')
 @ApiTags('offers')
 @UseGuards(AccessTokenGuard, AbilitiesGuard)

@@ -13,6 +13,7 @@ import {
 import { Offer } from './offer.entity';
 import { Clock } from './clock.entity';
 import { User } from 'src/users/entities/user.entity';
+import { ApiProperty } from '@nestjs/swagger';
 
 export enum ShiftStatus {
   CREATED = 0,
@@ -52,6 +53,7 @@ export class Shift {
   confirmedClockOut: boolean;
 
   @Column({ type: 'timestamptz', nullable: true })
+  @ApiProperty({ nullable: true })
   autoConfirmed: Date;
 
   @Column({

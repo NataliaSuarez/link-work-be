@@ -19,12 +19,15 @@ import {
 } from '../dtos/users.dto';
 import { Role, User } from '../entities/user.entity';
 import { DOSpacesService } from '../../spaces/services/doSpacesService';
+import { UserImage } from '../entities/user_image.entity';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(User)
     private userRepository: Repository<User>,
+    @InjectRepository(UserImage)
+    private imgRepository: Repository<UserImage>,
     private doSpaceService: DOSpacesService,
   ) {}
 
@@ -46,31 +49,24 @@ export class UsersService {
     relations?: FindOptionsRelations<User>,
   ): Promise<User> {
     if (!relations) {
-      relations = { employerBusinessImages: true };
+      relations = { userImages: true };
     }
     const user = await this.userRepository.findOne({
       where: { id: id },
       relations,
     });
-    if (user.profileImg) {
-      const signedURL = await this.doSpaceService.tempAccessToPrivateFileUrl(
-        user.profileImg,
-      );
-      user.profileImg = signedURL;
-    }
-    if (user.role === Role.EMPLOYER) {
-      if (user.employerBusinessImages.length > 0) {
-        let i = 0;
-        for (const img of user.employerBusinessImages) {
-          console.log(img.imgUrl);
-          const signedimg =
-            await this.doSpaceService.tempAccessToPrivateFileUrl(img.imgUrl);
-          user.employerBusinessImages[i].imgUrl = signedimg;
-          i++;
-        }
+    if (user.userImages.length > 0) {
+      let i = 0;
+      for (const img of user.userImages) {
+        console.log(img.imgUrl);
+        const signedimg = await this.doSpaceService.tempAccessToPrivateFileUrl(
+          img.imgUrl,
+        );
+        user.userImages[i].imgUrl = signedimg;
+        i++;
       }
-      return user;
-    } else if (user.role === Role.WORKER) {
+    }
+    if (user.role === Role.WORKER) {
       if (user.workerExperience) {
         const signedExperience =
           await this.doSpaceService.tempAccessToPrivateFileUrl(
@@ -78,7 +74,6 @@ export class UsersService {
           );
         user.workerExperience.videoUrl = signedExperience;
       }
-      return user;
     }
     return user;
   }
@@ -120,7 +115,7 @@ export class UsersService {
   }
 
   async createWithGoogle(data: CreateUserDto) {
-    const { email, firstName, lastName, role } = data;
+    const { email, firstName, lastName } = data;
     const newUser = await this.userRepository.create({
       email,
       firstName,
@@ -137,8 +132,12 @@ export class UsersService {
     try {
       const user = await this.userRepository.findOneBy({ id: userId });
       const fileUrl = await this.doSpaceService.uploadProfileImg(file, userId);
-      const updatedUser = await this.update(user, { profileImg: fileUrl });
-      return updatedUser;
+      const newImg = this.imgRepository.create({
+        imgUrl: fileUrl,
+        avatar: true,
+      });
+      newImg.user = user;
+      return await this.imgRepository.save(newImg);
     } catch (error) {
       console.error(error);
       throw new InternalServerErrorException(error.message);

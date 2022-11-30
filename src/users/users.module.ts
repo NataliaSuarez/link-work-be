@@ -21,7 +21,7 @@ import { StripeService } from '../stripe/stripe.service';
 import { Clock } from '../offers_and_shifts/entities/clock.entity';
 import { DOSpacesService } from '../spaces/services/doSpacesService';
 import { DOSpacesServiceProvider } from '../spaces/services';
-import { EmployerBusinessImage } from './entities/employer_business_image.entity';
+import { UserImage } from './entities/user_image.entity';
 import { ShiftsService } from '../offers_and_shifts/services/shifts.service';
 import { OffersService } from '../offers_and_shifts/services/offers.service';
 import { Address } from './entities/address.entity';
@@ -36,7 +36,7 @@ import { Address } from './entities/address.entity';
       Shift,
       Clock,
       WorkerExperience,
-      EmployerBusinessImage,
+      UserImage,
       Address,
     ]),
   ],

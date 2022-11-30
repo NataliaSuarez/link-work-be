@@ -116,6 +116,7 @@ export class WorkersService {
   }
 
   async update(userId: string, changes: UpdateWorkerDto) {
+    const worker = await this.findByUserId(userId);
     try {
       if (changes.addressData) {
         const modifyAddress = await this.addressRepository.findOne({
@@ -135,12 +136,30 @@ export class WorkersService {
         };
         this.addressRepository.merge(modifyAddress, newAddress);
         await this.addressRepository.save(modifyAddress);
+        if (worker.stripeId) {
+          await this.stripeService.updateAccount(worker.stripeId, {
+            individual: {
+              address: {
+                line1: changes.addressData.address,
+                postal_code: changes.addressData.postalCode,
+                city: changes.addressData.city,
+                state: changes.addressData.state,
+              },
+            },
+          });
+        }
       }
-      const worker = await this.findByUserId(userId);
 
       const updatedWorker = this.workerRepository.merge(worker, changes);
       const savedWorker = await this.workerRepository.save(updatedWorker);
-      return savedWorker;
+      return await this.workerRepository.findOne({
+        relations: {
+          user: true,
+        },
+        where: {
+          id: savedWorker.id,
+        },
+      });
     } catch (error) {
       console.log(error);
       throw new InternalServerErrorException(error.response.message);

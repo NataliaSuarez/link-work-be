@@ -41,22 +41,22 @@ export class CreateUserAccDto {
   @IsNotEmpty()
   @ApiProperty()
   readonly individual: {
-    first_name: string;
-    last_name: string;
-    ssn_last_4: string;
+    first_name?: string;
+    last_name?: string;
+    ssn_last_4?: string;
     address: {
       line1: string;
       postal_code: string;
       city: string;
       state: string;
     };
-    dob: {
+    dob?: {
       day: number;
       month: number;
       year: number;
     };
-    email: string;
-    phone: string;
+    email?: string;
+    phone?: string;
   };
 
   @IsObject()

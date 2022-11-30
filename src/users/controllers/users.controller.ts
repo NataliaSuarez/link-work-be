@@ -13,7 +13,12 @@ import {
   Post,
   UploadedFile,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiOkResponse,
+  ApiOperation,
+  ApiTags,
+} from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 
@@ -21,7 +26,7 @@ import { FilterUsersDto, UpdateUserDto } from '../dtos/users.dto';
 import { UsersService } from '../services/users.service';
 import { AccessTokenGuard } from 'src/auth/jwt/accessToken.guard';
 import { GetReqUser } from 'src/auth/get-req-user.decorator';
-import { Role } from '../entities/user.entity';
+import { Role, User } from '../entities/user.entity';
 
 @Controller('users')
 @ApiTags('users')
@@ -38,16 +43,17 @@ export class UsersController {
 
   @Get(':id')
   @ApiOperation({ summary: 'Obtener usuario por ID' })
+  @ApiOkResponse({ type: User })
   async get(@Param('id') id: string) {
     const user = await this.usersService.findOneById(id, {
-      employerBusinessImages: true,
+      userImages: true,
       workerExperience: true,
     });
     if (user.role === Role.EMPLOYER) {
       const { workerExperience, workerData, ...userClean } = user;
       return userClean;
     } else if (user.role === Role.WORKER) {
-      const { employerBusinessImages, employerData, ...userClean } = user;
+      const { employerData, ...userClean } = user;
       return userClean;
     }
   }

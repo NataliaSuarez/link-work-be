@@ -8,7 +8,7 @@ import {
   NotFoundException,
   Query,
 } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 
 import { CreateShiftDto } from '../dtos/shift.dto';
 import { ShiftsService } from '../services/shifts.service';
@@ -20,6 +20,8 @@ import { Shift } from '../entities/shift.entity';
 import { Role } from 'src/users/entities/user.entity';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { EmailConfirmationGuard } from '../../auth/mail/emailConfirmation.guard';
+
+@ApiBearerAuth()
 @UseGuards(EmailConfirmationGuard)
 @UseGuards(AccessTokenGuard)
 @ApiTags('shifts')

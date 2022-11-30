@@ -19,15 +19,15 @@ import { PostgresErrorCode } from '../../common/enum/postgres-error-code.enum';
 import { Address } from '../entities/address.entity';
 import { CreateAddressDto } from '../dtos/users.dto';
 import { EmployerData } from '../entities/employer_data.entity';
-import { EmployerBusinessImage } from '../entities/employer_business_image.entity';
+import { UserImage } from '../entities/user_image.entity';
 
 @Injectable()
 export class EmployersService {
   constructor(
     @InjectRepository(EmployerData)
     private employerRepository: Repository<EmployerData>,
-    @InjectRepository(EmployerBusinessImage)
-    private imgRepository: Repository<EmployerBusinessImage>,
+    @InjectRepository(UserImage)
+    private imgRepository: Repository<UserImage>,
     @InjectRepository(Address) private addressRepository: Repository<Address>,
     private usersService: UsersService,
     private stripeService: StripeService,
@@ -55,7 +55,7 @@ export class EmployersService {
     try {
       const user = await this.usersService.findOneById(userId, {
         employerData: true,
-        employerBusinessImages: true,
+        userImages: true,
         address: true,
       });
       if (user.role !== Role.EMPLOYER) {
@@ -249,8 +249,11 @@ export class EmployersService {
         file,
         employerUserId,
       );
-      const newImg = this.imgRepository.create({ imgUrl: fileUrl });
-      newImg.employerUser = employerUser;
+      const newImg = this.imgRepository.create({
+        imgUrl: fileUrl,
+        avatar: false,
+      });
+      newImg.user = employerUser;
       return await this.imgRepository.save(newImg);
     } catch (error) {
       throw new InternalServerErrorException();

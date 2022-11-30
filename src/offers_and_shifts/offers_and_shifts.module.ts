@@ -18,7 +18,7 @@ import { StripeService } from '../stripe/stripe.service';
 import { Clock } from './entities/clock.entity';
 import { DOSpacesService } from '../spaces/services/doSpacesService';
 import { DOSpacesServiceProvider } from '../spaces/services';
-import { EmployerBusinessImage } from '../users/entities/employer_business_image.entity';
+import { UserImage } from '../users/entities/user_image.entity';
 import { Address } from '../users/entities/address.entity';
 import { WorkersService } from '../users/services/workers.service';
 import { WorkerExperience } from '../users/entities/worker_experience.entity';
@@ -32,7 +32,7 @@ import { WorkerExperience } from '../users/entities/worker_experience.entity';
       WorkerData,
       EmployerData,
       User,
-      EmployerBusinessImage,
+      UserImage,
       Address,
       WorkerExperience,
     ]),

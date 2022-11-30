@@ -9,13 +9,16 @@ import {
 
 import { User } from './user.entity';
 
-@Entity('business_images')
-export class EmployerBusinessImage {
+@Entity('user_images')
+export class UserImage {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @Column({ type: 'varchar', length: 255, nullable: false })
   imgUrl: string;
+
+  @Column({ type: 'bool', nullable: false })
+  avatar: boolean;
 
   @CreateDateColumn({
     type: 'timestamptz',
@@ -29,8 +32,8 @@ export class EmployerBusinessImage {
   })
   updateAt: Date;
 
-  @ManyToOne(() => User, (user) => user.employerBusinessImages, {
+  @ManyToOne(() => User, (user) => user.userImages, {
     nullable: false,
   })
-  employerUser: User;
+  user: User;
 }

@@ -16,9 +16,10 @@ import { EmployerData } from './employer_data.entity';
 import { Clock } from '../../offers_and_shifts/entities/clock.entity';
 import { Offer } from 'src/offers_and_shifts/entities/offer.entity';
 import { Shift } from 'src/offers_and_shifts/entities/shift.entity';
-import { EmployerBusinessImage } from './employer_business_image.entity';
+import { UserImage } from './user_image.entity';
 import { WorkerExperience } from './worker_experience.entity';
 import { Address } from './address.entity';
+import { ApiProperty } from '@nestjs/swagger';
 
 export enum RegisterType {
   EMAIL_AND_PASSWORD = 0,
@@ -50,9 +51,11 @@ export class User {
   id: string;
 
   @Column({ type: 'varchar', length: 255, nullable: true })
+  @ApiProperty({ nullable: true })
   firstName: string;
 
   @Column({ type: 'varchar', length: 255, nullable: true })
+  @ApiProperty({ nullable: true })
   lastName: string;
 
   @Column({ type: 'varchar', unique: true, length: 255 })
@@ -85,9 +88,6 @@ export class User {
   @Column({ type: 'int', default: 0 })
   failedAttemptsToLogin: number;
 
-  @Column({ type: 'varchar', length: 255, nullable: true })
-  profileImg?: string;
-
   @Column({
     type: 'enum',
     enum: Role,
@@ -117,9 +117,11 @@ export class User {
   desactivatedAt: Date;
 
   @Column({ type: 'varchar', length: 255, nullable: true })
+  @ApiProperty({ nullable: true })
   retrieveToken: string;
 
   @Column({ type: 'varchar', length: 255, nullable: true, select: false })
+  @ApiProperty({ nullable: true })
   refreshToken: string;
 
   @OneToOne(() => WorkerData, (worker) => worker.user, {
@@ -127,18 +129,23 @@ export class User {
     eager: true,
     cascade: true,
   })
+  @ApiProperty({ nullable: true })
   workerData: WorkerData;
 
   @ManyToMany(() => Offer, (offer) => offer.applicants)
+  @ApiProperty({ nullable: true })
   offersAppliedToByWorker: Offer[];
 
   @ManyToMany(() => Offer, (offer) => offer.favoritedBy)
+  @ApiProperty({ nullable: true })
   workerFavoriteOffers: Offer[];
 
   @OneToMany(() => Shift, (shift) => shift.workerUser)
+  @ApiProperty({ nullable: true })
   workerShifts: Shift[];
 
   @OneToOne(() => WorkerExperience, (exp) => exp.workerUser)
+  @ApiProperty({ nullable: true })
   workerExperience: WorkerExperience;
 
   @OneToOne(() => EmployerData, (employer) => employer.user, {
@@ -146,17 +153,21 @@ export class User {
     eager: true,
     cascade: true,
   })
+  @ApiProperty({ nullable: true })
   employerData: EmployerData;
 
   @OneToMany(() => Offer, (offer) => offer.employerUser)
+  @ApiProperty({ nullable: true })
   offersOwnedByEmployer: Offer[];
 
-  @OneToMany(() => EmployerBusinessImage, (img) => img.employerUser)
-  employerBusinessImages: EmployerBusinessImage[];
+  @OneToMany(() => UserImage, (img) => img.user)
+  @ApiProperty({ nullable: true })
+  userImages: UserImage[];
 
   @OneToMany(() => Clock, (clocks) => clocks.user, {
     nullable: true,
   })
+  @ApiProperty({ nullable: true })
   clocksHistory: Clock[];
 
   @OneToMany(() => Address, (address) => address.user, {

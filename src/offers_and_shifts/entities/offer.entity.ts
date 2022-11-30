@@ -13,6 +13,7 @@ import {
 import { Shift } from './shift.entity';
 import { User } from 'src/users/entities/user.entity';
 import { Address } from '../../users/entities/address.entity';
+import { ApiProperty } from '@nestjs/swagger';
 
 export enum OfferStatus {
   CREATED = 0,
@@ -56,9 +57,11 @@ export class Offer {
   category: OfferCategory;
 
   @Column({ type: 'text', nullable: true })
+  @ApiProperty({ nullable: true })
   description: string;
 
   @Column({ type: 'varchar', length: 255, nullable: true })
+  @ApiProperty({ nullable: true })
   videoUrl?: string;
 
   @Column({
@@ -93,6 +96,7 @@ export class Offer {
     onDelete: 'CASCADE',
   })
   @JoinTable({ name: 'workers_offers_favorites' })
+  @ApiProperty({ nullable: true })
   favoritedBy: User[];
 
   @ManyToOne(() => User, {
@@ -105,6 +109,7 @@ export class Offer {
   @OneToOne(() => Shift, (shift) => shift.offer, {
     nullable: true,
   })
+  @ApiProperty({ nullable: true })
   shift: Shift;
 
   @ManyToOne(() => Address, { cascade: true, eager: true })

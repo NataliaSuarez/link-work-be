@@ -13,7 +13,7 @@ import {
   BadRequestException,
   ForbiddenException,
 } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 
@@ -30,6 +30,7 @@ import { EmailConfirmationGuard } from '../../auth/mail/emailConfirmation.guard'
 
 @Controller('employers')
 @ApiTags('employers')
+@ApiBearerAuth()
 @UseGuards(EmailConfirmationGuard)
 @UseGuards(AccessTokenGuard)
 export class EmployersController {

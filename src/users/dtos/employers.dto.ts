@@ -16,6 +16,7 @@ import { CreateAddressDto } from './users.dto';
 export class CreateEmployerDto {
   @IsNumber()
   @IsOptional()
+  @ApiProperty()
   @ApiPropertyOptional()
   readonly businessCode?: number;
 
@@ -26,31 +27,37 @@ export class CreateEmployerDto {
 
   @IsString()
   @IsOptional()
+  @ApiProperty()
   @ApiPropertyOptional()
   readonly businessUrl?: string;
 
   @IsString()
   @IsOptional()
+  @ApiProperty()
   @ApiPropertyOptional()
   readonly description?: string;
 
   @IsNumber()
   @IsOptional()
+  @ApiProperty()
   @ApiPropertyOptional()
   readonly stars?: number;
 
   @IsNumber()
   @IsOptional()
+  @ApiProperty()
   @ApiPropertyOptional()
   readonly totalReviews?: number;
 
   @IsNumber()
   @IsOptional()
+  @ApiProperty()
   @ApiPropertyOptional()
   readonly avgStars?: number;
 
   @IsString()
   @IsOptional()
+  @ApiProperty()
   @ApiPropertyOptional()
   readonly lastFour?: string;
 
@@ -60,6 +67,7 @@ export class CreateEmployerDto {
 
   @IsObject()
   @IsOptional()
+  @ApiProperty()
   @ApiPropertyOptional()
   readonly cardData?: CardDto;
 

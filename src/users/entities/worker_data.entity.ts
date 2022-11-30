@@ -1,3 +1,4 @@
+import { ApiProperty } from '@nestjs/swagger';
 import {
   Column,
   CreateDateColumn,
@@ -58,6 +59,7 @@ export class WorkerData {
   avgStars: number;
 
   @Column({ type: 'varchar', length: 255, nullable: true })
+  @ApiProperty({ nullable: true })
   stripeId: string;
 
   @CreateDateColumn({

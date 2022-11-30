@@ -17,7 +17,7 @@ import { Clock } from '../offers_and_shifts/entities/clock.entity';
 import { DOSpacesService } from '../spaces/services/doSpacesService';
 import { DOSpacesServiceProvider } from '../spaces/services';
 import { WorkerExperience } from '../users/entities/worker_experience.entity';
-import { EmployerBusinessImage } from '../users/entities/employer_business_image.entity';
+import { UserImage } from '../users/entities/user_image.entity';
 import { Address } from '../users/entities/address.entity';
 
 @Module({
@@ -30,7 +30,7 @@ import { Address } from '../users/entities/address.entity';
       User,
       Clock,
       WorkerExperience,
-      EmployerBusinessImage,
+      UserImage,
       Address,
     ]),
   ],

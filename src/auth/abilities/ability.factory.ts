@@ -8,7 +8,7 @@ import {
 import { Injectable } from '@nestjs/common';
 import { Offer } from 'src/offers_and_shifts/entities/offer.entity';
 import { Shift } from 'src/offers_and_shifts/entities/shift.entity';
-import { EmployerBusinessImage } from 'src/users/entities/employer_business_image.entity';
+import { UserImage } from 'src/users/entities/user_image.entity';
 import { EmployerData } from 'src/users/entities/employer_data.entity';
 import { Role, User } from 'src/users/entities/user.entity';
 import { WorkerData } from 'src/users/entities/worker_data.entity';
@@ -29,7 +29,7 @@ export type Subjects =
       | typeof Shift
       | typeof EmployerData
       | typeof WorkerData
-      | typeof EmployerBusinessImage
+      | typeof UserImage
       | typeof WorkerExperience
     >
   | 'all';
@@ -49,7 +49,7 @@ export class AbilityFactory {
       can([Action.Manage], Shift);
       can([Action.Create, Action.Read, Action.Update], EmployerData);
       can([Action.Read], WorkerData);
-      can([Action.Manage], EmployerBusinessImage);
+      can([Action.Manage], UserImage);
       can([Action.Read], WorkerExperience);
     }
     if (user.role === Role.WORKER) {
@@ -58,7 +58,7 @@ export class AbilityFactory {
       can([Action.Read], Shift);
       can([Action.Create, Action.Read, Action.Update], WorkerData);
       can([Action.Read], EmployerData);
-      can([Action.Read], EmployerBusinessImage);
+      can([Action.Manage], UserImage);
       can([Action.Manage], WorkerExperience);
     }
 

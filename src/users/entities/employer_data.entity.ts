@@ -1,3 +1,4 @@
+import { ApiProperty } from '@nestjs/swagger';
 import {
   Column,
   CreateDateColumn,
@@ -32,9 +33,11 @@ export class EmployerData {
   businessName: string;
 
   @Column({ type: 'varchar', length: 255, nullable: true })
+  @ApiProperty({ nullable: true })
   businessUrl: string;
 
   @Column({ type: 'text', nullable: true })
+  @ApiProperty({ nullable: true })
   description: string;
 
   @Column({ type: 'float', default: 0 })
@@ -47,9 +50,11 @@ export class EmployerData {
   avgStars: number;
 
   @Column({ type: 'varchar', length: 255, nullable: true })
+  @ApiProperty({ nullable: true })
   lastFour: string;
 
   @Column({ type: 'varchar', length: 255, nullable: true })
+  @ApiProperty({ nullable: true })
   customerId: string;
 
   @CreateDateColumn({
