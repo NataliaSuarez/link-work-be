@@ -35,7 +35,7 @@ import { GetReqUser } from 'src/auth/get-req-user.decorator';
 import { AccessTokenGuard } from 'src/auth/jwt/accessToken.guard';
 import { EmailConfirmationGuard } from '../../auth/mail/emailConfirmation.guard';
 import { UsersService } from '../services/users.service';
-import { FileExtender } from 'src/utils/interceptors/file.extender';
+import { FileExtender } from '../../utils/interceptors/file.extender';
 
 @Controller('employers')
 @ApiTags('employers')

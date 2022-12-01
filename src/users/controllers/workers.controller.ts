@@ -34,7 +34,7 @@ import { Action } from 'src/auth/abilities/ability.factory';
 import { WorkerData } from '../entities/worker_data.entity';
 import { Role } from '../entities/user.entity';
 import { EmailConfirmationGuard } from '../../auth/mail/emailConfirmation.guard';
-import { FileExtender } from 'src/utils/interceptors/file.extender';
+import { FileExtender } from '../../utils/interceptors/file.extender';
 import { UsersService } from '../services/users.service';
 
 @ApiBearerAuth()
