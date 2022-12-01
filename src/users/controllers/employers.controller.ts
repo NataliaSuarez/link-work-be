@@ -12,9 +12,16 @@ import {
   Get,
   BadRequestException,
   ForbiddenException,
+  UploadedFiles,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { FileInterceptor } from '@nestjs/platform-express';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiConsumes,
+  ApiOperation,
+  ApiTags,
+} from '@nestjs/swagger';
+import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 
 import {
@@ -27,6 +34,8 @@ import { CreateAddressDto } from '../dtos/users.dto';
 import { GetReqUser } from 'src/auth/get-req-user.decorator';
 import { AccessTokenGuard } from 'src/auth/jwt/accessToken.guard';
 import { EmailConfirmationGuard } from '../../auth/mail/emailConfirmation.guard';
+import { UsersService } from '../services/users.service';
+import { FileExtender } from 'src/utils/interceptors/file.extender';
 
 @Controller('employers')
 @ApiTags('employers')
@@ -34,7 +43,10 @@ import { EmailConfirmationGuard } from '../../auth/mail/emailConfirmation.guard'
 @UseGuards(EmailConfirmationGuard)
 @UseGuards(AccessTokenGuard)
 export class EmployersController {
-  constructor(private employersService: EmployersService) {}
+  constructor(
+    private employersService: EmployersService,
+    private usersService: UsersService,
+  ) {}
 
   @Get('stripe-customer-data')
   @ApiOperation({ summary: 'Obtener data del usuario en Stripe' })
@@ -43,12 +55,50 @@ export class EmployersController {
   }
 
   @Post()
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        payload: { type: 'CreateEmployerDto' },
+        file: {
+          type: 'string',
+          format: 'binary',
+        },
+      },
+    },
+  })
+  @UseInterceptors(FileExtender)
+  @UseInterceptors(
+    FilesInterceptor('file', 5, {
+      storage: diskStorage({
+        destination: './tmp/uploads/employerImgs',
+      }),
+    }),
+  )
   @ApiOperation({ summary: 'Crear perfil con datos de empleador' })
   async create(
-    @Body() payload: CreateEmployerDto,
     @GetReqUser('id') reqUserId,
+    @Body() data: CreateEmployerDto,
+    @UploadedFiles()
+    file: Express.Multer.File[],
   ) {
-    return await this.employersService.createEmployerData(payload, reqUserId);
+    if (file) {
+      if (data.avatarImgName) {
+        file.forEach(async (img) => {
+          if (img.originalname === data.avatarImgName) {
+            await this.usersService.uploadProfileImg(reqUserId, img);
+          } else {
+            await this.employersService.uploadBusinessImg(reqUserId, img);
+          }
+        });
+      } else {
+        file.forEach(async (img) => {
+          await this.employersService.uploadBusinessImg(reqUserId, img);
+        });
+      }
+    }
+    return await this.employersService.createEmployerData(data, reqUserId);
   }
 
   @Post('upload-img')
@@ -99,18 +149,56 @@ export class EmployersController {
   }
 
   @Put()
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        payload: { type: 'UpdateEmployerDto' },
+        file: {
+          type: 'string',
+          format: 'binary',
+        },
+      },
+    },
+  })
+  @UseInterceptors(FileExtender)
+  @UseInterceptors(
+    FilesInterceptor('file', 5, {
+      storage: diskStorage({
+        destination: './tmp/uploads/employerImgs',
+      }),
+    }),
+  )
   @ApiOperation({ summary: 'Actualizar datos de empleador' })
   async update(
     @GetReqUser('id') reqUserId,
-    @Body() payload: UpdateEmployerDto,
+    @Body() data: UpdateEmployerDto,
+    @UploadedFiles()
+    file: Express.Multer.File[],
   ) {
     const employerData = await this.employersService.findByUserId(reqUserId);
     if (!employerData) {
       throw new NotFoundException('User employer data not found');
     }
-    if (payload.customerId) {
+    if (data.customerId) {
       throw new ForbiddenException("Can't update stripe id");
     }
-    return await this.employersService.update(employerData, payload);
+    if (file) {
+      if (data.avatarImgName) {
+        file.forEach(async (img) => {
+          if (img.originalname === data.avatarImgName) {
+            await this.usersService.uploadProfileImg(reqUserId, img);
+          } else {
+            await this.employersService.uploadBusinessImg(reqUserId, img);
+          }
+        });
+      } else {
+        file.forEach(async (img) => {
+          await this.employersService.uploadBusinessImg(reqUserId, img);
+        });
+      }
+    }
+    return await this.employersService.update(employerData, data);
   }
 }

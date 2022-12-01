@@ -201,7 +201,15 @@ export class EmployersService {
         }
       }
       this.employerRepository.merge(employerData, changes);
-      return await this.employerRepository.save(employerData);
+      await this.employerRepository.save(employerData);
+      return await this.employerRepository.findOne({
+        relations: {
+          user: true,
+        },
+        where: {
+          id: employerData.id,
+        },
+      });
     } catch (error) {
       console.error(error);
       throw new InternalServerErrorException(error.message);
@@ -256,7 +264,8 @@ export class EmployersService {
       newImg.user = employerUser;
       return await this.imgRepository.save(newImg);
     } catch (error) {
-      throw new InternalServerErrorException();
+      console.error(error);
+      throw new InternalServerErrorException(error.message);
     }
   }
 

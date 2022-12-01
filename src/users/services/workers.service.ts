@@ -78,6 +78,12 @@ export class WorkersService {
       console.warn(`The user ${userId} is not a worker`);
       throw new ConflictException('The user cant be registered as a worker');
     }
+    if (!user.firstName || !user.lastName) {
+      console.warn(`The user ${userId} needs a full name`);
+      throw new ConflictException(
+        'The user cant be registered without full name',
+      );
+    }
     try {
       const newWorker = this.workerRepository.create(data);
       newWorker.user = user;

@@ -130,7 +130,27 @@ export class UsersService {
 
   async uploadProfileImg(userId: string, file: Express.Multer.File) {
     try {
-      const user = await this.userRepository.findOneBy({ id: userId });
+      const user = await this.userRepository.findOne({
+        where: {
+          id: userId,
+        },
+        relations: { userImages: true },
+      });
+      if (user.userImages.length > 0) {
+        user.userImages.forEach(async (img) => {
+          if (img.avatar) {
+            const fileUrl = await this.doSpaceService.uploadProfileImg(
+              file,
+              userId,
+            );
+            await this.doSpaceService.deleteFile(img.imgUrl);
+            return await this.imgRepository.update(
+              { id: img.id },
+              { imgUrl: fileUrl },
+            );
+          }
+        });
+      }
       const fileUrl = await this.doSpaceService.uploadProfileImg(file, userId);
       const newImg = this.imgRepository.create({
         imgUrl: fileUrl,

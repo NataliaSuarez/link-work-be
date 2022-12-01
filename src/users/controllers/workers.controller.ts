@@ -10,7 +10,13 @@ import {
   UseGuards,
   ForbiddenException,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiConsumes,
+  ApiOperation,
+  ApiTags,
+} from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 
@@ -28,6 +34,8 @@ import { Action } from 'src/auth/abilities/ability.factory';
 import { WorkerData } from '../entities/worker_data.entity';
 import { Role } from '../entities/user.entity';
 import { EmailConfirmationGuard } from '../../auth/mail/emailConfirmation.guard';
+import { FileExtender } from 'src/utils/interceptors/file.extender';
+import { UsersService } from '../services/users.service';
 
 @ApiBearerAuth()
 @UseGuards(EmailConfirmationGuard)
@@ -35,7 +43,10 @@ import { EmailConfirmationGuard } from '../../auth/mail/emailConfirmation.guard'
 @ApiTags('workers')
 @Controller('workers')
 export class WorkersController {
-  constructor(private workersService: WorkersService) {}
+  constructor(
+    private workersService: WorkersService,
+    private usersService: UsersService,
+  ) {}
 
   @Get('stripe-account-data')
   @CheckAbilities({ action: Action.Read, subject: WorkerData })
@@ -45,9 +56,37 @@ export class WorkersController {
   }
 
   @Post()
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        payload: { type: 'CreateWorkerDto' },
+        file: {
+          type: 'string',
+          format: 'binary',
+        },
+      },
+    },
+  })
+  @UseInterceptors(FileExtender)
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: diskStorage({
+        destination: './tmp/uploads/workers',
+      }),
+    }),
+  )
   @CheckAbilities({ action: Action.Create, subject: WorkerData })
   @ApiOperation({ summary: 'Crear perfil con datos de trabajador' })
-  async create(@Body() payload: CreateWorkerDto, @GetReqUser('id') reqUserId) {
+  async create(
+    @Body() payload: CreateWorkerDto,
+    @GetReqUser('id') reqUserId,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    if (file) {
+      await this.usersService.uploadProfileImg(reqUserId, file);
+    }
     return await this.workersService.create(payload, reqUserId);
   }
 
@@ -105,11 +144,39 @@ export class WorkersController {
   }
 
   @Put()
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        payload: { type: 'UpdateWorkerDto' },
+        file: {
+          type: 'string',
+          format: 'binary',
+        },
+      },
+    },
+  })
+  @UseInterceptors(FileExtender)
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: diskStorage({
+        destination: './tmp/uploads/workers',
+      }),
+    }),
+  )
   @CheckAbilities({ action: Action.Update, subject: WorkerData })
   @ApiOperation({ summary: 'Actualizar datos del perfil de trabajador' })
-  async update(@Body() payload: UpdateWorkerDto, @GetReqUser('id') reqUserId) {
+  async update(
+    @Body() payload: UpdateWorkerDto,
+    @GetReqUser('id') reqUserId,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
     if (payload.stripeId) {
       throw new ForbiddenException("Can't update stripe id");
+    }
+    if (file) {
+      await this.usersService.uploadProfileImg(reqUserId, file);
     }
     return await this.workersService.update(reqUserId, payload);
   }

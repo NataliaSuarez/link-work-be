@@ -124,11 +124,7 @@ export class User {
   @ApiProperty({ nullable: true })
   refreshToken: string;
 
-  @OneToOne(() => WorkerData, (worker) => worker.user, {
-    nullable: true,
-    eager: true,
-    cascade: true,
-  })
+  @OneToOne(() => WorkerData, (worker) => worker.user, { nullable: true })
   @ApiProperty({ nullable: true })
   workerData: WorkerData;
 
@@ -148,11 +144,7 @@ export class User {
   @ApiProperty({ nullable: true })
   workerExperience: WorkerExperience;
 
-  @OneToOne(() => EmployerData, (employer) => employer.user, {
-    nullable: true,
-    eager: true,
-    cascade: true,
-  })
+  @OneToOne(() => EmployerData, (employer) => employer.user, { nullable: true })
   @ApiProperty({ nullable: true })
   employerData: EmployerData;
 
@@ -160,7 +152,10 @@ export class User {
   @ApiProperty({ nullable: true })
   offersOwnedByEmployer: Offer[];
 
-  @OneToMany(() => UserImage, (img) => img.user)
+  @OneToMany(() => UserImage, (img) => img.user, {
+    eager: true,
+    cascade: true,
+  })
   @ApiProperty({ nullable: true })
   userImages: UserImage[];
 

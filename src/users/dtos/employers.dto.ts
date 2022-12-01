@@ -34,6 +34,11 @@ export class CreateEmployerDto {
   @IsString()
   @IsOptional()
   @ApiProperty()
+  readonly avatarImgName?: string;
+
+  @IsString()
+  @IsOptional()
+  @ApiProperty()
   @ApiPropertyOptional()
   readonly description?: string;
 

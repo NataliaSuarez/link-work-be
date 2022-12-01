@@ -21,6 +21,7 @@ import { configValidationSchema } from './config.schema';
 import { AbilityModule } from './auth/abilities/ability.module';
 import { LoggerService } from './loggerService/logger.service';
 import { SendgridService } from './sendgrid/sendgrid.service';
+import { NestjsFormDataModule } from 'nestjs-form-data';
 @Module({
   imports: [
     DatabaseModule,
@@ -41,6 +42,7 @@ import { SendgridService } from './sendgrid/sendgrid.service';
     ScheduleModule.forRoot(),
     TasksModule,
     SpacesModule,
+    NestjsFormDataModule,
   ],
   controllers: [AppController],
 

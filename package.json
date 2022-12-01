@@ -57,6 +57,7 @@
     "moment": "2.29.4",
     "mongodb": "3.7.3",
     "mongoose": "6.6.1",
+    "nestjs-form-data": "^1.8.3",
     "node-cron": "3.0.2",
     "passport": "0.6.0",
     "passport-google-oauth20": "2.0.0",
