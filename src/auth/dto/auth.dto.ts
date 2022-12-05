@@ -12,3 +12,17 @@ export class AuthDto {
   @ApiProperty()
   readonly password?: string;
 }
+
+export class RetrievePasswordDto {
+  @IsString()
+  @IsNotEmpty()
+  readonly newPassword: string;
+
+  @IsString()
+  @IsNotEmpty()
+  readonly repeatNewPassword: string;
+
+  @IsString()
+  @IsNotEmpty()
+  readonly retrieveToken: string;
+}

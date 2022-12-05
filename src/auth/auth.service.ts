@@ -11,7 +11,7 @@ import * as argon2 from 'argon2';
 
 import { CreateUserDto } from '../users/dtos/users.dto';
 import { UsersService } from '../users/services/users.service';
-import { AuthDto } from './dto/auth.dto';
+import { AuthDto, RetrievePasswordDto } from './dto/auth.dto';
 import { JwtPayload } from './jwt/jwt-payload.interface';
 import { RegisterType, User } from 'src/users/entities/user.entity';
 import { SendgridService } from '../sendgrid/sendgrid.service';
@@ -222,6 +222,8 @@ export class AuthService {
       throw new NotFoundException('User does not exist');
     }
     const token = await this.signUser(user);
+    const hashedToken = await this.hashData(token);
+    await this.usersService.update(user, { retrieveToken: hashedToken });
     const forgotLink = `https://fr21309mu.getwonder.tech/auth/forgotPassword?token=${token}`;
     const firstMsg = 'Here is your request for password recovery';
     const secondMsg =
@@ -256,5 +258,23 @@ export class AuthService {
     });
 
     return token;
+  }
+
+  async changePassword(data: RetrievePasswordDto) {
+    const decodedToken: any = await this.jwtService.decode(data.retrieveToken);
+    const user = await this.usersService.findByEmail(decodedToken.email);
+    const tokenMatches = await argon2.verify(
+      user.retrieveToken,
+      data.retrieveToken,
+    );
+    if (!tokenMatches) {
+      throw new ForbiddenException('Access Denied');
+    }
+    await this.usersService.update(user, {
+      password: data.newPassword,
+      repeatPassword: data.repeatNewPassword,
+      retrieveToken: null,
+    });
+    return { message: 'Password changed succesfully' };
   }
 }

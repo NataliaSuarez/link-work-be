@@ -84,6 +84,11 @@ export class CreateUserDto {
   @IsString()
   @IsOptional()
   @ApiProperty({ nullable: true })
+  readonly retrieveToken?: string;
+
+  @IsString()
+  @IsOptional()
+  @ApiProperty({ nullable: true })
   readonly refreshToken?: string;
 
   @IsString()

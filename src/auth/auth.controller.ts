@@ -15,7 +15,7 @@ import { ApiOperation, ApiTags } from '@nestjs/swagger';
 
 import { CreateUserDto } from '../users/dtos/users.dto';
 import { AuthService } from './auth.service';
-import { AuthDto } from './dto/auth.dto';
+import { AuthDto, RetrievePasswordDto } from './dto/auth.dto';
 import { AccessTokenGuard } from './jwt/accessToken.guard';
 import { RefreshTokenGuard } from 'src/auth/jwt/refreshToken.guard';
 import { GoogleAuthenticationService } from './googleAuthentication.service';
@@ -38,6 +38,18 @@ export class AuthController {
   @Render('password.hbs')
   async forgotPassword() {
     return { message: 'Hello world!' };
+  }
+
+  @Post('change-password')
+  @ApiOperation({ summary: 'Confirmación cambio de password' })
+  @Render('confirmation.hbs')
+  async resetPassword(@Body() payload: any) {
+    const data: RetrievePasswordDto = {
+      newPassword: payload.passwordNew1,
+      repeatNewPassword: payload.passwordNew2,
+      retrieveToken: payload.token,
+    };
+    return await this.authService.changePassword(data);
   }
 
   @Post('sign-up')
