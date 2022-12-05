@@ -128,14 +128,6 @@ export class User {
   @ApiProperty({ nullable: true })
   workerData: WorkerData;
 
-  @ManyToMany(() => Offer, (offer) => offer.applicants)
-  @ApiProperty({ nullable: true })
-  offersAppliedToByWorker: Offer[];
-
-  @ManyToMany(() => Offer, (offer) => offer.favoritedBy)
-  @ApiProperty({ nullable: true })
-  workerFavoriteOffers: Offer[];
-
   @OneToMany(() => Shift, (shift) => shift.workerUser)
   @ApiProperty({ nullable: true })
   workerShifts: Shift[];
@@ -170,4 +162,10 @@ export class User {
     cascade: true,
   })
   address: Address[];
+
+  @ManyToMany(() => Offer, (offer) => offer.favoritedBy)
+  favoriteOffers: Offer[];
+
+  @ManyToMany(() => Offer, (offer) => offer.applicants)
+  appliedOffers: Offer[];
 }

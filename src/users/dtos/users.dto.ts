@@ -211,7 +211,7 @@ export class UserDto {
 
   @IsArray()
   @ApiProperty()
-  offersAppliedToByWorker: Offer[];
+  appliedOffers: Offer[];
 
   @IsArray()
   @ApiProperty()

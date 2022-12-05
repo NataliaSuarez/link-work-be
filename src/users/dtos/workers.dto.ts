@@ -35,9 +35,9 @@ export class CreateWorkerDto {
   readonly phone: string;
 
   @IsUrl()
-  @IsNotEmpty()
+  @IsOptional()
   @ApiProperty()
-  readonly personalUrl: string;
+  personalUrl: string;
 
   @IsNumber()
   @IsNotEmpty()

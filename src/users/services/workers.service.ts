@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { ConfigService } from '@nestjs/config';
 
 import {
   CreateWorkerDto,
@@ -36,6 +37,7 @@ export class WorkersService {
     private usersService: UsersService,
     private stripeService: StripeService,
     private doSpaceService: DOSpacesService,
+    private readonly configService: ConfigService,
   ) {}
 
   async findAll(params?: FilterWorkersDto) {
@@ -83,6 +85,9 @@ export class WorkersService {
       throw new ConflictException(
         'The user cant be registered without full name',
       );
+    }
+    if (!data.personalUrl) {
+      data.personalUrl = this.configService.get('APP_PLACEHOLDER_1');
     }
     try {
       const newWorker = this.workerRepository.create(data);
@@ -221,7 +226,10 @@ export class WorkersService {
 
   async createStripeAccount(userId: string, data: StripeUserAccDto) {
     try {
-      const user = await this.usersService.findOneById(userId);
+      const user = await this.userRepository.findOne({
+        where: { id: userId },
+        relations: { workerData: true },
+      });
       if (!user) {
         throw new BadRequestException('Cant find an user');
       }

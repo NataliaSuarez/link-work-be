@@ -235,12 +235,13 @@ export class OffersService {
     }
   }
 
-  async updateStatus(offer: Offer, status: OfferStatus) {
+  async updateStatus(offerId: string, status: OfferStatus): Promise<Offer> {
+    const offer = await this.offersRepo.findOneBy({ id: offerId });
+    offer.status = status;
     try {
-      offer.status = status;
       return await this.offersRepo.save(offer);
     } catch (error) {
-      throw new InternalServerErrorException();
+      throw new InternalServerErrorException(error.message);
     }
   }
 
@@ -261,15 +262,16 @@ export class OffersService {
     }
   }
 
-  async apply(workerUserId: string, offer: Offer) {
+  async apply(workerUserId: string, offerId: string) {
     const workerUser = await this.usersRepo.findOneBy({
       id: workerUserId,
       role: Role.WORKER,
     });
+    const workerData = await this.workerService.findByUserId(workerUserId);
     if (!workerUser) {
       throw new ForbiddenException('Only workers can apply');
     }
-    if (!workerUser.workerData?.stripeId) {
+    if (!workerData.stripeId) {
       throw new ConflictException(`Worker doesn't have a payment method set`);
     }
     // Reject application if worker does not has stripe transfers active
@@ -278,6 +280,16 @@ export class OffersService {
     );
     if (workerStripeData.capabilities.transfers !== 'active') {
       throw new ConflictException(`Worker doesn't have transfers active`);
+    }
+
+    const offer = await this.offersRepo.findOne({
+      where: {
+        id: offerId,
+      },
+      relations: { applicants: true },
+    });
+    if (!offer) {
+      throw new NotFoundException(`Offer not found`);
     }
 
     // Reject application if offer starts in less than 15 minutes or if it was already accepted
@@ -307,11 +319,11 @@ export class OffersService {
     offer.applicants.push(workerUser);
     offer.applicantsCount += 1;
     try {
-      await this.offersRepo.save(offer);
-      return { message: 'applied ok' };
+      return await this.offersRepo.save(offer);
     } catch (error) {
       console.error(error);
-      throw new InternalServerErrorException(error.message);
+      return error;
+      //throw new InternalServerErrorException(error.message);
     }
   }
 
@@ -357,13 +369,24 @@ export class OffersService {
     }
   }
 
-  async addToFavs(workerUserId: string, offer: Offer) {
-    const workerUser = await this.usersRepo.findOneBy({
-      id: workerUserId,
-      role: Role.WORKER,
+  async addToFavs(workerUserId: string, offerId: string) {
+    const workerUser = await this.usersRepo.findOne({
+      where: {
+        id: workerUserId,
+        role: Role.WORKER,
+      },
     });
     if (!workerUser) {
       throw new ForbiddenException('Only workers can add to fav');
+    }
+    const offer = await this.offersRepo.findOne({
+      where: {
+        id: offerId,
+      },
+      relations: { favoritedBy: true },
+    });
+    if (!offer) {
+      throw new NotFoundException(`Offer not found`);
     }
     offer.favoritedBy.push(workerUser);
     try {
@@ -371,7 +394,7 @@ export class OffersService {
       return { message: 'offer added to fav' };
     } catch (error) {
       console.error(error);
-      throw new InternalServerErrorException(error.message);
+      return error;
     }
   }
 }

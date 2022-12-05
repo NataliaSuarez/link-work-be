@@ -13,8 +13,15 @@ import {
   NotFoundException,
   ParseUUIDPipe,
   ForbiddenException,
+  BadRequestException,
 } from '@nestjs/common';
-import { ApiOperation, ApiTags, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiOperation,
+  ApiTags,
+  ApiBearerAuth,
+  ApiConsumes,
+  ApiBody,
+} from '@nestjs/swagger';
 import { Express } from 'express';
 import {
   CreateOfferDto,
@@ -31,6 +38,7 @@ import { Action } from 'src/auth/abilities/ability.factory';
 import { CheckAbilities } from 'src/auth/abilities/abilities.decorator';
 import { GetReqUser } from 'src/auth/get-req-user.decorator';
 import { Role } from 'src/users/entities/user.entity';
+import { FileExtender } from 'src/utils/interceptors/file.extender';
 
 @ApiBearerAuth()
 @Controller('offers')
@@ -47,17 +55,43 @@ export class OffersController {
   }
 
   @Post()
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        payload: { type: 'CreateOfferDto' },
+        file: {
+          type: 'string',
+          format: 'binary',
+        },
+      },
+    },
+  })
   @CheckAbilities({ action: Action.Create, subject: Offer })
+  @UseInterceptors(FileExtender)
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: diskStorage({
+        destination: './tmp/uploads/offers',
+      }),
+    }),
+  )
   @ApiOperation({ summary: 'Crear una oferta' })
   async create(
     @Body() payload: CreateOfferDto,
+    @UploadedFile() file: Express.Multer.File,
     @GetReqUser('id') reqUserId,
     @GetReqUser('role') reqUserRole,
   ) {
     if (reqUserRole !== Role.EMPLOYER) {
       throw new ForbiddenException('Only employers can create an offer');
     }
-    return await this.offerService.create(payload, reqUserId);
+    if (!file) {
+      throw new BadRequestException('Must upload an offer video');
+    }
+    const createdOffer = await this.offerService.create(payload, reqUserId);
+    return await this.offerService.uploadOfferVideo(createdOffer, file);
   }
 
   @Get('created-by-myself')
@@ -190,13 +224,7 @@ export class OffersController {
     @Param('offerId', ParseUUIDPipe) offerId: string,
     @GetReqUser('id') reqUserId,
   ) {
-    const offer = await this.offerService.findOneById(offerId, {
-      applicants: true,
-    });
-    if (!offer) {
-      throw new NotFoundException(`Offer not found`);
-    }
-    return await this.offerService.apply(reqUserId, offer);
+    return await this.offerService.apply(reqUserId, offerId);
   }
 
   @Post(':offerId/add-fav')
@@ -206,12 +234,6 @@ export class OffersController {
     @Param('offerId', ParseUUIDPipe) offerId: string,
     @GetReqUser('id') reqUserId,
   ) {
-    const offer = await this.offerService.findOneById(offerId, {
-      favoritedBy: true,
-    });
-    if (!offer) {
-      throw new NotFoundException(`Offer not found`);
-    }
-    return await this.offerService.addToFavs(reqUserId, offer);
+    return await this.offerService.addToFavs(reqUserId, offerId);
   }
 }

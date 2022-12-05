@@ -26,12 +26,14 @@ import { StripeService } from '../../stripe/stripe.service';
 import { Clock } from '../entities/clock.entity';
 import * as moment from 'moment';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
+import { User } from '../../users/entities/user.entity';
 
 @Injectable()
 export class ShiftsService {
   constructor(
     @InjectRepository(Shift) private shiftRepo: Repository<Shift>,
     @InjectRepository(Clock) private clocksRepo: Repository<Clock>,
+    @InjectRepository(User) private usersRepo: Repository<User>,
     private offersService: OffersService,
     private stripeService: StripeService,
   ) {}
@@ -147,12 +149,20 @@ export class ShiftsService {
       const shifts = await this.shiftRepo.find({
         relations: {
           offer: { employerUser: true },
-          workerUser: true,
+          workerUser: { userImages: true },
         },
         where: {
           offer: {
             employerUser: { id: employerUserId },
           },
+        },
+        select: {
+          id: true,
+          createAt: true,
+          updateAt: true,
+          clockIn: true,
+          clockOut: true,
+          status: true,
         },
         skip: pagination?.offset ?? 0,
         take: pagination?.limit ?? 100,
@@ -191,6 +201,12 @@ export class ShiftsService {
     if (!workerUser) {
       throw new ConflictException(`Worker didn't apply to the offer`);
     }
+    const employer = await this.usersRepo.findOne({
+      where: {
+        id: employerUserId,
+      },
+      relations: { employerData: true },
+    });
     const valid = await this.offersService.validWorkerForShift(
       workerUser,
       offer.from,
@@ -199,7 +215,7 @@ export class ShiftsService {
     if (!valid) {
       throw new ConflictException(`Worker reached max hours for this week`);
     }
-    const employerStripeCustomerId = offer.employerUser.employerData.customerId;
+    const employerStripeCustomerId = employer.employerData.customerId;
     const paymentMethod = await this.stripeService.retrievePaymentMethod(
       employerStripeCustomerId,
     );
@@ -219,14 +235,17 @@ export class ShiftsService {
       if (paymentIntent.status != 'succeeded') {
         throw new ConflictException('Payment intent unsuccessful');
       }
-      await this.offersService.updateStatus(offer, OfferStatus.ACCEPTED);
+      const savedOffer = await this.offersService.updateStatus(
+        offerId,
+        OfferStatus.ACCEPTED,
+      );
       const newShift = this.shiftRepo.create();
       newShift.workerUser = workerUser;
-      newShift.offer = offer;
+      newShift.offer = savedOffer;
       return await this.shiftRepo.save(newShift);
     } catch (error) {
       console.error(error);
-      throw new InternalServerErrorException('Error with payment intent');
+      throw new InternalServerErrorException(error.message);
     }
   }
 
@@ -290,7 +309,7 @@ export class ShiftsService {
       await this.clocksRepo.save(newClock);
       return await this.shiftRepo.save(shift);
     } catch (error) {
-      throw new InternalServerErrorException();
+      throw new InternalServerErrorException(error.message);
     }
   }
 
@@ -315,7 +334,7 @@ export class ShiftsService {
       };
       const transfer = await this.stripeService.createTransfer(transferData);
       if (transfer.created) {
-        await this.offersService.updateStatus(shift.offer, OfferStatus.DONE);
+        await this.offersService.updateStatus(shift.offer.id, OfferStatus.DONE);
         const clockHistory = {
           clockType: 2,
           shift: shift,
@@ -361,7 +380,7 @@ export class ShiftsService {
           if (transfer.created) {
             await this.update(shift, { status: ShiftStatus.DONE });
             await this.offersService.updateStatus(
-              shift.offer,
+              shift.offer.id,
               OfferStatus.DONE,
             );
           }

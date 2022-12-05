@@ -86,19 +86,6 @@ export class Offer {
   })
   updateAt: Date;
 
-  @ManyToMany(() => User, {
-    onDelete: 'CASCADE',
-  })
-  @JoinTable({ name: 'offers_applicants' })
-  applicants: User[];
-
-  @ManyToMany(() => User, {
-    onDelete: 'CASCADE',
-  })
-  @JoinTable({ name: 'workers_offers_favorites' })
-  @ApiProperty({ nullable: true })
-  favoritedBy: User[];
-
   @ManyToOne(() => User, {
     onDelete: 'CASCADE',
     cascade: true,
@@ -114,4 +101,28 @@ export class Offer {
 
   @ManyToOne(() => Address, { cascade: true, eager: true })
   address: Address;
+
+  @ManyToMany(() => User, (user) => user.appliedOffers)
+  @JoinTable({
+    name: 'offers_applicants',
+    joinColumn: {
+      name: 'offer_id',
+    },
+    inverseJoinColumn: {
+      name: 'user_id',
+    },
+  })
+  applicants: User[];
+
+  @ManyToMany(() => User, (user) => user.favoriteOffers)
+  @JoinTable({
+    name: 'offers_favorited_users',
+    joinColumn: {
+      name: 'offer_id',
+    },
+    inverseJoinColumn: {
+      name: 'user_id',
+    },
+  })
+  favoritedBy: User[];
 }

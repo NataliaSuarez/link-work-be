@@ -221,8 +221,8 @@ export class UsersService {
       }
     }
     if (user.role === Role.WORKER) {
-      if (user.offersAppliedToByWorker) {
-        user.offersAppliedToByWorker.forEach((offer) => {
+      if (user.appliedOffers) {
+        user.appliedOffers.forEach((offer) => {
           if (
             offer.status !== OfferStatus.DONE &&
             offer.status !== OfferStatus.CANCELED
