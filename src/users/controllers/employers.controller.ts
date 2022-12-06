@@ -84,20 +84,9 @@ export class EmployersController {
     file: Express.Multer.File[],
   ) {
     if (file) {
-      if (data.avatarImgName) {
-        file.forEach(async (img) => {
-          const elements = img.originalname.split('.');
-          if (img.originalname === data.avatarImgName) {
-            await this.usersService.uploadProfileImg(reqUserId, img);
-          } else {
-            await this.employersService.uploadBusinessImg(reqUserId, img);
-          }
-        });
-      } else {
-        file.forEach(async (img) => {
-          await this.employersService.uploadBusinessImg(reqUserId, img);
-        });
-      }
+      file.forEach(async (img) => {
+        await this.usersService.uploadUserImg(reqUserId, img);
+      });
     }
     return await this.employersService.createEmployerData(data, reqUserId);
   }
@@ -186,19 +175,9 @@ export class EmployersController {
       throw new ForbiddenException("Can't update stripe id");
     }
     if (file) {
-      if (data.avatarImgName) {
-        file.forEach(async (img) => {
-          if (img.originalname === data.avatarImgName) {
-            await this.usersService.uploadProfileImg(reqUserId, img);
-          } else {
-            await this.employersService.uploadBusinessImg(reqUserId, img);
-          }
-        });
-      } else {
-        file.forEach(async (img) => {
-          await this.employersService.uploadBusinessImg(reqUserId, img);
-        });
-      }
+      file.forEach(async (img) => {
+        await this.usersService.uploadUserImg(reqUserId, img);
+      });
     }
     return await this.employersService.update(employerData, data);
   }

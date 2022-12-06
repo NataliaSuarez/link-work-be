@@ -61,7 +61,8 @@ export class CreateWorkerDto {
 
   @IsBoolean()
   @IsOptional()
-  readonly sign: boolean;
+  @ApiProperty()
+  sign = false;
 
   @IsNumber()
   @IsOptional()

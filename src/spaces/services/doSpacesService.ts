@@ -75,6 +75,14 @@ export class DOSpacesService {
     });
   }
 
+  async uploadImg(file: Express.Multer.File, userId: string): Promise<string> {
+    const key = `imgs/users/user-${userId}/file-${file.originalname}`;
+    const fileReadStream = fs.createReadStream(file.path);
+    return await this.uploadFile(fileReadStream, linkWorkBucket, key, {
+      contentType: file.mimetype,
+    });
+  }
+
   async uploadProfileImg(
     file: Express.Multer.File,
     userId: string,

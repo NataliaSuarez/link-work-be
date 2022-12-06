@@ -48,6 +48,8 @@ export class UsersController {
     const user = await this.usersService.findOneById(id, {
       userImages: true,
       workerExperience: true,
+      workerData: true,
+      employerData: true,
     });
     if (user.role === Role.EMPLOYER) {
       const { workerExperience, workerData, ...userClean } = user;
@@ -75,7 +77,7 @@ export class UsersController {
     if (!user) {
       throw new NotFoundException(`User not found`);
     }
-    return await this.usersService.uploadProfileImg(reqUserId, file);
+    return await this.usersService.uploadUserImg(reqUserId, file);
   }
 
   @Put(':id')

@@ -9,6 +9,8 @@ import {
   UploadedFile,
   UseGuards,
   ForbiddenException,
+  UploadedFiles,
+  BadRequestException,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -17,7 +19,7 @@ import {
   ApiOperation,
   ApiTags,
 } from '@nestjs/swagger';
-import { FileInterceptor } from '@nestjs/platform-express';
+import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 
 import {
@@ -36,6 +38,7 @@ import { Role } from '../entities/user.entity';
 import { EmailConfirmationGuard } from '../../auth/mail/emailConfirmation.guard';
 import { FileExtender } from '../../utils/interceptors/file.extender';
 import { UsersService } from '../services/users.service';
+import { ImageType } from '../entities/user_image.entity';
 
 @ApiBearerAuth()
 @UseGuards(EmailConfirmationGuard)
@@ -71,7 +74,7 @@ export class WorkersController {
   })
   @UseInterceptors(FileExtender)
   @UseInterceptors(
-    FileInterceptor('file', {
+    FilesInterceptor('file', 5, {
       storage: diskStorage({
         destination: './tmp/uploads/workers',
       }),
@@ -82,10 +85,24 @@ export class WorkersController {
   async create(
     @Body() payload: CreateWorkerDto,
     @GetReqUser('id') reqUserId,
-    @UploadedFile() file: Express.Multer.File,
+    @UploadedFiles()
+    file: Express.Multer.File[],
   ) {
     if (file) {
-      await this.usersService.uploadProfileImg(reqUserId, file);
+      file.forEach(async (iFile) => {
+        const fileName = iFile.originalname.split('.');
+        if (fileName[1] == 'mp4') {
+          if (iFile.mimetype != 'video/mp4') {
+            throw new BadRequestException('Error in video mimetype');
+          }
+          await this.workersService.uploadExperienceVideo(reqUserId, iFile);
+        } else {
+          if (fileName[0] == ImageType.SIGNATURE_IMG) {
+            payload.sign = true;
+          }
+          await this.usersService.uploadUserImg(reqUserId, iFile);
+        }
+      });
     }
     return await this.workersService.create(payload, reqUserId);
   }
@@ -159,7 +176,7 @@ export class WorkersController {
   })
   @UseInterceptors(FileExtender)
   @UseInterceptors(
-    FileInterceptor('file', {
+    FilesInterceptor('file', 5, {
       storage: diskStorage({
         destination: './tmp/uploads/workers',
       }),
@@ -170,13 +187,25 @@ export class WorkersController {
   async update(
     @Body() payload: UpdateWorkerDto,
     @GetReqUser('id') reqUserId,
-    @UploadedFile() file: Express.Multer.File,
+    @UploadedFiles()
+    file: Express.Multer.File[],
   ) {
     if (payload.stripeId) {
       throw new ForbiddenException("Can't update stripe id");
     }
     if (file) {
-      await this.usersService.uploadProfileImg(reqUserId, file);
+      file.forEach(async (iFile) => {
+        const fileName = iFile.originalname.split('.');
+        if (fileName[1] == 'mp4') {
+          console.log(iFile.mimetype);
+          await this.workersService.uploadExperienceVideo(reqUserId, iFile);
+        } else {
+          await this.usersService.uploadUserImg(reqUserId, iFile);
+          if (fileName[0] == ImageType.SIGNATURE_IMG) {
+            payload.sign = true;
+          }
+        }
+      });
     }
     return await this.workersService.update(reqUserId, payload);
   }

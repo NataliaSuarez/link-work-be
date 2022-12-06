@@ -109,11 +109,14 @@ export class WorkersService {
         { profileStatus: ProfileStatus.BANK_PENDING },
       );
       return await this.workerRepository.findOne({
-        relations: {
-          user: true,
-        },
         where: {
           id: worker.id,
+        },
+        relations: {
+          user: {
+            workerExperience: true,
+            userImages: true,
+          },
         },
       });
     } catch (error) {

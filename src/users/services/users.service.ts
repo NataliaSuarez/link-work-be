@@ -55,26 +55,6 @@ export class UsersService {
       where: { id: id },
       relations,
     });
-    // if (user.userImages.length > 0) {
-    //   let i = 0;
-    //   for (const img of user.userImages) {
-    //     console.log(img.imgUrl);
-    //     const signedimg = await this.doSpaceService.tempAccessToPrivateFileUrl(
-    //       img.imgUrl,
-    //     );
-    //     user.userImages[i].imgUrl = signedimg;
-    //     i++;
-    //   }
-    // }
-    // if (user.role === Role.WORKER) {
-    //   if (user.workerExperience) {
-    //     const signedExperience =
-    //       await this.doSpaceService.tempAccessToPrivateFileUrl(
-    //         user.workerExperience.videoUrl,
-    //       );
-    //     user.workerExperience.videoUrl = signedExperience;
-    //   }
-    // }
     return user;
   }
 
@@ -128,7 +108,7 @@ export class UsersService {
     return newUser;
   }
 
-  async uploadProfileImg(userId: string, file: Express.Multer.File) {
+  async uploadUserImg(userId: string, file: Express.Multer.File) {
     try {
       const user = await this.userRepository.findOne({
         where: {
@@ -136,24 +116,37 @@ export class UsersService {
         },
         relations: { userImages: true },
       });
-      if (user.userImages.length > 0) {
-        user.userImages.forEach(async (img) => {
-          if (img.type == ImageType.PROFILE_IMG) {
-            const fileUrl = await this.doSpaceService.uploadProfileImg(
-              file,
-              userId,
-            );
-            await this.doSpaceService.deleteFile(img.imgUrl);
-            return await this.imgRepository.update(img.id, { imgUrl: fileUrl });
-          }
-        });
+      const fileName = file.originalname.split('.');
+      if (fileName[0] != ImageType.BUSINESS_IMG) {
+        if (user.userImages.length > 0) {
+          user.userImages.forEach(async (img) => {
+            if (fileName[0] == img.type) {
+              const fileUrl = await this.doSpaceService.uploadImg(file, userId);
+              await this.doSpaceService.deleteFile(img.imgUrl);
+              return await this.imgRepository.update(img.id, {
+                imgUrl: fileUrl,
+              });
+            }
+          });
+        }
       }
-      const fileUrl = await this.doSpaceService.uploadProfileImg(file, userId);
+
+      const fileUrl = await this.doSpaceService.uploadImg(file, userId);
       const newImg = this.imgRepository.create({
         imgUrl: fileUrl,
-        type: ImageType.PROFILE_IMG,
       });
       newImg.user = user;
+      if (fileName[0] == ImageType.PROFILE_IMG) {
+        newImg.type = ImageType.PROFILE_IMG;
+      } else if (fileName[0] == ImageType.BUSINESS_IMG) {
+        newImg.type = ImageType.BUSINESS_IMG;
+      } else if (fileName[0] == ImageType.ID_BACK_IMG) {
+        newImg.type = ImageType.ID_BACK_IMG;
+      } else if (fileName[0] == ImageType.ID_FRONT_IMG) {
+        newImg.type = ImageType.ID_FRONT_IMG;
+      } else if (fileName[0] == ImageType.SIGNATURE_IMG) {
+        newImg.type = ImageType.SIGNATURE_IMG;
+      }
       return await this.imgRepository.save(newImg);
     } catch (error) {
       console.error(error);
