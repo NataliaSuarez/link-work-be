@@ -27,8 +27,7 @@ import { Clock } from '../entities/clock.entity';
 import * as moment from 'moment';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { User } from '../../users/entities/user.entity';
-import { UserImage } from 'src/users/entities/user_image.entity';
-import { DOSpacesService } from 'src/spaces/services/doSpacesService';
+import { UserImage, ImageType } from 'src/users/entities/user_image.entity';
 
 @Injectable()
 export class ShiftsService {
@@ -39,7 +38,6 @@ export class ShiftsService {
     @InjectRepository(UserImage) private imgRepo: Repository<UserImage>,
     private offersService: OffersService,
     private stripeService: StripeService,
-    private doSpaceService: DOSpacesService,
   ) {}
 
   async findByStatus(reqUserId: string, status: ShiftStatus) {
@@ -142,19 +140,17 @@ export class ShiftsService {
       for (const shift of shifts) {
         const profileImgUrl = await this.imgRepo.findOne({
           where: {
-            avatar: true,
+            type: ImageType.PROFILE_IMG,
             user: {
-              id: shift.applicant_id,
+              id: workerUserId,
             },
           },
         });
-        let signedImg;
+        let profileImg;
         if (profileImgUrl) {
-          signedImg = await this.doSpaceService.tempAccessToPrivateFileUrl(
-            profileImgUrl.imgUrl,
-          );
+          profileImg = profileImgUrl.imgUrl;
         } else {
-          signedImg = null;
+          profileImg = null;
         }
         const formatShift = {
           id: shift.shifts_id,
@@ -169,7 +165,7 @@ export class ShiftsService {
             lastName: shift.applicant_lastName,
             stars: shift.worker_stars,
             totalReviews: shift.worker_totalReviews,
-            profileUrl: signedImg,
+            profileUrl: profileImg,
           },
           offer: {
             id: shift.offer_id,
@@ -198,7 +194,7 @@ export class ShiftsService {
         acceptedShifts: acceptedShifts,
       };
     } catch (error) {
-      console.dir(error);
+      console.error(error);
       throw new InternalServerErrorException(error.message);
     }
   }
@@ -251,19 +247,17 @@ export class ShiftsService {
       for (const shift of shifts) {
         const profileImgUrl = await this.imgRepo.findOne({
           where: {
-            avatar: true,
+            type: ImageType.PROFILE_IMG,
             user: {
               id: shift.applicant_id,
             },
           },
         });
-        let signedImg;
+        let profileImg;
         if (profileImgUrl) {
-          signedImg = await this.doSpaceService.tempAccessToPrivateFileUrl(
-            profileImgUrl.imgUrl,
-          );
+          profileImg = profileImgUrl.imgUrl;
         } else {
-          signedImg = null;
+          profileImg = null;
         }
         const formatShift = {
           id: shift.shifts_id,
@@ -278,7 +272,7 @@ export class ShiftsService {
             lastName: shift.applicant_lastName,
             stars: shift.worker_stars,
             totalReviews: shift.worker_totalReviews,
-            profileUrl: signedImg,
+            profileUrl: profileImg,
           },
           offer: {
             id: shift.offer_id,
@@ -307,7 +301,7 @@ export class ShiftsService {
         acceptedShifts: acceptedShifts,
       };
     } catch (error) {
-      console.dir(error);
+      console.error(error);
       throw new InternalServerErrorException(error.message);
     }
   }

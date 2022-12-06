@@ -9,6 +9,7 @@ import {
   Max,
   IsUUID,
   IsObject,
+  IsBoolean,
 } from 'class-validator';
 import { ApiProperty, PartialType } from '@nestjs/swagger';
 import { CreateAddressDto } from './users.dto';
@@ -48,10 +49,19 @@ export class CreateWorkerDto {
   @ApiProperty()
   readonly description: string;
 
-  @IsNumber()
+  @IsString()
   @IsNotEmpty()
   @ApiProperty()
-  readonly ssn: number;
+  readonly ssn: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @ApiProperty()
+  readonly uscis: string;
+
+  @IsBoolean()
+  @IsOptional()
+  readonly sign: boolean;
 
   @IsNumber()
   @IsOptional()

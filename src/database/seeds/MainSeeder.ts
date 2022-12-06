@@ -12,7 +12,7 @@ export class MainSeeder implements Seeder {
     dataSource: DataSource,
     factoryManager: SeederFactoryManager,
   ): Promise<void> {
-    await runSeeder(dataSource, UserSeeder);
+    // await runSeeder(dataSource, UserSeeder);
     // await runSeeder(dataSource, WorkerSeeder);
     // await runSeeder(dataSource, EmployerSeeder);
     // await runSeeder(dataSource, OfferSeeder);

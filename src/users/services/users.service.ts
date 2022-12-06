@@ -19,7 +19,7 @@ import {
 } from '../dtos/users.dto';
 import { Role, User } from '../entities/user.entity';
 import { DOSpacesService } from '../../spaces/services/doSpacesService';
-import { UserImage } from '../entities/user_image.entity';
+import { UserImage, ImageType } from '../entities/user_image.entity';
 
 @Injectable()
 export class UsersService {
@@ -55,26 +55,26 @@ export class UsersService {
       where: { id: id },
       relations,
     });
-    if (user.userImages.length > 0) {
-      let i = 0;
-      for (const img of user.userImages) {
-        console.log(img.imgUrl);
-        const signedimg = await this.doSpaceService.tempAccessToPrivateFileUrl(
-          img.imgUrl,
-        );
-        user.userImages[i].imgUrl = signedimg;
-        i++;
-      }
-    }
-    if (user.role === Role.WORKER) {
-      if (user.workerExperience) {
-        const signedExperience =
-          await this.doSpaceService.tempAccessToPrivateFileUrl(
-            user.workerExperience.videoUrl,
-          );
-        user.workerExperience.videoUrl = signedExperience;
-      }
-    }
+    // if (user.userImages.length > 0) {
+    //   let i = 0;
+    //   for (const img of user.userImages) {
+    //     console.log(img.imgUrl);
+    //     const signedimg = await this.doSpaceService.tempAccessToPrivateFileUrl(
+    //       img.imgUrl,
+    //     );
+    //     user.userImages[i].imgUrl = signedimg;
+    //     i++;
+    //   }
+    // }
+    // if (user.role === Role.WORKER) {
+    //   if (user.workerExperience) {
+    //     const signedExperience =
+    //       await this.doSpaceService.tempAccessToPrivateFileUrl(
+    //         user.workerExperience.videoUrl,
+    //       );
+    //     user.workerExperience.videoUrl = signedExperience;
+    //   }
+    // }
     return user;
   }
 
@@ -138,23 +138,20 @@ export class UsersService {
       });
       if (user.userImages.length > 0) {
         user.userImages.forEach(async (img) => {
-          if (img.avatar) {
+          if (img.type == ImageType.PROFILE_IMG) {
             const fileUrl = await this.doSpaceService.uploadProfileImg(
               file,
               userId,
             );
             await this.doSpaceService.deleteFile(img.imgUrl);
-            return await this.imgRepository.update(
-              { id: img.id },
-              { imgUrl: fileUrl },
-            );
+            return await this.imgRepository.update(img.id, { imgUrl: fileUrl });
           }
         });
       }
       const fileUrl = await this.doSpaceService.uploadProfileImg(file, userId);
       const newImg = this.imgRepository.create({
         imgUrl: fileUrl,
-        avatar: true,
+        type: ImageType.PROFILE_IMG,
       });
       newImg.user = user;
       return await this.imgRepository.save(newImg);

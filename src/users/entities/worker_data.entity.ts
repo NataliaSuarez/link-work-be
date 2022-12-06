@@ -46,8 +46,16 @@ export class WorkerData {
   @Column({ type: 'text' })
   description: string;
 
-  @Column({ type: 'int' })
-  ssn: number;
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  @ApiProperty({ nullable: true })
+  ssn: string;
+
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  @ApiProperty({ nullable: true })
+  uscis: string;
+
+  @Column({ type: 'bool', default: false })
+  sign: boolean;
 
   @Column({ type: 'float', default: 0 })
   stars: number;

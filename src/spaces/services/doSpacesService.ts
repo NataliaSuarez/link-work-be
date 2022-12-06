@@ -29,7 +29,7 @@ export class DOSpacesService {
           Key: key,
           ContentType: options?.contentType,
           Body: data,
-          ACL: options?.acl ?? 'private',
+          ACL: options?.acl ?? 'public-read',
         },
         (error: AWS.AWSError) => {
           if (!error) {

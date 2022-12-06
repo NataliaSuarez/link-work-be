@@ -19,7 +19,7 @@ import { PostgresErrorCode } from '../../common/enum/postgres-error-code.enum';
 import { Address } from '../entities/address.entity';
 import { CreateAddressDto } from '../dtos/users.dto';
 import { EmployerData } from '../entities/employer_data.entity';
-import { UserImage } from '../entities/user_image.entity';
+import { UserImage, ImageType } from '../entities/user_image.entity';
 
 @Injectable()
 export class EmployersService {
@@ -259,7 +259,7 @@ export class EmployersService {
       );
       const newImg = this.imgRepository.create({
         imgUrl: fileUrl,
-        avatar: false,
+        type: ImageType.BUSINESS_IMG,
       });
       newImg.user = employerUser;
       return await this.imgRepository.save(newImg);

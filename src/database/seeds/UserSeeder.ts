@@ -208,28 +208,28 @@ export class UserSeeder implements Seeder {
       },
     };
 
-    const newUser1 = userRepository.create(userData1);
-    await userRepository.save(newUser1);
+    // const newUser1 = userRepository.create(userData1);
+    // await userRepository.save(newUser1);
 
-    const newUser2 = userRepository.create(userData2);
-    await userRepository.save(newUser2);
+    // const newUser2 = userRepository.create(userData2);
+    // await userRepository.save(newUser2);
 
-    const newUser3 = userRepository.create(userData3);
-    await userRepository.save(newUser3);
+    // const newUser3 = userRepository.create(userData3);
+    // await userRepository.save(newUser3);
 
-    const newUser4 = userRepository.create(userData4);
-    await userRepository.save(newUser4);
+    // const newUser4 = userRepository.create(userData4);
+    // await userRepository.save(newUser4);
 
-    const newUser5 = userRepository.create(userData5);
-    await userRepository.save(newUser5);
+    // const newUser5 = userRepository.create(userData5);
+    // await userRepository.save(newUser5);
 
-    const newUser6 = userRepository.create(userData6);
-    await userRepository.save(newUser6);
+    // const newUser6 = userRepository.create(userData6);
+    // await userRepository.save(newUser6);
 
-    const newUser7 = userRepository.create(userData7);
-    await userRepository.save(newUser7);
+    // const newUser7 = userRepository.create(userData7);
+    // await userRepository.save(newUser7);
 
-    const newUser8 = userRepository.create(userData8);
-    await userRepository.save(newUser8);
+    // const newUser8 = userRepository.create(userData8);
+    // await userRepository.save(newUser8);
   }
 }
