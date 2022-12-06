@@ -27,6 +27,8 @@ import { Clock } from '../entities/clock.entity';
 import * as moment from 'moment';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { User } from '../../users/entities/user.entity';
+import { UserImage } from 'src/users/entities/user_image.entity';
+import { DOSpacesService } from 'src/spaces/services/doSpacesService';
 
 @Injectable()
 export class ShiftsService {
@@ -34,8 +36,10 @@ export class ShiftsService {
     @InjectRepository(Shift) private shiftRepo: Repository<Shift>,
     @InjectRepository(Clock) private clocksRepo: Repository<Clock>,
     @InjectRepository(User) private usersRepo: Repository<User>,
+    @InjectRepository(UserImage) private imgRepo: Repository<UserImage>,
     private offersService: OffersService,
     private stripeService: StripeService,
+    private doSpaceService: DOSpacesService,
   ) {}
 
   async findByStatus(reqUserId: string, status: ShiftStatus) {
@@ -97,45 +101,106 @@ export class ShiftsService {
   }
 
   async findByWorkerUserId(workerUserId: string, pagination?: PaginationDto) {
-    let shifts: { activeShifts: Shift[]; acceptedShifts: Shift[] };
     try {
-      const activeShifts = await this.shiftRepo.find({
-        relations: {
-          offer: true,
-          workerUser: true,
-        },
-        where: {
-          workerUser: {
-            id: workerUserId,
-          },
-          status: ShiftStatus.ACTIVE,
-        },
-        skip: pagination.offset,
-        take: pagination.limit,
-      });
-      const acceptedShifts = await this.shiftRepo.find({
-        relations: {
-          offer: true,
-          workerUser: true,
-        },
-        where: {
-          workerUser: {
-            id: workerUserId,
-          },
-          status: ShiftStatus.CREATED,
-        },
-        skip: pagination.offset,
-        take: pagination.limit,
-      });
+      const activeShifts = [];
+      const acceptedShifts = [];
 
-      shifts = {
+      const shifts = await this.shiftRepo
+        .createQueryBuilder('shifts')
+        .leftJoinAndSelect('shifts.workerUser', 'applicant')
+        .leftJoinAndSelect('applicant.workerData', 'worker')
+        .leftJoinAndSelect('shifts.offer', 'offer')
+        .leftJoinAndSelect('offer.address', 'address')
+        .select([
+          'shifts.id',
+          'shifts.clockIn',
+          'shifts.confirmedClockIn',
+          'shifts.clockOut',
+          'shifts.confirmedClockOut',
+          'shifts.status',
+          'applicant.id',
+          'applicant.firstName',
+          'applicant.lastName',
+          'worker.stars',
+          'worker.totalReviews',
+          'offer.id',
+          'offer.title',
+          'offer.from',
+          'offer.to',
+          'offer.usdHour',
+          'address.id',
+          'address.address',
+          'address.city',
+          'address.state',
+          'address.postalCode',
+        ])
+        .where('shifts.workerUserId = :workerUserId', { workerUserId })
+        .skip(pagination?.offset ?? 0)
+        .take(pagination?.limit ?? 100)
+        .getRawMany();
+
+      for (const shift of shifts) {
+        const profileImgUrl = await this.imgRepo.findOne({
+          where: {
+            avatar: true,
+            user: {
+              id: shift.applicant_id,
+            },
+          },
+        });
+        let signedImg;
+        if (profileImgUrl) {
+          signedImg = await this.doSpaceService.tempAccessToPrivateFileUrl(
+            profileImgUrl.imgUrl,
+          );
+        } else {
+          signedImg = null;
+        }
+        const formatShift = {
+          id: shift.shifts_id,
+          clockIn: shift.shifts_clockIn,
+          confirmedClockIn: shift.shifts_confirmedClockIn,
+          clockOut: shift.shifts_clockOut,
+          confirmedClockOut: shift.shifts_confirmedClockOut,
+          status: shift.shifts_status,
+          applicant: {
+            id: shift.applicant_id,
+            firstName: shift.applicant_firstName,
+            lastName: shift.applicant_lastName,
+            stars: shift.worker_stars,
+            totalReviews: shift.worker_totalReviews,
+            profileUrl: signedImg,
+          },
+          offer: {
+            id: shift.offer_id,
+            title: shift.offer_title,
+            from: shift.offer_from,
+            to: shift.offer_to,
+            usdHour: shift.offer_usdHour,
+            address: {
+              id: shift.address_id,
+              address: shift.address_address,
+              city: shift.address_city,
+              state: shift.address_state,
+              postalCode: shift.address_postalCode,
+            },
+          },
+        };
+        if (formatShift.status == ShiftStatus.CREATED) {
+          acceptedShifts.push(formatShift);
+        } else if (formatShift.status == ShiftStatus.ACTIVE) {
+          activeShifts.push(formatShift);
+        }
+      }
+
+      return {
         activeShifts: activeShifts,
         acceptedShifts: acceptedShifts,
       };
     } catch (error) {
-      throw new InternalServerErrorException();
+      console.dir(error);
+      throw new InternalServerErrorException(error.message);
     }
-    return shifts;
   }
 
   async findByEmployerUserId(
@@ -146,32 +211,94 @@ export class ShiftsService {
       const activeShifts = [];
       const acceptedShifts = [];
 
-      const shifts = await this.shiftRepo.find({
-        relations: {
-          offer: { employerUser: true },
-          workerUser: { userImages: true },
-        },
-        where: {
-          offer: {
-            employerUser: { id: employerUserId },
-          },
-        },
-        select: {
-          id: true,
-          createAt: true,
-          updateAt: true,
-          clockIn: true,
-          clockOut: true,
-          status: true,
-        },
-        skip: pagination?.offset ?? 0,
-        take: pagination?.limit ?? 100,
-      });
+      const shifts = await this.shiftRepo
+        .createQueryBuilder('shifts')
+        .leftJoinAndSelect('shifts.workerUser', 'applicant')
+        .leftJoinAndSelect('applicant.workerData', 'worker')
+        .leftJoinAndSelect('shifts.offer', 'offer')
+        .leftJoinAndSelect('offer.address', 'address')
+        .select([
+          'shifts.id',
+          'shifts.clockIn',
+          'shifts.confirmedClockIn',
+          'shifts.clockOut',
+          'shifts.confirmedClockOut',
+          'shifts.status',
+          'applicant.id',
+          'applicant.firstName',
+          'applicant.lastName',
+          'worker.stars',
+          'worker.totalReviews',
+          'offer.id',
+          'offer.title',
+          'offer.from',
+          'offer.to',
+          'offer.usdHour',
+          'address.id',
+          'address.address',
+          'address.city',
+          'address.state',
+          'address.postalCode',
+        ])
+        .where(
+          'shifts.offerId in (select id from offers where "employerUserId" = :employerUserId)',
+          { employerUserId },
+        )
+        .skip(pagination?.offset ?? 0)
+        .take(pagination?.limit ?? 100)
+        .getRawMany();
+
       for (const shift of shifts) {
-        if (shift.status === ShiftStatus.CREATED) {
-          acceptedShifts.push(shift);
-        } else if (shift.status === ShiftStatus.ACTIVE) {
-          activeShifts.push(shift);
+        const profileImgUrl = await this.imgRepo.findOne({
+          where: {
+            avatar: true,
+            user: {
+              id: shift.applicant_id,
+            },
+          },
+        });
+        let signedImg;
+        if (profileImgUrl) {
+          signedImg = await this.doSpaceService.tempAccessToPrivateFileUrl(
+            profileImgUrl.imgUrl,
+          );
+        } else {
+          signedImg = null;
+        }
+        const formatShift = {
+          id: shift.shifts_id,
+          clockIn: shift.shifts_clockIn,
+          confirmedClockIn: shift.shifts_confirmedClockIn,
+          clockOut: shift.shifts_clockOut,
+          confirmedClockOut: shift.shifts_confirmedClockOut,
+          status: shift.shifts_status,
+          applicant: {
+            id: shift.applicant_id,
+            firstName: shift.applicant_firstName,
+            lastName: shift.applicant_lastName,
+            stars: shift.worker_stars,
+            totalReviews: shift.worker_totalReviews,
+            profileUrl: signedImg,
+          },
+          offer: {
+            id: shift.offer_id,
+            title: shift.offer_title,
+            from: shift.offer_from,
+            to: shift.offer_to,
+            usdHour: shift.offer_usdHour,
+            address: {
+              id: shift.address_id,
+              address: shift.address_address,
+              city: shift.address_city,
+              state: shift.address_state,
+              postalCode: shift.address_postalCode,
+            },
+          },
+        };
+        if (formatShift.status == ShiftStatus.CREATED) {
+          acceptedShifts.push(formatShift);
+        } else if (formatShift.status == ShiftStatus.ACTIVE) {
+          activeShifts.push(formatShift);
         }
       }
 
@@ -180,7 +307,8 @@ export class ShiftsService {
         acceptedShifts: acceptedShifts,
       };
     } catch (error) {
-      throw new InternalServerErrorException();
+      console.dir(error);
+      throw new InternalServerErrorException(error.message);
     }
   }
 

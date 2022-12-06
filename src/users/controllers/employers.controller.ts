@@ -86,6 +86,7 @@ export class EmployersController {
     if (file) {
       if (data.avatarImgName) {
         file.forEach(async (img) => {
+          const elements = img.originalname.split('.');
           if (img.originalname === data.avatarImgName) {
             await this.usersService.uploadProfileImg(reqUserId, img);
           } else {
