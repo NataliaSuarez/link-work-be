@@ -216,6 +216,7 @@ export class WorkersController {
         throw new BadRequestException(`${respStripe.raw.code}`);
       }
     }
-    return await this.workersService.update(reqUserId, payload);
+    await this.workersService.update(reqUserId, payload);
+    return await this.workersService.findByUserId(reqUserId);
   }
 }

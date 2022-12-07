@@ -74,6 +74,7 @@ export class WorkersService {
     if (!workerData) {
       throw new NotFoundException(`Worker data not found`);
     }
+
     return workerData;
   }
 
@@ -206,8 +207,8 @@ export class WorkersService {
         },
       });
     } catch (error) {
-      console.log(error);
-      throw new InternalServerErrorException(error.response.message);
+      console.error(error);
+      throw new InternalServerErrorException(error.message);
     }
   }
 

@@ -50,12 +50,12 @@ export class CreateWorkerDto {
   @IsString()
   @IsNotEmpty()
   @ApiProperty()
-  readonly ssn: string;
+  ssn: string;
 
   @IsString()
   @IsNotEmpty()
   @ApiProperty()
-  readonly uscis: string;
+  uscis: string;
 
   @IsBoolean()
   @IsOptional()
