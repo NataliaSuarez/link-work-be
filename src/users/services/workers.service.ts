@@ -9,6 +9,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
+import * as Cryptr from 'cryptr';
 
 import {
   CreateWorkerDto,
@@ -75,6 +76,16 @@ export class WorkersService {
       throw new NotFoundException(`Worker data not found`);
     }
 
+    const cryptr = new Cryptr(this.configService.get('CRYPTR_SECRET'));
+    if (workerData.ssn) {
+      const decriptedSSN = cryptr.decrypt(workerData.ssn);
+      workerData.ssn = decriptedSSN.slice(-4);
+    }
+    if (workerData.uscis) {
+      const decriptedUSCIS = cryptr.decrypt(workerData.uscis);
+      workerData.uscis = decriptedUSCIS.slice(-4);
+    }
+
     return workerData;
   }
 
@@ -92,6 +103,15 @@ export class WorkersService {
     }
     if (!data.personalUrl) {
       data.personalUrl = this.configService.get('APP_PLACEHOLDER_1');
+    }
+    const cryptr = new Cryptr(this.configService.get('CRYPTR_SECRET'));
+    if (data.ssn) {
+      const encriptedSSN = await cryptr.encrypt(data.ssn);
+      data.ssn = encriptedSSN;
+    }
+    if (data.uscis) {
+      const encriptedUSCIS = await cryptr.encrypt(data.uscis);
+      data.uscis = encriptedUSCIS;
     }
     try {
       const newWorker = this.workerRepository.create(data);
@@ -162,7 +182,14 @@ export class WorkersService {
   }
 
   async update(userId: string, changes: UpdateWorkerDto) {
-    const worker = await this.findByUserId(userId);
+    const worker = await this.workerRepository.findOne({
+      where: {
+        user: {
+          id: userId,
+        },
+      },
+    });
+
     try {
       if (changes.addressData) {
         const modifyAddress = await this.addressRepository.findOne({
@@ -194,6 +221,16 @@ export class WorkersService {
             },
           });
         }
+      }
+
+      const cryptr = new Cryptr(this.configService.get('CRYPTR_SECRET'));
+      if (changes.ssn) {
+        const encriptedSSN = cryptr.encrypt(changes.ssn);
+        changes.ssn = encriptedSSN;
+      }
+      if (changes.uscis) {
+        const encriptedUSCIS = cryptr.encrypt(changes.uscis);
+        changes.uscis = encriptedUSCIS;
       }
 
       const updatedWorker = this.workerRepository.merge(worker, changes);
@@ -231,7 +268,13 @@ export class WorkersService {
 
   async uploadExperienceVideo(workerUserId: string, file: Express.Multer.File) {
     try {
-      const worker = await this.findByUserId(workerUserId);
+      const worker = await this.workerRepository.findOne({
+        where: {
+          user: {
+            id: workerUserId,
+          },
+        },
+      });
       if (!worker) {
         throw new ForbiddenException('This user has not worker profile');
       }
@@ -303,6 +346,10 @@ export class WorkersService {
       if (!userAddress) {
         throw new BadRequestException('This user has not an address');
       }
+
+      const cryptr = new Cryptr(this.configService.get('CRYPTR_SECRET'));
+      const decriptedSSN = cryptr.decrypt(user.workerData.ssn);
+
       const accountData = {
         type: 'custom',
         country: 'US',
@@ -315,7 +362,7 @@ export class WorkersService {
         individual: {
           first_name: user.firstName,
           last_name: user.lastName,
-          ssn_last_4: user.workerData.ssn.toString().slice(-4),
+          ssn_last_4: decriptedSSN.slice(-4),
           address: {
             line1: userAddress[0].address,
             postal_code: userAddress[0].postalCode,
