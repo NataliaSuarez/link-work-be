@@ -17,9 +17,9 @@ import { Clock } from '../../offers_and_shifts/entities/clock.entity';
 import { Offer } from 'src/offers_and_shifts/entities/offer.entity';
 import { Shift } from 'src/offers_and_shifts/entities/shift.entity';
 import { UserImage } from './user_image.entity';
-import { WorkerExperience } from './worker_experience.entity';
 import { Address } from './address.entity';
 import { ApiProperty } from '@nestjs/swagger';
+import { Support } from '../../support/entities/support.entity';
 
 export enum RegisterType {
   EMAIL_AND_PASSWORD = 0,
@@ -132,10 +132,6 @@ export class User {
   @ApiProperty({ nullable: true })
   workerShifts: Shift[];
 
-  @OneToOne(() => WorkerExperience, (exp) => exp.workerUser)
-  @ApiProperty({ nullable: true })
-  workerExperience: WorkerExperience;
-
   @OneToOne(() => EmployerData, (employer) => employer.user, { nullable: true })
   @ApiProperty({ nullable: true })
   employerData: EmployerData;
@@ -162,6 +158,9 @@ export class User {
     cascade: true,
   })
   address: Address[];
+
+  @OneToMany(() => Support, (support) => support.user)
+  supportMsg: Support[];
 
   @ManyToMany(() => Offer, (offer) => offer.favoritedBy)
   favoriteOffers: Offer[];

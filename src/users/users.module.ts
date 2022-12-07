@@ -16,7 +16,6 @@ import { WorkerData } from './entities/worker_data.entity';
 import { Offer } from 'src/offers_and_shifts/entities/offer.entity';
 import { Shift } from 'src/offers_and_shifts/entities/shift.entity';
 
-import { WorkerExperience } from './entities/worker_experience.entity';
 import { StripeService } from '../stripe/stripe.service';
 import { Clock } from '../offers_and_shifts/entities/clock.entity';
 import { DOSpacesService } from '../spaces/services/doSpacesService';
@@ -25,6 +24,7 @@ import { UserImage } from './entities/user_image.entity';
 import { ShiftsService } from '../offers_and_shifts/services/shifts.service';
 import { OffersService } from '../offers_and_shifts/services/offers.service';
 import { Address } from './entities/address.entity';
+import { Support } from '../support/entities/support.entity';
 
 @Module({
   imports: [
@@ -35,9 +35,9 @@ import { Address } from './entities/address.entity';
       Offer,
       Shift,
       Clock,
-      WorkerExperience,
       UserImage,
       Address,
+      Support,
     ]),
   ],
   controllers: [UsersController, EmployersController, WorkersController],

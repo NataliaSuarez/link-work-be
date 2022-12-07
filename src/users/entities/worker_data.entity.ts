@@ -54,8 +54,12 @@ export class WorkerData {
   @ApiProperty({ nullable: true })
   uscis: string;
 
+  @Column({ type: 'text', nullable: true })
+  @ApiProperty({ nullable: true })
+  workerExperience: string;
+
   @Column({ type: 'bool', default: false })
-  sign: boolean;
+  signed: boolean;
 
   @Column({ type: 'float', default: 0 })
   stars: number;
@@ -69,6 +73,14 @@ export class WorkerData {
   @Column({ type: 'varchar', length: 255, nullable: true })
   @ApiProperty({ nullable: true })
   stripeId: string;
+
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  @ApiProperty({ nullable: true })
+  accountLastFour: string;
+
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  @ApiProperty({ nullable: true })
+  routingLastFour: string;
 
   @CreateDateColumn({
     type: 'timestamptz',

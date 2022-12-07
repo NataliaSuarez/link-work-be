@@ -2,20 +2,17 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
-  OneToOne,
-  JoinColumn,
 } from 'typeorm';
-import { User } from './user.entity';
 
-@Entity('worker_experiences')
-export class WorkerExperience {
+import { User } from '../../users/entities/user.entity';
+
+@Entity('support_msgs')
+export class Support {
   @PrimaryGeneratedColumn('uuid')
   id: string;
-
-  @Column({ type: 'varchar', length: 255, nullable: false })
-  videoUrl: string;
 
   @CreateDateColumn({
     type: 'timestamptz',
@@ -29,7 +26,14 @@ export class WorkerExperience {
   })
   updateAt: Date;
 
-  @OneToOne(() => User, (user) => user.workerExperience)
-  @JoinColumn({ name: 'workerUserId' })
-  workerUser: User;
+  @Column({ type: 'text', nullable: false })
+  msg: string;
+
+  @Column({ type: 'timestamptz', nullable: false })
+  sended: Date;
+
+  @ManyToOne(() => User, (user) => user.supportMsg, {
+    nullable: false,
+  })
+  user: User;
 }

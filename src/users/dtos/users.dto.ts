@@ -24,7 +24,6 @@ import {
   Role,
 } from '../entities/user.entity';
 import { WorkerData } from '../entities/worker_data.entity';
-import { WorkerExperience } from '../entities/worker_experience.entity';
 import { EmployerData } from '../entities/employer_data.entity';
 import { Offer } from '../../offers_and_shifts/entities/offer.entity';
 import { Shift } from 'src/offers_and_shifts/entities/shift.entity';
@@ -225,11 +224,6 @@ export class UserDto {
   @IsArray()
   @ApiProperty()
   workerShifts: Shift[];
-
-  @IsObject()
-  @IsOptional()
-  @ApiProperty({ nullable: true, type: WorkerExperience })
-  workerExperience?: WorkerExperience;
 
   @IsObject()
   @IsOptional()

@@ -16,7 +16,6 @@ import { UsersService } from '../users/services/users.service';
 import { Clock } from '../offers_and_shifts/entities/clock.entity';
 import { DOSpacesService } from '../spaces/services/doSpacesService';
 import { DOSpacesServiceProvider } from '../spaces/services';
-import { WorkerExperience } from '../users/entities/worker_experience.entity';
 import { UserImage } from '../users/entities/user_image.entity';
 import { Address } from '../users/entities/address.entity';
 
@@ -29,7 +28,6 @@ import { Address } from '../users/entities/address.entity';
       EmployerData,
       User,
       Clock,
-      WorkerExperience,
       UserImage,
       Address,
     ]),

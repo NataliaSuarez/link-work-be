@@ -22,6 +22,7 @@ import { AbilityModule } from './auth/abilities/ability.module';
 import { LoggerService } from './loggerService/logger.service';
 import { SendgridService } from './sendgrid/sendgrid.service';
 import { NestjsFormDataModule } from 'nestjs-form-data';
+import { SupportModule } from './support/support.module';
 @Module({
   imports: [
     DatabaseModule,
@@ -43,6 +44,7 @@ import { NestjsFormDataModule } from 'nestjs-form-data';
     TasksModule,
     SpacesModule,
     NestjsFormDataModule,
+    SupportModule,
   ],
   controllers: [AppController],
 

@@ -12,7 +12,6 @@ import { UserImage } from 'src/users/entities/user_image.entity';
 import { EmployerData } from 'src/users/entities/employer_data.entity';
 import { Role, User } from 'src/users/entities/user.entity';
 import { WorkerData } from 'src/users/entities/worker_data.entity';
-import { WorkerExperience } from 'src/users/entities/worker_experience.entity';
 
 export enum Action {
   Manage = 'manage',
@@ -30,7 +29,6 @@ export type Subjects =
       | typeof EmployerData
       | typeof WorkerData
       | typeof UserImage
-      | typeof WorkerExperience
     >
   | 'all';
 
@@ -50,7 +48,6 @@ export class AbilityFactory {
       can([Action.Create, Action.Read, Action.Update], EmployerData);
       can([Action.Read], WorkerData);
       can([Action.Manage], UserImage);
-      can([Action.Read], WorkerExperience);
     }
     if (user.role === Role.WORKER) {
       can([Action.Read, Action.Update], User);
@@ -59,7 +56,6 @@ export class AbilityFactory {
       can([Action.Create, Action.Read, Action.Update], WorkerData);
       can([Action.Read], EmployerData);
       can([Action.Manage], UserImage);
-      can([Action.Manage], WorkerExperience);
     }
 
     return build({

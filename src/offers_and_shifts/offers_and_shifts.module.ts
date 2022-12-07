@@ -21,7 +21,6 @@ import { DOSpacesServiceProvider } from '../spaces/services';
 import { UserImage } from '../users/entities/user_image.entity';
 import { Address } from '../users/entities/address.entity';
 import { WorkersService } from '../users/services/workers.service';
-import { WorkerExperience } from '../users/entities/worker_experience.entity';
 
 @Module({
   imports: [
@@ -34,7 +33,6 @@ import { WorkerExperience } from '../users/entities/worker_experience.entity';
       User,
       UserImage,
       Address,
-      WorkerExperience,
     ]),
   ],
   controllers: [OffersController, ShiftsController],

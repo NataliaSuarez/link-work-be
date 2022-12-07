@@ -4,6 +4,7 @@ import {
   Injectable,
   InternalServerErrorException,
   NotFoundException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -12,25 +13,23 @@ import { ConfigService } from '@nestjs/config';
 import {
   CreateWorkerDto,
   FilterWorkersDto,
-  StripeUserAccDto,
+  StripeBankAccDto,
   UpdateWorkerDto,
 } from '../dtos/workers.dto';
 import { WorkerData } from '../entities/worker_data.entity';
 import { UsersService } from './users.service';
 import { StripeService } from '../../stripe/stripe.service';
 import { DOSpacesService } from '../../spaces/services/doSpacesService';
-import { WorkerExperience } from '../entities/worker_experience.entity';
 import { Role, ProfileStatus, User } from '../entities/user.entity';
 import { PostgresErrorCode } from 'src/common/enum/postgres-error-code.enum';
 import { Address } from '../entities/address.entity';
+import { ImageType } from '../entities/user_image.entity';
 
 @Injectable()
 export class WorkersService {
   constructor(
     @InjectRepository(WorkerData)
     private workerRepository: Repository<WorkerData>,
-    @InjectRepository(WorkerExperience)
-    private experienceRepository: Repository<WorkerExperience>,
     @InjectRepository(User)
     private userRepository: Repository<User>,
     @InjectRepository(Address) private addressRepository: Repository<Address>,
@@ -66,7 +65,11 @@ export class WorkersService {
           id: workerUserId,
         },
       },
-      relations: { user: true },
+      relations: {
+        user: {
+          userImages: true,
+        },
+      },
     });
     if (!workerData) {
       throw new NotFoundException(`Worker data not found`);
@@ -93,6 +96,35 @@ export class WorkersService {
       const newWorker = this.workerRepository.create(data);
       newWorker.user = user;
       const worker = await this.workerRepository.save(newWorker);
+      if (user.address.length > 0) {
+        const newAddress = {
+          address: data.addressData.address,
+          city: data.addressData.city,
+          state: data.addressData.state,
+          postalCode: data.addressData.postalCode,
+          lat: data.addressData.lat,
+          long: data.addressData.long,
+          principal: true,
+        };
+        const address = await this.addressRepository.findOne({
+          where: {
+            user: {
+              id: user.id,
+            },
+          },
+        });
+        await this.addressRepository.update({ id: address.id }, newAddress);
+        return await this.workerRepository.findOne({
+          where: {
+            id: worker.id,
+          },
+          relations: {
+            user: {
+              userImages: true,
+            },
+          },
+        });
+      }
       const newAddress = this.addressRepository.create({
         address: data.addressData.address,
         city: data.addressData.city,
@@ -114,7 +146,6 @@ export class WorkersService {
         },
         relations: {
           user: {
-            workerExperience: true,
             userImages: true,
           },
         },
@@ -199,16 +230,18 @@ export class WorkersService {
 
   async uploadExperienceVideo(workerUserId: string, file: Express.Multer.File) {
     try {
-      const workerUser = await this.usersService.findOneById(workerUserId);
+      const worker = await this.findByUserId(workerUserId);
+      if (!worker) {
+        throw new ForbiddenException('This user has not worker profile');
+      }
       const fileUrl = await this.doSpaceService.uploadWorkerVideo(
         file,
         workerUserId,
       );
-      const newExperience = this.experienceRepository.create({
-        videoUrl: fileUrl,
-        workerUser: workerUser,
+      const updatedWorker = await this.update(workerUserId, {
+        workerExperience: fileUrl,
       });
-      return await this.experienceRepository.save(newExperience);
+      return updatedWorker;
     } catch (error) {
       console.error(error);
       throw new InternalServerErrorException(error.message);
@@ -217,17 +250,23 @@ export class WorkersService {
 
   async getDownloadFileUrl(workerUserId: string) {
     try {
-      const experience = await this.experienceRepository.findOne({
-        where: { workerUser: { id: workerUserId } },
+      const worker = await this.workerRepository.findOne({
+        where: {
+          user: {
+            id: workerUserId,
+          },
+        },
       });
-      const url = await this.doSpaceService.downloadFile(experience.videoUrl);
+      const url = await this.doSpaceService.downloadFile(
+        worker.workerExperience,
+      );
       return url;
     } catch (error) {
       throw new InternalServerErrorException();
     }
   }
 
-  async createStripeAccount(userId: string, data: StripeUserAccDto) {
+  async generateStripeAccountData(userId: string, data: StripeBankAccDto) {
     try {
       const user = await this.userRepository.findOne({
         where: { id: userId },
@@ -235,6 +274,22 @@ export class WorkersService {
       });
       if (!user) {
         throw new BadRequestException('Cant find an user');
+      }
+      if (user.workerData.stripeId) {
+        await this.stripeService.updateAccount(user.workerData.stripeId, {
+          external_account: {
+            object: 'bank_account',
+            country: 'US',
+            currency: 'usd',
+            routing_number: data.routingNumber,
+            account_number: data.accountNumber,
+          },
+        });
+        const workerUpdated = await this.update(userId, {
+          accountLastFour: data.accountNumber.slice(-4),
+          routingLastFour: data.routingNumber.slice(-4),
+        });
+        return workerUpdated;
       }
       const userAddress = await this.addressRepository.find({
         where: {
@@ -294,6 +349,8 @@ export class WorkersService {
       if (stripeAccount.id) {
         const workerUpdated = await this.update(userId, {
           stripeId: stripeAccount.id,
+          accountLastFour: data.accountNumber.slice(-4),
+          routingLastFour: data.routingNumber.slice(-4),
         });
         return workerUpdated;
       }
@@ -322,6 +379,29 @@ export class WorkersService {
         );
       }
       return stripeData;
+    } catch (error) {
+      console.error(error);
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
+  async uploadWorkerFiles(userId: string, files: Express.Multer.File[]) {
+    try {
+      for (const file of files) {
+        const fileName = file.originalname.split('.');
+        if (fileName[1] == 'mp4') {
+          if (file.mimetype != 'video/mp4') {
+            throw new BadRequestException('Error in video mimetype');
+          }
+          await this.uploadExperienceVideo(userId, file);
+        } else {
+          await this.usersService.uploadUserImg(userId, file);
+          if (fileName[0] == ImageType.SIGNATURE_IMG) {
+            await this.update(userId, { signed: true });
+          }
+        }
+      }
+      return true;
     } catch (error) {
       console.error(error);
       throw new InternalServerErrorException(error.message);

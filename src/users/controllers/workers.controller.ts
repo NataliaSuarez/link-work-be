@@ -24,7 +24,7 @@ import { diskStorage } from 'multer';
 
 import {
   CreateWorkerDto,
-  StripeUserAccDto,
+  StripeBankAccDto,
   UpdateStarsDto,
   UpdateWorkerDto,
 } from '../dtos/workers.dto';
@@ -38,7 +38,6 @@ import { Role } from '../entities/user.entity';
 import { EmailConfirmationGuard } from '../../auth/mail/emailConfirmation.guard';
 import { FileExtender } from '../../utils/interceptors/file.extender';
 import { UsersService } from '../services/users.service';
-import { ImageType } from '../entities/user_image.entity';
 
 @ApiBearerAuth()
 @UseGuards(EmailConfirmationGuard)
@@ -88,23 +87,26 @@ export class WorkersController {
     @UploadedFiles()
     file: Express.Multer.File[],
   ) {
+    await this.workersService.create(payload, reqUserId);
     if (file) {
-      file.forEach(async (iFile) => {
-        const fileName = iFile.originalname.split('.');
-        if (fileName[1] == 'mp4') {
-          if (iFile.mimetype != 'video/mp4') {
-            throw new BadRequestException('Error in video mimetype');
-          }
-          await this.workersService.uploadExperienceVideo(reqUserId, iFile);
-        } else {
-          if (fileName[0] == ImageType.SIGNATURE_IMG) {
-            payload.sign = true;
-          }
-          await this.usersService.uploadUserImg(reqUserId, iFile);
-        }
-      });
+      await this.workersService.uploadWorkerFiles(reqUserId, file);
     }
-    return await this.workersService.create(payload, reqUserId);
+    if (payload.accountNumber) {
+      if (!payload.routingNumber || payload.routingNumber.length < 9) {
+        throw new BadRequestException('No valid routing number');
+      }
+      const respStripe = await this.workersService.generateStripeAccountData(
+        reqUserId,
+        {
+          accountNumber: payload.accountNumber,
+          routingNumber: payload.routingNumber,
+        },
+      );
+      if (respStripe.type == 'StripeInvalidRequestError') {
+        throw new BadRequestException(`${respStripe.raw.code}`);
+      }
+    }
+    return await this.workersService.findByUserId(reqUserId);
   }
 
   @Post('create-stripe-account')
@@ -115,9 +117,12 @@ export class WorkersController {
   })
   async createStripeUserAccount(
     @GetReqUser('id') reqUserId,
-    @Body() payload: StripeUserAccDto,
+    @Body() payload: StripeBankAccDto,
   ) {
-    return await this.workersService.createStripeAccount(reqUserId, payload);
+    return await this.workersService.generateStripeAccountData(
+      reqUserId,
+      payload,
+    );
   }
 
   @Post('upload-video')
@@ -194,18 +199,22 @@ export class WorkersController {
       throw new ForbiddenException("Can't update stripe id");
     }
     if (file) {
-      file.forEach(async (iFile) => {
-        const fileName = iFile.originalname.split('.');
-        if (fileName[1] == 'mp4') {
-          console.log(iFile.mimetype);
-          await this.workersService.uploadExperienceVideo(reqUserId, iFile);
-        } else {
-          await this.usersService.uploadUserImg(reqUserId, iFile);
-          if (fileName[0] == ImageType.SIGNATURE_IMG) {
-            payload.sign = true;
-          }
-        }
-      });
+      await this.workersService.uploadWorkerFiles(reqUserId, file);
+    }
+    if (payload.accountNumber) {
+      if (!payload.routingNumber || payload.routingNumber.length < 9) {
+        throw new BadRequestException('No valid routing number');
+      }
+      const respStripe = await this.workersService.generateStripeAccountData(
+        reqUserId,
+        {
+          accountNumber: payload.accountNumber,
+          routingNumber: payload.routingNumber,
+        },
+      );
+      if (respStripe.type == 'StripeInvalidRequestError') {
+        throw new BadRequestException(`${respStripe.raw.code}`);
+      }
     }
     return await this.workersService.update(reqUserId, payload);
   }

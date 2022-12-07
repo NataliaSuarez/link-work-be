@@ -7,13 +7,11 @@ import {
   IsString,
   IsUrl,
   Max,
-  IsUUID,
   IsObject,
   IsBoolean,
 } from 'class-validator';
 import { ApiProperty, PartialType } from '@nestjs/swagger';
 import { CreateAddressDto } from './users.dto';
-
 export class CreateWorkerDto {
   @IsNumber()
   @IsNotEmpty()
@@ -62,7 +60,11 @@ export class CreateWorkerDto {
   @IsBoolean()
   @IsOptional()
   @ApiProperty()
-  sign = false;
+  signed?: boolean;
+
+  @IsString()
+  @IsOptional()
+  workerExperience?: string;
 
   @IsNumber()
   @IsOptional()
@@ -78,6 +80,24 @@ export class CreateWorkerDto {
   @IsOptional()
   @ApiProperty()
   readonly avgStars?: number;
+
+  @IsString()
+  @IsOptional()
+  @ApiProperty()
+  routingNumber?: string;
+
+  @IsString()
+  @IsOptional()
+  routingLastFour?: string;
+
+  @IsString()
+  @IsOptional()
+  @ApiProperty()
+  accountNumber?: string;
+
+  @IsString()
+  @IsOptional()
+  accountLastFour?: string;
 
   @IsString()
   @IsOptional()
@@ -102,20 +122,7 @@ export class FilterWorkersDto {
   offset: number;
 }
 
-export class CreateWorkExperienceDto {
-  @IsString()
-  @ApiProperty()
-  readonly description: string;
-
-  @IsUUID()
-  readonly workerId: string;
-}
-
-export class UpdateWorkExperience extends PartialType(
-  CreateWorkExperienceDto,
-) {}
-
-export class StripeUserAccDto {
+export class StripeBankAccDto {
   @IsString()
   @IsNotEmpty()
   @ApiProperty()

@@ -47,12 +47,11 @@ export class UsersController {
   async get(@Param('id') id: string) {
     const user = await this.usersService.findOneById(id, {
       userImages: true,
-      workerExperience: true,
       workerData: true,
       employerData: true,
     });
     if (user.role === Role.EMPLOYER) {
-      const { workerExperience, workerData, ...userClean } = user;
+      const { workerData, ...userClean } = user;
       return userClean;
     } else if (user.role === Role.WORKER) {
       const { employerData, ...userClean } = user;
