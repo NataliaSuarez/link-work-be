@@ -30,9 +30,10 @@ export class AppleService {
 
         if (userExists) {
           if (userExists.registerType === 2) {
-            return this.authService.signIn({
+            await this.authService.signIn({
               email: email,
             });
+            return JSON.parse(JSON.stringify(decodedObj));
           }
           throw new ConflictException(`User ${email} already exists`);
         }
