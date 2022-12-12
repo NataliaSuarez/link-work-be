@@ -322,8 +322,7 @@ export class OffersService {
       return await this.offersRepo.save(offer);
     } catch (error) {
       console.error(error);
-      return error;
-      //throw new InternalServerErrorException(error.message);
+      throw new InternalServerErrorException(error.message);
     }
   }
 
@@ -394,7 +393,7 @@ export class OffersService {
       return { message: 'offer added to fav' };
     } catch (error) {
       console.error(error);
-      return error;
+      throw new InternalServerErrorException(error.message);
     }
   }
 }

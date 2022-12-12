@@ -117,7 +117,9 @@ export class UsersService {
         relations: { userImages: true },
       });
       const fileName = file.originalname.split('.');
-      if (fileName[0] != ImageType.BUSINESS_IMG) {
+      const regExp = /^businessImg/;
+
+      if (regExp.test(fileName[0])) {
         if (user.userImages.length > 0) {
           user.userImages.forEach(async (img) => {
             if (fileName[0] == img.type) {
@@ -138,7 +140,7 @@ export class UsersService {
       newImg.user = user;
       if (fileName[0] == ImageType.PROFILE_IMG) {
         newImg.type = ImageType.PROFILE_IMG;
-      } else if (fileName[0] == ImageType.BUSINESS_IMG) {
+      } else if (regExp.test(fileName[0])) {
         newImg.type = ImageType.BUSINESS_IMG;
       } else if (fileName[0] == ImageType.ID_BACK_IMG) {
         newImg.type = ImageType.ID_BACK_IMG;

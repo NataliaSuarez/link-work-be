@@ -13,6 +13,7 @@ import {
   BadRequestException,
   ForbiddenException,
   UploadedFiles,
+  UseFilters,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -36,7 +37,9 @@ import { AccessTokenGuard } from 'src/auth/jwt/accessToken.guard';
 import { EmailConfirmationGuard } from '../../auth/mail/emailConfirmation.guard';
 import { UsersService } from '../services/users.service';
 import { FileExtender } from '../../utils/interceptors/file.extender';
+import { AllExceptionsFilter } from '../../utils/filters/all-exceptions.filter';
 
+@UseFilters(AllExceptionsFilter)
 @Controller('employers')
 @ApiTags('employers')
 @ApiBearerAuth()
@@ -84,9 +87,7 @@ export class EmployersController {
     file: Express.Multer.File[],
   ) {
     if (file) {
-      file.forEach(async (img) => {
-        await this.usersService.uploadUserImg(reqUserId, img);
-      });
+      await this.employersService.uploadEmployerFiles(reqUserId, file);
     }
     return await this.employersService.createEmployerData(data, reqUserId);
   }
@@ -175,9 +176,7 @@ export class EmployersController {
       throw new ForbiddenException("Can't update stripe id");
     }
     if (file) {
-      file.forEach(async (img) => {
-        await this.usersService.uploadUserImg(reqUserId, img);
-      });
+      await this.employersService.uploadEmployerFiles(reqUserId, file);
     }
     return await this.employersService.update(employerData, data);
   }

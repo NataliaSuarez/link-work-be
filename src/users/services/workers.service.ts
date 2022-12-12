@@ -24,7 +24,7 @@ import { DOSpacesService } from '../../spaces/services/doSpacesService';
 import { Role, ProfileStatus, User } from '../entities/user.entity';
 import { PostgresErrorCode } from 'src/common/enum/postgres-error-code.enum';
 import { Address } from '../entities/address.entity';
-import { ImageType } from '../entities/user_image.entity';
+import { ImageType, UserImage } from '../entities/user_image.entity';
 
 @Injectable()
 export class WorkersService {
@@ -34,6 +34,8 @@ export class WorkersService {
     @InjectRepository(User)
     private userRepository: Repository<User>,
     @InjectRepository(Address) private addressRepository: Repository<Address>,
+    @InjectRepository(UserImage)
+    private userImgRepository: Repository<UserImage>,
     private usersService: UsersService,
     private stripeService: StripeService,
     private doSpaceService: DOSpacesService,
@@ -454,5 +456,23 @@ export class WorkersService {
       console.error(error);
       throw new InternalServerErrorException(error.message);
     }
+  }
+
+  async deleteWorkerDataByUserId(userId: string) {
+    await this.workerRepository.delete({
+      user: {
+        id: userId,
+      },
+    });
+    await this.addressRepository.delete({
+      user: {
+        id: userId,
+      },
+    });
+    await this.userImgRepository.delete({
+      user: {
+        id: userId,
+      },
+    });
   }
 }

@@ -11,6 +11,8 @@ import {
   ForbiddenException,
   UploadedFiles,
   BadRequestException,
+  UseFilters,
+  HttpException,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -38,7 +40,9 @@ import { Role } from '../entities/user.entity';
 import { EmailConfirmationGuard } from '../../auth/mail/emailConfirmation.guard';
 import { FileExtender } from '../../utils/interceptors/file.extender';
 import { UsersService } from '../services/users.service';
+import { AllExceptionsFilter } from '../../utils/filters/all-exceptions.filter';
 
+@UseFilters(AllExceptionsFilter)
 @ApiBearerAuth()
 @UseGuards(EmailConfirmationGuard)
 @UseGuards(AccessTokenGuard)
@@ -87,26 +91,31 @@ export class WorkersController {
     @UploadedFiles()
     file: Express.Multer.File[],
   ) {
-    await this.workersService.create(payload, reqUserId);
-    if (file) {
-      await this.workersService.uploadWorkerFiles(reqUserId, file);
-    }
-    if (payload.accountNumber) {
-      if (!payload.routingNumber || payload.routingNumber.length < 9) {
-        throw new BadRequestException('No valid routing number');
+    try {
+      await this.workersService.create(payload, reqUserId);
+      if (file) {
+        await this.workersService.uploadWorkerFiles(reqUserId, file);
       }
-      const respStripe = await this.workersService.generateStripeAccountData(
-        reqUserId,
-        {
-          accountNumber: payload.accountNumber,
-          routingNumber: payload.routingNumber,
-        },
-      );
-      if (respStripe.type == 'StripeInvalidRequestError') {
-        throw new BadRequestException(`${respStripe.raw.code}`);
+      if (payload.accountNumber) {
+        if (!payload.routingNumber || payload.routingNumber.length != 9) {
+          throw new BadRequestException('No valid routing number');
+        }
+        const respStripe = await this.workersService.generateStripeAccountData(
+          reqUserId,
+          {
+            accountNumber: payload.accountNumber,
+            routingNumber: payload.routingNumber,
+          },
+        );
+        if (respStripe.type == 'StripeInvalidRequestError') {
+          throw new BadRequestException(`${respStripe.raw.code}`);
+        }
       }
+      return await this.workersService.findByUserId(reqUserId);
+    } catch (error) {
+      await this.workersService.deleteWorkerDataByUserId(reqUserId);
+      throw new HttpException(error.response, error.response.statusCode);
     }
-    return await this.workersService.findByUserId(reqUserId);
   }
 
   @Post('create-stripe-account')

@@ -4,6 +4,7 @@ import {
   ForbiddenException,
   Injectable,
   NotFoundException,
+  InternalServerErrorException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
@@ -100,10 +101,7 @@ export class AuthService {
       return { message: `Email sended to ${newUser.email}` };
     } catch (error) {
       console.error(error);
-      if (error instanceof ConflictException) {
-        throw new ConflictException(error.message);
-      }
-      return error;
+      throw new InternalServerErrorException(error.message);
     }
   }
 

@@ -12,6 +12,7 @@ import {
   UseInterceptors,
   Post,
   UploadedFile,
+  UseFilters,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -27,7 +28,9 @@ import { UsersService } from '../services/users.service';
 import { AccessTokenGuard } from 'src/auth/jwt/accessToken.guard';
 import { GetReqUser } from 'src/auth/get-req-user.decorator';
 import { Role, User } from '../entities/user.entity';
+import { AllExceptionsFilter } from '../../utils/filters/all-exceptions.filter';
 
+@UseFilters(AllExceptionsFilter)
 @Controller('users')
 @ApiTags('users')
 @ApiBearerAuth()

@@ -110,7 +110,9 @@ export class EmployersService {
         const savedEmployer = await this.employerRepository.save(newEmployer);
         return await this.employerRepository.findOne({
           relations: {
-            user: true,
+            user: {
+              userImages: true,
+            },
           },
           where: {
             user: {
@@ -290,5 +292,17 @@ export class EmployersService {
       stripeAccountData: stripeData,
       paymentMethodData: null,
     };
+  }
+
+  async uploadEmployerFiles(userId: string, files: Express.Multer.File[]) {
+    try {
+      for (const file of files) {
+        await this.usersService.uploadUserImg(userId, file);
+      }
+      return true;
+    } catch (error) {
+      console.error(error);
+      throw new InternalServerErrorException(error.message);
+    }
   }
 }

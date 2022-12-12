@@ -3,6 +3,7 @@ import {
   BadRequestException,
   ConflictException,
 } from '@nestjs/common';
+import { HttpException } from '@nestjs/common/exceptions';
 import { JwtService } from '@nestjs/jwt';
 
 import { UsersService } from '../../users/services/users.service';
@@ -56,7 +57,7 @@ export class AppleService {
       throw new BadRequestException('Email is required');
     } catch (error) {
       console.error(error);
-      return error;
+      throw new HttpException(error.response, error.response.statusCode);
     }
   }
 }

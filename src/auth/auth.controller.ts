@@ -9,6 +9,7 @@ import {
   UseInterceptors,
   UnauthorizedException,
   Render,
+  UseFilters,
 } from '@nestjs/common';
 import { Request } from 'express';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
@@ -23,6 +24,10 @@ import { GetReqUser } from './get-req-user.decorator';
 import { RegisterType } from 'src/users/entities/user.entity';
 import { AppleService } from './apple/apple.service';
 import { EmailDto } from './mail/confirmEmail.dto';
+import { UsersService } from 'src/users/services/users.service';
+import { AllExceptionsFilter } from '../utils/filters/all-exceptions.filter';
+
+@UseFilters(AllExceptionsFilter)
 @ApiTags('auth')
 @Controller('auth')
 @UseInterceptors(ClassSerializerInterceptor)
@@ -31,6 +36,7 @@ export class AuthController {
     private authService: AuthService,
     private readonly googleAuthenticationService: GoogleAuthenticationService,
     private appleService: AppleService,
+    private readonly userService: UsersService,
   ) {}
 
   @Get('forgotPassword')
@@ -100,5 +106,16 @@ export class AuthController {
       return this.appleService.registerByIDtoken(payload);
     }
     throw new UnauthorizedException('Unauthorized');
+  }
+
+  @Post('exists-by-email')
+  @ApiOperation({ summary: 'Verificar si un usuario existe según email' })
+  async userExists(@Body() payload: EmailDto): Promise<boolean> {
+    const user = await this.userService.findByEmail(payload.email);
+    if (user) {
+      return true;
+    } else {
+      return false;
+    }
   }
 }
