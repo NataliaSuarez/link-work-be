@@ -106,7 +106,7 @@ export class AuthController {
     if (payload.id_token) {
       const response = await this.appleService.registerByIDtoken(payload);
       const url = `intent://callback?email=${response.email}&email_verified=${response.email_verified}#Intent;package=com.example.linkwork;scheme=signinwithapple;end`;
-      return url;
+      return { message: url };
 
       // return res.redirect(
       //   `intent://callback?email=${response.email}&email_verified=${response.email_verified}#Intent;package=com.example.linkwork;scheme=signinwithapple;end`,
