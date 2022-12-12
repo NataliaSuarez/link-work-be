@@ -11,8 +11,9 @@ import {
   Render,
   UseFilters,
   Res,
+  Redirect,
 } from '@nestjs/common';
-import { Request } from 'express';
+import { Request, Response } from 'express';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 
 import { CreateUserDto } from '../users/dtos/users.dto';
@@ -98,19 +99,16 @@ export class AuthController {
   }
 
   @Post('apple/redirect')
+  @Redirect()
   @ApiOperation({
     summary:
       'Endpoint al que apunta automáticamente el login de apple para realizar registro con Apple ID',
   })
-  async redirect(@Body() payload, @Res() res): Promise<any> {
+  async redirect(@Body() payload, @Res() res: Response) {
     if (payload.id_token) {
       const response = await this.appleService.registerByIDtoken(payload);
-      const url = `intent://callback?email=${response.email}&email_verified=${response.email_verified}#Intent;package=com.example.linkwork;scheme=signinwithapple;end`;
-      return { message: url };
-
-      // return res.redirect(
-      //   `intent://callback?email=${response.email}&email_verified=${response.email_verified}#Intent;package=com.example.linkwork;scheme=signinwithapple;end`,
-      // );
+      const redirectUrl = `intent://callback?email=${response.email}&email_verified=${response.email_verified}#Intent;package=com.example.linkwork;scheme=signinwithapple;end`;
+      return { url: redirectUrl };
     }
     throw new UnauthorizedException('Unauthorized');
   }
