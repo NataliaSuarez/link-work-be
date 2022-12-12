@@ -105,9 +105,12 @@ export class AuthController {
   async redirect(@Body() payload, @Res() res): Promise<any> {
     if (payload.id_token) {
       const response = await this.appleService.registerByIDtoken(payload);
-      return res.redirect(
-        `intent://callback?email=${response.email}&email_verified=${response.email_verified}#Intent;package=com.example.linkwork;scheme=signinwithapple;end`,
-      );
+      const url = `intent://callback?email=${response.email}&email_verified=${response.email_verified}#Intent;package=com.example.linkwork;scheme=signinwithapple;end`;
+      return url;
+
+      // return res.redirect(
+      //   `intent://callback?email=${response.email}&email_verified=${response.email_verified}#Intent;package=com.example.linkwork;scheme=signinwithapple;end`,
+      // );
     }
     throw new UnauthorizedException('Unauthorized');
   }
