@@ -23,6 +23,8 @@ export class AppleService {
       const decodedObj = await this.jwtService.decode(payload.id_token);
       //const accountId = decodedObj.sub || '';
 
+      return decodedObj;
+
       if (decodedObj.hasOwnProperty('email')) {
         const email = decodedObj['email'];
 
