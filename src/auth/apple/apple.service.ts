@@ -23,8 +23,6 @@ export class AppleService {
       const decodedObj = await this.jwtService.decode(payload.id_token);
       //const accountId = decodedObj.sub || '';
 
-      return decodedObj;
-
       if (decodedObj.hasOwnProperty('email')) {
         const email = decodedObj['email'];
 
@@ -51,7 +49,8 @@ export class AppleService {
             verified: true,
             role: 0,
           };
-          return this.authService.signUp(userByApple);
+          await this.authService.signUp(userByApple);
+          return JSON.parse(JSON.stringify(decodedObj));
         }
         throw new BadRequestException('User name is required');
       }

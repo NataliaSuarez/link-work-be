@@ -10,6 +10,7 @@ import {
   UnauthorizedException,
   Render,
   UseFilters,
+  Res,
 } from '@nestjs/common';
 import { Request } from 'express';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
@@ -101,9 +102,12 @@ export class AuthController {
     summary:
       'Endpoint al que apunta automáticamente el login de apple para realizar registro con Apple ID',
   })
-  async redirect(@Body() payload): Promise<any> {
+  async redirect(@Body() payload, @Res() res): Promise<any> {
     if (payload.id_token) {
-      return this.appleService.registerByIDtoken(payload);
+      const response = await this.appleService.registerByIDtoken(payload);
+      return res.redirect(
+        `intent://callback?email=${response.email}&email_verified=${response.email_verified}#Intent;package=com.example.linkwork;scheme=signinwithapple;end`,
+      );
     }
     throw new UnauthorizedException('Unauthorized');
   }
