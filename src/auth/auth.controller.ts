@@ -28,6 +28,7 @@ import { AppleService } from './apple/apple.service';
 import { EmailDto } from './mail/confirmEmail.dto';
 import { UsersService } from 'src/users/services/users.service';
 import { AllExceptionsFilter } from '../utils/filters/all-exceptions.filter';
+import { ConfigService } from '@nestjs/config';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -38,6 +39,7 @@ export class AuthController {
     private readonly googleAuthenticationService: GoogleAuthenticationService,
     private appleService: AppleService,
     private readonly userService: UsersService,
+    private configService: ConfigService,
   ) {}
 
   @Get('forgotPassword')
@@ -113,8 +115,12 @@ export class AuthController {
         const errorUrl = `intent://callback?error=${response.error}#Intent;package=com.example.linkwork;scheme=signinwithapple;end`;
         return { url: errorUrl };
       }
-      const redirectUrl = `intent://callback?email=${response.email}&email_verified=${response.email_verified}#Intent;package=com.example.linkwork;scheme=signinwithapple;end`;
-      return { url: redirectUrl };
+      const redirect = `intent://callback?${payload.toString()}#Intent;package=${this.configService.get(
+        'APPLE_CLIENTID',
+      )};scheme=signinwithapple;end`;
+      console.log(`Redirecting to ${redirect}`);
+      res.redirect(307, redirect);
+      //return { url: redirect };
     }
     //throw new UnauthorizedException('Unauthorized');
     const errorUrl =
