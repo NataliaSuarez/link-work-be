@@ -29,7 +29,6 @@ import { EmailDto } from './mail/confirmEmail.dto';
 import { UsersService } from 'src/users/services/users.service';
 import { AllExceptionsFilter } from '../utils/filters/all-exceptions.filter';
 
-@UseFilters(AllExceptionsFilter)
 @ApiTags('auth')
 @Controller('auth')
 @UseInterceptors(ClassSerializerInterceptor)
@@ -61,6 +60,7 @@ export class AuthController {
   }
 
   @Post('sign-up')
+  @UseFilters(AllExceptionsFilter)
   @ApiOperation({ summary: 'Sign up an user account' })
   async signup(@Body() createUserDto: CreateUserDto) {
     if (createUserDto.registerType == RegisterType.EMAIL_AND_PASSWORD) {
@@ -71,6 +71,7 @@ export class AuthController {
   }
 
   @Post('sign-in')
+  @UseFilters(AllExceptionsFilter)
   @ApiOperation({ summary: 'Sign in an existing user' })
   async signin(@Body() data: AuthDto) {
     return await this.authService.signIn(data);
@@ -90,6 +91,7 @@ export class AuthController {
   }
 
   @Get('refresh')
+  @UseFilters(AllExceptionsFilter)
   @UseGuards(RefreshTokenGuard)
   @ApiOperation({ summary: 'Refresh auth tokens' })
   async refreshTokens(@Req() req: Request) {
