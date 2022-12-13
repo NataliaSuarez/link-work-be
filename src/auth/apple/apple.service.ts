@@ -61,7 +61,8 @@ export class AppleService {
       return { error: 'Email is required' };
     } catch (error) {
       console.error(error);
-      throw new HttpException(error.response, error.response.statusCode);
+      return { error: `${error.response.message}` };
+      //throw new HttpException(error.response, error.response.statusCode);
     }
   }
 }
