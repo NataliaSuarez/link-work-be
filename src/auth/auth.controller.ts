@@ -7,7 +7,6 @@ import {
   UseGuards,
   ClassSerializerInterceptor,
   UseInterceptors,
-  UnauthorizedException,
   Render,
   UseFilters,
   Res,
@@ -103,13 +102,31 @@ export class AuthController {
   }
 
   @Post('apple/redirect')
-  @Redirect()
+  /*@Redirect()
   @ApiOperation({
     summary:
       'Endpoint al que apunta automáticamente el login de apple para realizar registro con Apple ID',
-  })
-  async redirect(@Body() payload, @Res() res: Response) {
-    if (payload.id_token) {
+  })*/
+  public fooBar(@Body() body, @Res() response: Response) {
+    console.log(body);
+
+    if (Object.keys(body).length > 0) {
+      console.log(body.code);
+
+      const redirect = `intent://callback?code=${body.code}#Intent;package=com.example.linkwork;scheme=signinwithapple;end`;
+
+      console.log(`Redirecting to ${redirect}`);
+
+      response.redirect(307, redirect);
+    } else {
+      console.log('bar');
+      const errorUrl =
+        'intent://callback?error=Unauthorized#Intent;package=com.example.linkwork;scheme=signinwithapple;end';
+
+      response.redirect(307, errorUrl);
+    }
+
+    /*if (payload.id_token) {
       const response = await this.appleService.registerByIDtoken(payload);
       if (response.error) {
         const errorUrl = `intent://callback?error=${response.error}#Intent;package=com.example.linkwork;scheme=signinwithapple;end`;
@@ -125,7 +142,7 @@ export class AuthController {
     //throw new UnauthorizedException('Unauthorized');
     const errorUrl =
       'intent://callback?error=Unauthorized#Intent;package=com.example.linkwork;scheme=signinwithapple;end';
-    return { url: errorUrl };
+    return { url: errorUrl };*/
   }
 
   @Post('exists-by-email')
