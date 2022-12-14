@@ -12,7 +12,7 @@ import {
 
 import { Offer } from './offer.entity';
 import { Clock } from './clock.entity';
-import { User } from 'src/users/entities/user.entity';
+import { User } from '../../users/entities/user.entity';
 import { ApiProperty } from '@nestjs/swagger';
 
 export enum ShiftStatus {

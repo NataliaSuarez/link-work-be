@@ -16,7 +16,7 @@ import {
 } from 'class-validator';
 import { ApiProperty, PartialType } from '@nestjs/swagger';
 
-import { PaginationDto } from 'src/common/dto/pagination.dto';
+import { PaginationDto } from '../../common/dto/pagination.dto';
 import {
   BlockedReason,
   ProfileStatus,
@@ -76,9 +76,26 @@ export class CreateUserDto {
   @ApiProperty()
   readonly verified?: boolean;
 
+  @IsBoolean()
+  @IsOptional()
+  @ApiProperty()
+  readonly blocked?: boolean;
+
+  @IsEnum(BlockedReason)
+  @IsOptional()
+  readonly blockedReason?: BlockedReason;
+
+  @IsNumber()
+  @IsOptional()
+  readonly failedAttemptsToLogin?: number;
+
   @IsEnum(Role)
   @ApiProperty()
   readonly role?: Role;
+
+  @IsEnum(ProfileStatus)
+  @IsOptional()
+  readonly profileStatus?: ProfileStatus;
 
   @IsString()
   @IsOptional()

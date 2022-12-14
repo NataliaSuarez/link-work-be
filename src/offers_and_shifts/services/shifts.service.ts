@@ -25,9 +25,9 @@ import {
 import { StripeService } from '../../stripe/stripe.service';
 import { Clock } from '../entities/clock.entity';
 import * as moment from 'moment';
-import { PaginationDto } from 'src/common/dto/pagination.dto';
+import { PaginationDto } from '../../common/dto/pagination.dto';
 import { User } from '../../users/entities/user.entity';
-import { UserImage, ImageType } from 'src/users/entities/user_image.entity';
+import { UserImage, ImageType } from '../../users/entities/user_image.entity';
 
 @Injectable()
 export class ShiftsService {

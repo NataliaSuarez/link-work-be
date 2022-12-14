@@ -7,7 +7,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
 
-import { UsersService } from 'src/users/services/users.service';
+import { UsersService } from '../users/services/users.service';
 import { Support } from './entities/support.entity';
 import { SendgridService } from 'src/sendgrid/sendgrid.service';
 import { SupportDto } from './support.dto';

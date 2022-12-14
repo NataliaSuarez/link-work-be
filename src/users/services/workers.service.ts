@@ -22,7 +22,7 @@ import { UsersService } from './users.service';
 import { StripeService } from '../../stripe/stripe.service';
 import { DOSpacesService } from '../../spaces/services/doSpacesService';
 import { Role, ProfileStatus, User } from '../entities/user.entity';
-import { PostgresErrorCode } from 'src/common/enum/postgres-error-code.enum';
+import { PostgresErrorCode } from '../../common/enum/postgres-error-code.enum';
 import { Address } from '../entities/address.entity';
 import { ImageType, UserImage } from '../entities/user_image.entity';
 

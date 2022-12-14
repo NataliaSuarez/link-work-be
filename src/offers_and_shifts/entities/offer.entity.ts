@@ -11,7 +11,7 @@ import {
 } from 'typeorm';
 
 import { Shift } from './shift.entity';
-import { User } from 'src/users/entities/user.entity';
+import { User } from '../../users/entities/user.entity';
 import { Address } from '../../users/entities/address.entity';
 import { ApiProperty } from '@nestjs/swagger';
 

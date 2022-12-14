@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import * as argon2 from 'argon2';
 import { InjectRepository } from '@nestjs/typeorm';
-import { PostgresErrorCode } from 'src/common/enum/postgres-error-code.enum';
+import { PostgresErrorCode } from '../../common/enum/postgres-error-code.enum';
 import { OfferStatus } from '../../offers_and_shifts/entities/offer.entity';
 import { ShiftStatus } from '../../offers_and_shifts/entities/shift.entity';
 import { Repository, Equal, LessThan, FindOptionsRelations } from 'typeorm';

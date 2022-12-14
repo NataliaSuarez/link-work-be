@@ -31,10 +31,10 @@ import {
   UpdateWorkerDto,
 } from '../dtos/workers.dto';
 import { WorkersService } from '../services/workers.service';
-import { GetReqUser } from 'src/auth/get-req-user.decorator';
-import { AccessTokenGuard } from 'src/auth/jwt/accessToken.guard';
-import { CheckAbilities } from 'src/auth/abilities/abilities.decorator';
-import { Action } from 'src/auth/abilities/ability.factory';
+import { GetReqUser } from '../../auth/get-req-user.decorator';
+import { AccessTokenGuard } from '../../auth/jwt/accessToken.guard';
+import { CheckAbilities } from '../../auth/abilities/abilities.decorator';
+import { Action } from '../../auth/abilities/ability.factory';
 import { WorkerData } from '../entities/worker_data.entity';
 import { Role } from '../entities/user.entity';
 import { EmailConfirmationGuard } from '../../auth/mail/emailConfirmation.guard';

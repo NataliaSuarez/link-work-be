@@ -27,14 +27,14 @@ import {
 } from '../dtos/offers.dto';
 import { Offer, OfferStatus } from '../entities/offer.entity';
 import { Shift, ShiftStatus } from '../entities/shift.entity';
-import { PaginationDto } from 'src/common/dto/pagination.dto';
+import { PaginationDto } from '../../common/dto/pagination.dto';
 import { DOSpacesService } from '../../spaces/services/doSpacesService';
-import { Role, User } from 'src/users/entities/user.entity';
+import { Role, User } from '../../users/entities/user.entity';
 import { Address } from '../../users/entities/address.entity';
 import { WorkersService } from '../../users/services/workers.service';
 import { EmployerData } from '../../users/entities/employer_data.entity';
 import { StripeService } from '../../stripe/stripe.service';
-import { getHoursDiff } from 'src/utils/dates';
+import { getHoursDiff } from '../../utils/dates';
 
 @Injectable()
 export class OffersService {

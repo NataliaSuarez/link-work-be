@@ -32,8 +32,8 @@ import {
 } from '../dtos/employers.dto';
 import { EmployersService } from '../services/employers.service';
 import { CreateAddressDto } from '../dtos/users.dto';
-import { GetReqUser } from 'src/auth/get-req-user.decorator';
-import { AccessTokenGuard } from 'src/auth/jwt/accessToken.guard';
+import { GetReqUser } from '../../auth/get-req-user.decorator';
+import { AccessTokenGuard } from '../../auth/jwt/accessToken.guard';
 import { EmailConfirmationGuard } from '../../auth/mail/emailConfirmation.guard';
 import { UsersService } from '../services/users.service';
 import { FileExtender } from '../../utils/interceptors/file.extender';
@@ -46,10 +46,7 @@ import { AllExceptionsFilter } from '../../utils/filters/all-exceptions.filter';
 @UseGuards(EmailConfirmationGuard)
 @UseGuards(AccessTokenGuard)
 export class EmployersController {
-  constructor(
-    private employersService: EmployersService,
-    private usersService: UsersService,
-  ) {}
+  constructor(private employersService: EmployersService) {}
 
   @Get('stripe-customer-data')
   @ApiOperation({ summary: 'Obtener data del usuario en Stripe' })

@@ -32,13 +32,13 @@ import { OffersService } from '../services/offers.service';
 import { AccessTokenGuard } from '../../auth/jwt/accessToken.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
-import { AbilitiesGuard } from 'src/auth/abilities/abilities.guard';
+import { AbilitiesGuard } from '../../auth/abilities/abilities.guard';
 import { Offer } from '../entities/offer.entity';
-import { Action } from 'src/auth/abilities/ability.factory';
-import { CheckAbilities } from 'src/auth/abilities/abilities.decorator';
-import { GetReqUser } from 'src/auth/get-req-user.decorator';
-import { Role } from 'src/users/entities/user.entity';
-import { FileExtender } from 'src/utils/interceptors/file.extender';
+import { Action } from '../../auth/abilities/ability.factory';
+import { CheckAbilities } from '../../auth/abilities/abilities.decorator';
+import { GetReqUser } from '../../auth/get-req-user.decorator';
+import { Role } from '../../users/entities/user.entity';
+import { FileExtender } from '../../utils/interceptors/file.extender';
 
 @ApiBearerAuth()
 @Controller('offers')

@@ -19,13 +19,13 @@ import { CreateUserDto } from '../users/dtos/users.dto';
 import { AuthService } from './auth.service';
 import { AuthDto, RetrievePasswordDto } from './dto/auth.dto';
 import { AccessTokenGuard } from './jwt/accessToken.guard';
-import { RefreshTokenGuard } from 'src/auth/jwt/refreshToken.guard';
+import { RefreshTokenGuard } from '../auth/jwt/refreshToken.guard';
 import { GoogleAuthenticationService } from './googleAuthentication.service';
 import { GetReqUser } from './get-req-user.decorator';
-import { RegisterType } from 'src/users/entities/user.entity';
+import { RegisterType } from '../users/entities/user.entity';
 import { AppleService } from './apple/apple.service';
 import { EmailDto } from './mail/confirmEmail.dto';
-import { UsersService } from 'src/users/services/users.service';
+import { UsersService } from '../users/services/users.service';
 import { AllExceptionsFilter } from '../utils/filters/all-exceptions.filter';
 import { ConfigService } from '@nestjs/config';
 

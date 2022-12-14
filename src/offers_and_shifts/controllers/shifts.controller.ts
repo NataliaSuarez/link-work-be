@@ -13,12 +13,12 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CreateShiftDto } from '../dtos/shift.dto';
 import { ShiftsService } from '../services/shifts.service';
 import { AccessTokenGuard } from '../../auth/jwt/accessToken.guard';
-import { GetReqUser } from 'src/auth/get-req-user.decorator';
-import { CheckAbilities } from 'src/auth/abilities/abilities.decorator';
-import { Action } from 'src/auth/abilities/ability.factory';
+import { GetReqUser } from '../../auth/get-req-user.decorator';
+import { CheckAbilities } from '../../auth/abilities/abilities.decorator';
+import { Action } from '../../auth/abilities/ability.factory';
 import { Shift } from '../entities/shift.entity';
-import { Role } from 'src/users/entities/user.entity';
-import { PaginationDto } from 'src/common/dto/pagination.dto';
+import { Role } from '../../users/entities/user.entity';
+import { PaginationDto } from '../../common/dto/pagination.dto';
 import { EmailConfirmationGuard } from '../../auth/mail/emailConfirmation.guard';
 
 @ApiBearerAuth()

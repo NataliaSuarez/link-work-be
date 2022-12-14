@@ -6,7 +6,7 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { google, Auth } from 'googleapis';
 
-import { CreateUserDto } from 'src/users/dtos/users.dto';
+import { CreateUserDto } from '../users/dtos/users.dto';
 import { UsersService } from '../users/services/users.service';
 
 import { AuthService } from './auth.service';

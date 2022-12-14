@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ConfigService } from '@nestjs/config';
 
 import { UsersController } from './controllers/users.controller';
 import { UsersService } from './services/users.service';
@@ -13,8 +14,8 @@ import { WorkersController } from './controllers/workers.controller';
 import { WorkersService } from './services/workers.service';
 import { WorkerData } from './entities/worker_data.entity';
 
-import { Offer } from 'src/offers_and_shifts/entities/offer.entity';
-import { Shift } from 'src/offers_and_shifts/entities/shift.entity';
+import { Offer } from '../offers_and_shifts/entities/offer.entity';
+import { Shift } from '../offers_and_shifts/entities/shift.entity';
 
 import { StripeService } from '../stripe/stripe.service';
 import { Clock } from '../offers_and_shifts/entities/clock.entity';
@@ -24,7 +25,6 @@ import { UserImage } from './entities/user_image.entity';
 import { ShiftsService } from '../offers_and_shifts/services/shifts.service';
 import { OffersService } from '../offers_and_shifts/services/offers.service';
 import { Address } from './entities/address.entity';
-import { Support } from '../support/entities/support.entity';
 
 @Module({
   imports: [
@@ -37,7 +37,6 @@ import { Support } from '../support/entities/support.entity';
       Clock,
       UserImage,
       Address,
-      Support,
     ]),
   ],
   controllers: [UsersController, EmployersController, WorkersController],
@@ -50,6 +49,7 @@ import { Support } from '../support/entities/support.entity';
     DOSpacesServiceProvider,
     ShiftsService,
     OffersService,
+    ConfigService,
   ],
   exports: [UsersService, EmployersService, WorkersService],
 })

@@ -14,7 +14,7 @@ import { CreateUserDto } from '../users/dtos/users.dto';
 import { UsersService } from '../users/services/users.service';
 import { AuthDto, RetrievePasswordDto } from './dto/auth.dto';
 import { JwtPayload } from './jwt/jwt-payload.interface';
-import { RegisterType, User } from 'src/users/entities/user.entity';
+import { RegisterType, User } from '../users/entities/user.entity';
 import { SendgridService } from '../sendgrid/sendgrid.service';
 import { EmailConfirmationService } from './mail/emailConfirmation.service';
 import { EmailDto } from './mail/confirmEmail.dto';

@@ -25,8 +25,8 @@ import { diskStorage } from 'multer';
 
 import { FilterUsersDto, UpdateUserDto } from '../dtos/users.dto';
 import { UsersService } from '../services/users.service';
-import { AccessTokenGuard } from 'src/auth/jwt/accessToken.guard';
-import { GetReqUser } from 'src/auth/get-req-user.decorator';
+import { AccessTokenGuard } from '../../auth/jwt/accessToken.guard';
+import { GetReqUser } from '../../auth/get-req-user.decorator';
 import { Role, User } from '../entities/user.entity';
 import { AllExceptionsFilter } from '../../utils/filters/all-exceptions.filter';
 

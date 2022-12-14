@@ -33,7 +33,6 @@ export class EmployersService {
     private stripeService: StripeService,
     private doSpaceService: DOSpacesService,
     private shiftService: ShiftsService,
-    private readonly configService: ConfigService,
   ) {}
 
   async findByUserId(id: string): Promise<EmployerData> {

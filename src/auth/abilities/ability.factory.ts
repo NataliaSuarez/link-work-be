@@ -6,12 +6,13 @@ import {
   ExtractSubjectType,
 } from '@casl/ability';
 import { Injectable } from '@nestjs/common';
-import { Offer } from 'src/offers_and_shifts/entities/offer.entity';
-import { Shift } from 'src/offers_and_shifts/entities/shift.entity';
-import { UserImage } from 'src/users/entities/user_image.entity';
-import { EmployerData } from 'src/users/entities/employer_data.entity';
-import { Role, User } from 'src/users/entities/user.entity';
-import { WorkerData } from 'src/users/entities/worker_data.entity';
+
+import { Offer } from '../../offers_and_shifts/entities/offer.entity';
+import { Shift } from '../../offers_and_shifts/entities/shift.entity';
+import { UserImage } from '../../users/entities/user_image.entity';
+import { EmployerData } from '../../users/entities/employer_data.entity';
+import { Role, User } from '../../users/entities/user.entity';
+import { WorkerData } from '../../users/entities/worker_data.entity';
 
 export enum Action {
   Manage = 'manage',
