@@ -11,6 +11,7 @@ import {
   UseFilters,
   Res,
   Redirect,
+  Query,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
@@ -28,6 +29,12 @@ import { EmailDto } from './mail/confirmEmail.dto';
 import { UsersService } from 'src/users/services/users.service';
 import { AllExceptionsFilter } from '../utils/filters/all-exceptions.filter';
 import { ConfigService } from '@nestjs/config';
+import { join } from 'path';
+import { TokenResponse } from './entities/token_responde.entity';
+import { json } from 'stream/consumers';
+
+const AppleAuth = require('apple-auth');
+const jwt = require("jsonwebtoken");
 
 @ApiTags('auth')
 @Controller('auth')
@@ -64,10 +71,14 @@ export class AuthController {
   @UseFilters(AllExceptionsFilter)
   @ApiOperation({ summary: 'Sign up an user account' })
   async signup(@Body() createUserDto: CreateUserDto) {
-    if (createUserDto.registerType == RegisterType.EMAIL_AND_PASSWORD) {
-      return await this.authService.signUp(createUserDto);
-    } else if (createUserDto.registerType === RegisterType.GOOGLE) {
-      return await this.googleAuthenticationService.authenticate(createUserDto);
+
+    switch (createUserDto.registerType) {
+      case RegisterType.EMAIL_AND_PASSWORD:
+        return await this.authService.signUp(createUserDto);
+      case RegisterType.GOOGLE:
+        return await this.googleAuthenticationService.authenticate(createUserDto);
+      case RegisterType.APPLE:
+        return await this.appleService.signInWithApple(createUserDto);
     }
   }
 
@@ -102,47 +113,56 @@ export class AuthController {
   }
 
   @Post('apple/redirect')
-  /*@Redirect()
+  @Redirect('https://docs.nestjs.com', 307)
   @ApiOperation({
-    summary:
-      'Endpoint al que apunta automáticamente el login de apple para realizar registro con Apple ID',
-  })*/
-  public fooBar(@Body() body, @Res() response: Response) {
-    console.log(body);
+    summary: 'Callback consumido por Apple para devolver las credenciles utilizadas para realizar el SignIn.',
+  })
+  async appleRedirect(@Req() request, @Res() response: Response) {
+    const redirect = `intent://callback?${new URLSearchParams(
+      request.body
+    ).toString()}#Intent;package=com.example.linkwork;scheme=signinwithapple;end`;
 
-    if (Object.keys(body).length > 0) {
-      console.log(body.code);
+    return { url: redirect };
+  }
 
-      const redirect = `intent://callback?code=${body.code}#Intent;package=com.example.linkwork;scheme=signinwithapple;end`;
+  @Post('apple/sign_in_with_apple')
+  async signInWithApple(@Req() request: Request, @Res() response: Response) {
+    try {
+      const pathToAppleKeyFile = join(process.cwd(), process.env.APPLE_KEYFILE_PATH);
 
-      console.log(`Redirecting to ${redirect}`);
+      const client_id = request.query.useBundleId === 'true' ?
+      process.env.APPLE_BUNDLE_ID : process.env.APPLE_SERVICE_ID;
 
-      response.redirect(307, redirect);
-    } else {
-      console.log('bar');
-      const errorUrl =
-        'intent://callback?error=Unauthorized#Intent;package=com.example.linkwork;scheme=signinwithapple;end';
+      const auth = new AppleAuth(
+        {
+          client_id: client_id,
+          team_id: process.env.APPLE_TEAM_ID,
+          redirect_uri: process.env.APPLE_CALLBACK,
+          key_id: process.env.APPLE_KEY_ID
+        },
+        pathToAppleKeyFile,
+        'file'
+      );
+  
+      const accessToken = await auth.accessToken(request.query.code);
+  
+      console.log('access token', accessToken);
+  
+      const idToken = jwt.decode(accessToken.id_token);
+  
+      const userID = idToken.sub;
+  
+      const userEmail = idToken.email;
+      const userName = `${request.query.firstName} ${request.query.lastName}`;
+  
+      const sessionID = `NEW SESSION ID for ${userID} / ${userEmail} / ${userName}`;
+  
+      return response.json({ sessionId: sessionID });
+    } catch (error) {
+      console.error(error);
 
-      response.redirect(307, errorUrl);
+      return { error: error };
     }
-
-    /*if (payload.id_token) {
-      const response = await this.appleService.registerByIDtoken(payload);
-      if (response.error) {
-        const errorUrl = `intent://callback?error=${response.error}#Intent;package=com.example.linkwork;scheme=signinwithapple;end`;
-        return { url: errorUrl };
-      }
-      const redirect = `intent://callback?${payload.toString()}#Intent;package=${this.configService.get(
-        'APPLE_CLIENTID',
-      )};scheme=signinwithapple;end`;
-      console.log(`Redirecting to ${redirect}`);
-      res.redirect(307, redirect);
-      //return { url: redirect };
-    }
-    //throw new UnauthorizedException('Unauthorized');
-    const errorUrl =
-      'intent://callback?error=Unauthorized#Intent;package=com.example.linkwork;scheme=signinwithapple;end';
-    return { url: errorUrl };*/
   }
 
   @Post('exists-by-email')

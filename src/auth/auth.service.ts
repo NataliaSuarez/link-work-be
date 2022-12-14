@@ -43,21 +43,25 @@ export class AuthService {
 
       if (createUserDto.registerType === RegisterType.APPLE) {
         const newUser = await this.usersService.create(createUserDto);
-        // const tokens = await this.getTokens({
-        //   sub: newUser.id,
-        //   email: newUser.email,
-        //   role: newUser.role,
-        // });
-        // await this.updateRefreshToken(newUser.id, tokens.refreshToken);
-        // const ObjRta = {
-        //   tokens: tokens,
-        //   userData: {
-        //     id: newUser.id,
-        //     role: newUser.role,
-        //   },
-        // };
-        console.log(`User ${newUser.email} registered with Apple ID`);
-        return newUser;
+        const tokens = await this.getTokens(
+          {
+           sub: newUser.id,
+           email: newUser.email,
+           role: newUser.role,
+          }
+        );
+        
+        await this.updateRefreshToken(newUser.id, tokens.refreshToken);
+         
+        const ObjRta = {
+          tokens: tokens,
+          userData: {
+            id: newUser.id,
+            role: newUser.role,
+          }
+        };
+        
+        return ObjRta;
       }
 
       if (createUserDto.registerType === RegisterType.GOOGLE) {

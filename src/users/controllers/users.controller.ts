@@ -62,6 +62,25 @@ export class UsersController {
     }
   }
 
+  @Get('apple-id/:id')
+  @ApiOperation({ summary: 'Obtener usuario por ID' })
+  @ApiOkResponse({ type: User })
+  async getByAppleIdIdentifier(@Param('id') id: string) {
+    const user = await this.usersService.findOneByAppleIdIdentifier(id, {
+      userImages: true,
+      workerData: true,
+      employerData: true,
+    });
+    
+    if (user.role === Role.EMPLOYER) {
+      const { workerData, ...userClean } = user;
+      return userClean;
+    } else if (user.role === Role.WORKER) {
+      const { employerData, ...userClean } = user;
+      return userClean;
+    }
+  }
+
   @Post('upload-profile-img')
   @UseInterceptors(
     FileInterceptor('file', {
