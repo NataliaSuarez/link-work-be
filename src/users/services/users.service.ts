@@ -58,6 +58,22 @@ export class UsersService {
     return user;
   }
 
+  async findOneByAppleIdIdentifier(
+    appleIdIdentifier: string,
+    relations?: FindOptionsRelations<User>
+  ): Promise<User> {
+    if (!relations) {
+      relations = { userImages: true };
+    }
+
+    const user = await this.userRepository.findOne({
+      where: { appleIdIdentifier: appleIdIdentifier },
+      relations
+    });
+
+    return user;
+  }
+
   async findByEmail(email: string): Promise<User> {
     return await this.userRepository.findOne({
       where: { email: email },

@@ -35,6 +35,11 @@ export class CreateUserDto {
   @IsString()
   @IsOptional()
   @ApiProperty({ nullable: true })
+  readonly appleIdIdentifier?: string;
+
+  @IsString()
+  @IsOptional()
+  @ApiProperty({ nullable: true })
   readonly firstName?: string;
 
   @IsString()
