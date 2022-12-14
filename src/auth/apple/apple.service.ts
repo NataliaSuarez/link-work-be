@@ -13,7 +13,6 @@ export class AppleService {
     private usersService: UsersService,
   ) {}
 
-
   async signInWithApple(createUserDto: CreateUserDto) {
     return await this.authService.signUp(createUserDto);
   }

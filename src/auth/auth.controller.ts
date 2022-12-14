@@ -11,7 +11,6 @@ import {
   UseFilters,
   Res,
   Redirect,
-  Query,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
@@ -32,9 +31,11 @@ import { ConfigService } from '@nestjs/config';
 import { join } from 'path';
 import { TokenResponse } from './entities/token_responde.entity';
 import { json } from 'stream/consumers';
+import AppleAuth, { AppleAuthConfig } from 'apple-auth';
+import * as jwt from 'jsonwebtoken';
 
-const AppleAuth = require('apple-auth');
-const jwt = require("jsonwebtoken");
+// const AppleAuth = require('apple-auth');
+// const jwt = require('jsonwebtoken');
 
 @ApiTags('auth')
 @Controller('auth')
@@ -71,12 +72,13 @@ export class AuthController {
   @UseFilters(AllExceptionsFilter)
   @ApiOperation({ summary: 'Sign up an user account' })
   async signup(@Body() createUserDto: CreateUserDto) {
-
     switch (createUserDto.registerType) {
       case RegisterType.EMAIL_AND_PASSWORD:
         return await this.authService.signUp(createUserDto);
       case RegisterType.GOOGLE:
-        return await this.googleAuthenticationService.authenticate(createUserDto);
+        return await this.googleAuthenticationService.authenticate(
+          createUserDto,
+        );
       case RegisterType.APPLE:
         return await this.appleService.signInWithApple(createUserDto);
     }
@@ -115,11 +117,12 @@ export class AuthController {
   @Post('apple/redirect')
   @Redirect('https://docs.nestjs.com', 307)
   @ApiOperation({
-    summary: 'Callback consumido por Apple para devolver las credenciles utilizadas para realizar el SignIn.',
+    summary:
+      'Callback consumido por Apple para devolver las credenciles utilizadas para realizar el SignIn.',
   })
   async appleRedirect(@Req() request, @Res() response: Response) {
     const redirect = `intent://callback?${new URLSearchParams(
-      request.body
+      request.body,
     ).toString()}#Intent;package=com.example.linkwork;scheme=signinwithapple;end`;
 
     return { url: redirect };
@@ -128,35 +131,38 @@ export class AuthController {
   @Post('apple/sign_in_with_apple')
   async signInWithApple(@Req() request: Request, @Res() response: Response) {
     try {
-      const pathToAppleKeyFile = join(process.cwd(), process.env.APPLE_KEYFILE_PATH);
-
-      const client_id = request.query.useBundleId === 'true' ?
-      process.env.APPLE_BUNDLE_ID : process.env.APPLE_SERVICE_ID;
-
-      const auth = new AppleAuth(
-        {
-          client_id: client_id,
-          team_id: process.env.APPLE_TEAM_ID,
-          redirect_uri: process.env.APPLE_CALLBACK,
-          key_id: process.env.APPLE_KEY_ID
-        },
-        pathToAppleKeyFile,
-        'file'
+      const pathToAppleKeyFile = join(
+        process.cwd(),
+        process.env.APPLE_KEYFILE_PATH,
       );
-  
-      const accessToken = await auth.accessToken(request.query.code);
-  
+
+      const client_id =
+        request.query.useBundleId === 'true'
+          ? process.env.APPLE_BUNDLE_ID
+          : process.env.APPLE_SERVICE_ID;
+
+      const config: AppleAuthConfig = {
+        client_id: client_id,
+        team_id: this.configService.get('APPLE_TEAMID'),
+        redirect_uri: this.configService.get('APPLE_CALLBACK'),
+        key_id: this.configService.get('APPLE_KEYID'),
+        scope: '',
+      };
+      const auth = new AppleAuth(config, pathToAppleKeyFile, 'file');
+
+      const accessToken = await auth.accessToken(request.query.code[0]);
+
       console.log('access token', accessToken);
-  
-      const idToken = jwt.decode(accessToken.id_token);
-  
+
+      const idToken = jwt.decode(accessToken.id_token, { json: true });
+
       const userID = idToken.sub;
-  
+
       const userEmail = idToken.email;
       const userName = `${request.query.firstName} ${request.query.lastName}`;
-  
+
       const sessionID = `NEW SESSION ID for ${userID} / ${userEmail} / ${userName}`;
-  
+
       return response.json({ sessionId: sessionID });
     } catch (error) {
       console.error(error);
