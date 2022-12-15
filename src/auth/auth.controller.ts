@@ -128,6 +128,7 @@ export class AuthController {
     return { url: redirect };
   }
 
+  @ApiOperation({deprecated: true})
   @Post('apple/sign_in_with_apple')
   async signInWithApple(@Req() request: Request, @Res() response: Response) {
     try {

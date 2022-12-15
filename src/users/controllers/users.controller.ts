@@ -29,22 +29,28 @@ import { AccessTokenGuard } from '../../auth/jwt/accessToken.guard';
 import { GetReqUser } from '../../auth/get-req-user.decorator';
 import { Role, User } from '../entities/user.entity';
 import { AllExceptionsFilter } from '../../utils/filters/all-exceptions.filter';
+import { AuthService } from 'src/auth/auth.service';
 
 @UseFilters(AllExceptionsFilter)
 @Controller('users')
 @ApiTags('users')
-@ApiBearerAuth()
-@UseGuards(AccessTokenGuard)
 export class UsersController {
-  constructor(private usersService: UsersService) {}
+  constructor(
+    private usersService: UsersService,
+    private authService: AuthService
+  ) {}
 
   @Get()
+  @ApiBearerAuth()
+  @UseGuards(AccessTokenGuard)
   @ApiOperation({ summary: 'Filtro y paginación de usuarios' })
   async getUsers(@Query() params: FilterUsersDto) {
     return await this.usersService.findAllFiltered(params);
   }
 
   @Get(':id')
+  @ApiBearerAuth()
+  @UseGuards(AccessTokenGuard)
   @ApiOperation({ summary: 'Obtener usuario por ID' })
   @ApiOkResponse({ type: User })
   async get(@Param('id') id: string) {
@@ -66,22 +72,41 @@ export class UsersController {
   @ApiOperation({ summary: 'Obtener usuario por ID' })
   @ApiOkResponse({ type: User })
   async getByAppleIdIdentifier(@Param('id') id: string) {
+  
     const user = await this.usersService.findOneByAppleIdIdentifier(id, {
       userImages: true,
       workerData: true,
       employerData: true,
     });
-    
-    if (user.role === Role.EMPLOYER) {
-      const { workerData, ...userClean } = user;
-      return userClean;
-    } else if (user.role === Role.WORKER) {
-      const { employerData, ...userClean } = user;
-      return userClean;
+
+    if (user) {
+      const tokens = await this.authService.getTokens({
+        sub: user.id,
+        email: user.email,
+        role: user.role,
+      });
+  
+      await this.authService.updateRefreshToken(user.id, tokens.refreshToken);
+      
+      let userResult: any;
+  
+      if (user.role === Role.EMPLOYER) {
+        const { workerData, ...userClean } = user;
+        userResult = userClean;
+      } else if (user.role === Role.WORKER) {
+        const { employerData, ...userClean } = user;
+        userResult = userClean;
+      }
+  
+      return { tokens: tokens, user: userResult };
+    } else {
+      throw new NotFoundException(`User not found, please contact the support team.`);
     }
   }
 
   @Post('upload-profile-img')
+  @ApiBearerAuth()
+  @UseGuards(AccessTokenGuard)
   @UseInterceptors(
     FileInterceptor('file', {
       storage: diskStorage({
@@ -102,6 +127,8 @@ export class UsersController {
   }
 
   @Put(':id')
+  @ApiBearerAuth()
+  @UseGuards(AccessTokenGuard)
   @ApiOperation({ summary: 'Actualizar usuario' })
   async update(@Param('id') id: string, @Body() payload: UpdateUserDto) {
     const user = await this.usersService.findOneById(id);
@@ -112,6 +139,8 @@ export class UsersController {
   }
 
   @Patch(':id/desactivate')
+  @ApiBearerAuth()
+  @UseGuards(AccessTokenGuard)
   @ApiOperation({ summary: 'Desactivar un usuario' })
   async desactivate(@Param('id') userId: string) {
     const user = await this.usersService.findOneById(userId);
@@ -122,6 +151,8 @@ export class UsersController {
   }
 
   @Delete(':id')
+  @ApiBearerAuth()
+  @UseGuards(AccessTokenGuard)
   @ApiOperation({ summary: 'Eliminar usuario' })
   async delete(@Param('id') id: string) {
     return await this.usersService.delete(id);
