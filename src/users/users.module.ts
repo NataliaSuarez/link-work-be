@@ -25,6 +25,10 @@ import { UserImage } from './entities/user_image.entity';
 import { ShiftsService } from '../offers_and_shifts/services/shifts.service';
 import { OffersService } from '../offers_and_shifts/services/offers.service';
 import { Address } from './entities/address.entity';
+import { AuthService } from 'src/auth/auth.service';
+import { JwtService } from '@nestjs/jwt';
+import { SendgridService } from 'src/sendgrid/sendgrid.service';
+import { EmailConfirmationService } from 'src/auth/mail/emailConfirmation.service';
 
 @Module({
   imports: [
@@ -50,6 +54,10 @@ import { Address } from './entities/address.entity';
     ShiftsService,
     OffersService,
     ConfigService,
+    AuthService,
+    JwtService,
+    SendgridService,
+    EmailConfirmationService
   ],
   exports: [UsersService, EmployersService, WorkersService],
 })
