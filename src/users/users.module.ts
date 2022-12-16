@@ -36,11 +36,11 @@ import { EmailConfirmationService } from 'src/auth/mail/emailConfirmation.servic
       User,
       WorkerData,
       EmployerData,
-      Offer,
-      Shift,
-      Clock,
       UserImage,
       Address,
+      Shift,
+      Offer,
+      Clock,
     ]),
   ],
   controllers: [UsersController, EmployersController, WorkersController],
@@ -57,7 +57,7 @@ import { EmailConfirmationService } from 'src/auth/mail/emailConfirmation.servic
     AuthService,
     JwtService,
     SendgridService,
-    EmailConfirmationService
+    EmailConfirmationService,
   ],
   exports: [UsersService, EmployersService, WorkersService],
 })

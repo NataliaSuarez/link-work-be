@@ -1,6 +1,6 @@
 import { IsOptional, IsDate, IsBoolean, IsUUID, IsEnum } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
-import { PaginationDto } from 'src/common/dto/pagination.dto';
+import { PaginationDto } from '../../common/dto/pagination.dto';
 import { ShiftStatus } from '../entities/shift.entity';
 
 export class CreateShiftDto {

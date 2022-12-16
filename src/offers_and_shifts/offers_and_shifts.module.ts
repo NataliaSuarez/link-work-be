@@ -21,6 +21,7 @@ import { DOSpacesServiceProvider } from '../spaces/services';
 import { UserImage } from '../users/entities/user_image.entity';
 import { Address } from '../users/entities/address.entity';
 import { WorkersService } from '../users/services/workers.service';
+import { ConfigService } from '@nestjs/config';
 
 @Module({
   imports: [
@@ -45,6 +46,7 @@ import { WorkersService } from '../users/services/workers.service';
     DOSpacesService,
     DOSpacesServiceProvider,
     WorkersService,
+    ConfigService,
   ],
   exports: [OffersService, ShiftsService],
 })

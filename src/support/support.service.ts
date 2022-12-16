@@ -9,7 +9,7 @@ import { ConfigService } from '@nestjs/config';
 
 import { UsersService } from '../users/services/users.service';
 import { Support } from './entities/support.entity';
-import { SendgridService } from 'src/sendgrid/sendgrid.service';
+import { SendgridService } from '../sendgrid/sendgrid.service';
 import { SupportDto } from './support.dto';
 
 @Injectable()

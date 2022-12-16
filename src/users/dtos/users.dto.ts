@@ -26,10 +26,10 @@ import {
 import { WorkerData } from '../entities/worker_data.entity';
 import { EmployerData } from '../entities/employer_data.entity';
 import { Offer } from '../../offers_and_shifts/entities/offer.entity';
-import { Shift } from 'src/offers_and_shifts/entities/shift.entity';
+import { Shift } from '../../offers_and_shifts/entities/shift.entity';
 import { UserImage } from '../entities/user_image.entity';
 import { Address } from '../entities/address.entity';
-import { Clock } from 'src/offers_and_shifts/entities/clock.entity';
+import { Clock } from '../../offers_and_shifts/entities/clock.entity';
 
 export class CreateUserDto {
   @IsString()

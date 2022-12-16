@@ -60,7 +60,7 @@ export class UsersService {
 
   async findOneByAppleIdIdentifier(
     appleIdIdentifier: string,
-    relations?: FindOptionsRelations<User>
+    relations?: FindOptionsRelations<User>,
   ): Promise<User> {
     if (!relations) {
       relations = { userImages: true };
@@ -68,7 +68,7 @@ export class UsersService {
 
     const user = await this.userRepository.findOne({
       where: { appleIdIdentifier: appleIdIdentifier },
-      relations
+      relations,
     });
 
     return user;
@@ -188,11 +188,12 @@ export class UsersService {
         }
         // Hash password
         const hash = await this.hashData(changes.password);
-        this.userRepository.merge(user, { password: hash });
-        return await this.userRepository.save(user);
+        return await this.userRepository.update(
+          { id: user.id },
+          { password: hash },
+        );
       }
-      this.userRepository.merge(user, changes);
-      return await this.userRepository.save(user);
+      return await this.userRepository.update({ id: user.id }, changes);
     } catch (error) {
       console.error(error);
       if (error.code === PostgresErrorCode.UNIQUE) {

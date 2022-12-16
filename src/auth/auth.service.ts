@@ -36,31 +36,29 @@ export class AuthService {
       );
 
       if (userExists) {
-        throw new ConflictException(
+        throw new BadRequestException(
           `User ${createUserDto.email} already exists`,
         );
       }
 
       if (createUserDto.registerType === RegisterType.APPLE) {
         const newUser = await this.usersService.create(createUserDto);
-        const tokens = await this.getTokens(
-          {
-           sub: newUser.id,
-           email: newUser.email,
-           role: newUser.role,
-          }
-        );
-        
+        const tokens = await this.getTokens({
+          sub: newUser.id,
+          email: newUser.email,
+          role: newUser.role,
+        });
+
         await this.updateRefreshToken(newUser.id, tokens.refreshToken);
-         
+
         const ObjRta = {
           tokens: tokens,
           userData: {
             id: newUser.id,
             role: newUser.role,
-          }
+          },
         };
-        
+
         return ObjRta;
       }
 
@@ -105,13 +103,16 @@ export class AuthService {
       return { message: `Email sended to ${newUser.email}` };
     } catch (error) {
       console.error(error);
+      if (error instanceof BadRequestException) {
+        throw new BadRequestException(error.message);
+      }
       throw new InternalServerErrorException(error.message);
     }
   }
 
   async signIn({ email, password }: AuthDto) {
     const checkUser = await this.usersService.findByEmail(email);
-    if (!checkUser) throw new BadRequestException('User does not exist');
+    if (!checkUser) throw new ForbiddenException('User does not exist');
     if (checkUser.desactivatedAt) {
       const reactivateUser = await this.usersService.desactivate(
         checkUser.id,

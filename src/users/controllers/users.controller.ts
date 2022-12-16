@@ -37,7 +37,7 @@ import { AuthService } from 'src/auth/auth.service';
 export class UsersController {
   constructor(
     private usersService: UsersService,
-    private authService: AuthService
+    private authService: AuthService,
   ) {}
 
   @Get()
@@ -72,7 +72,6 @@ export class UsersController {
   @ApiOperation({ summary: 'Obtener usuario por ID' })
   @ApiOkResponse({ type: User })
   async getByAppleIdIdentifier(@Param('id') id: string) {
-  
     const user = await this.usersService.findOneByAppleIdIdentifier(id, {
       userImages: true,
       workerData: true,
@@ -85,11 +84,11 @@ export class UsersController {
         email: user.email,
         role: user.role,
       });
-  
+
       await this.authService.updateRefreshToken(user.id, tokens.refreshToken);
-      
+
       let userResult: any;
-  
+
       if (user.role === Role.EMPLOYER) {
         const { workerData, ...userClean } = user;
         userResult = userClean;
@@ -97,10 +96,12 @@ export class UsersController {
         const { employerData, ...userClean } = user;
         userResult = userClean;
       }
-  
+
       return { tokens: tokens, user: userResult };
     } else {
-      throw new NotFoundException(`User not found, please contact the support team.`);
+      throw new NotFoundException(
+        `User not found, please contact the support team.`,
+      );
     }
   }
 

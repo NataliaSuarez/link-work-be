@@ -12,7 +12,7 @@ import {
   IsUUID,
 } from 'class-validator';
 import { ApiProperty, PartialType } from '@nestjs/swagger';
-import { PaginationDto } from 'src/common/dto/pagination.dto';
+import { PaginationDto } from '../../common/dto/pagination.dto';
 import { OfferCategory, OfferStatus } from '../entities/offer.entity';
 
 export class CreateOfferDto {

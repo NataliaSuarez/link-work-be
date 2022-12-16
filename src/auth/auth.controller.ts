@@ -29,13 +29,8 @@ import { UsersService } from '../users/services/users.service';
 import { AllExceptionsFilter } from '../utils/filters/all-exceptions.filter';
 import { ConfigService } from '@nestjs/config';
 import { join } from 'path';
-import { TokenResponse } from './entities/token_responde.entity';
-import { json } from 'stream/consumers';
 import AppleAuth, { AppleAuthConfig } from 'apple-auth';
 import * as jwt from 'jsonwebtoken';
-
-// const AppleAuth = require('apple-auth');
-// const jwt = require('jsonwebtoken');
 
 @ApiTags('auth')
 @Controller('auth')
@@ -128,7 +123,7 @@ export class AuthController {
     return { url: redirect };
   }
 
-  @ApiOperation({deprecated: true})
+  @ApiOperation({ deprecated: true })
   @Post('apple/sign_in_with_apple')
   async signInWithApple(@Req() request: Request, @Res() response: Response) {
     try {

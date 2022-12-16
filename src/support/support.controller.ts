@@ -1,9 +1,9 @@
 import { Body, Controller, Post, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 
-import { GetReqUser } from 'src/auth/get-req-user.decorator';
-import { AccessTokenGuard } from 'src/auth/jwt/accessToken.guard';
-import { EmailConfirmationGuard } from 'src/auth/mail/emailConfirmation.guard';
+import { GetReqUser } from '../auth/get-req-user.decorator';
+import { AccessTokenGuard } from '../auth/jwt/accessToken.guard';
+import { EmailConfirmationGuard } from '../auth/mail/emailConfirmation.guard';
 import { SupportDto } from './support.dto';
 import { SupportService } from './support.service';
 
