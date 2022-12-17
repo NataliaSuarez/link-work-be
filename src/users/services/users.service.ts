@@ -111,14 +111,14 @@ export class UsersService {
   }
 
   async createWithGoogle(data: CreateUserDto) {
-    const { email, firstName, lastName } = data;
+    const { email, firstName, lastName, role } = data;
     const newUser = await this.userRepository.create({
       email,
       firstName,
       lastName,
       registerType: 1,
       verified: true,
-      role: 0,
+      role: role,
     });
     await this.userRepository.save(newUser);
     return newUser;

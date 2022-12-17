@@ -22,11 +22,12 @@ export class GoogleAuthenticationService {
     const clientID = this.configService.get('GOOGLE_AUTH_CLIENT_ID');
     const clientSecret = this.configService.get('GOOGLE_AUTH_CLIENT_SECRET');
 
-    this.oauthClient = new google.auth.OAuth2(clientID, clientSecret);
+    //this.oauthClient = new google.auth.OAuth2(clientID, clientSecret);
+    this.oauthClient = new google.auth.OAuth2(clientID);
   }
 
   async registerUser(data: CreateUserDto) {
-    const userData = await this.getUserData(data.googleToken);
+    //const userData = await this.getUserData(data.googleToken);
     const user = await this.authenticationService.signUp(data);
     return user;
   }

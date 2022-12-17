@@ -56,6 +56,10 @@ export class User {
 
   @Column({ type: 'varchar', length: 255, nullable: true })
   @ApiProperty({ nullable: true })
+  googleIdIdentifier: string;
+
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  @ApiProperty({ nullable: true })
   firstName: string;
 
   @Column({ type: 'varchar', length: 255, nullable: true })
