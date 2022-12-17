@@ -65,7 +65,7 @@ export class AuthService {
       }
 
       if (createUserDto.registerType === RegisterType.GOOGLE) {
-        const newUser = await this.usersService.createWithGoogle(createUserDto);
+        const newUser = await this.usersService.create(createUserDto);
         const tokens = await this.getTokens({
           sub: newUser.id,
           email: newUser.email,

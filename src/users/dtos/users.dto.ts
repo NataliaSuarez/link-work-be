@@ -40,6 +40,11 @@ export class CreateUserDto {
   @IsString()
   @IsOptional()
   @ApiProperty({ nullable: true })
+  readonly googleIdIdentifier?: string;
+
+  @IsString()
+  @IsOptional()
+  @ApiProperty({ nullable: true })
   readonly firstName?: string;
 
   @IsString()

@@ -76,9 +76,7 @@ export class AuthController {
       case RegisterType.EMAIL_AND_PASSWORD:
         return await this.authService.signUp(createUserDto);
       case RegisterType.GOOGLE:
-        return await this.googleAuthenticationService.authenticate(
-          createUserDto,
-        );
+        return await this.googleAuthenticationService.authenticate(createUserDto);
       case RegisterType.APPLE:
         return await this.appleService.signInWithApple(createUserDto);
     }
