@@ -90,12 +90,63 @@ export class ShiftsService {
   async findOneById(
     id: string,
     relations?: FindOptionsRelations<Shift>,
-  ): Promise<Shift> {
+  ): Promise<any> {
     const shift = await this.shiftRepo.findOne({
       where: { id },
       relations,
     });
-    return shift;
+    const profileImgUrl = await this.imgRepo.findOne({
+      where: {
+        type: ImageType.PROFILE_IMG,
+        user: {
+          id: shift.workerUser.id,
+        },
+      },
+    });
+    let profileImg;
+    if (profileImgUrl) {
+      profileImg = profileImgUrl.imgUrl;
+    } else {
+      profileImg = null;
+    }
+    const formatShift = {
+      id: shift.id,
+      clockIn: shift.clockIn,
+      confirmedClockIn: shift.confirmedClockIn,
+      clockOut: shift.clockOut,
+      confirmedClockOut: shift.confirmedClockOut,
+      status: shift.status,
+      applicant: {
+        id: shift.workerUser.id,
+        firstName: shift.workerUser.firstName,
+        lastName: shift.workerUser.lastName,
+        stars: shift.workerUser.workerData.stars,
+        totalReviews: shift.workerUser.workerData.totalReviews,
+        profileUrl: profileImg,
+      },
+      offer: {
+        id: shift.offer.id,
+        title: shift.offer.title,
+        from: shift.offer.from,
+        to: shift.offer.to,
+        usdHour: shift.offer.usdHour,
+        createAt: shift.offer.createAt,
+        address: {
+          id: shift.offer.address.id,
+          address: shift.offer.address.address,
+          city: shift.offer.address.city,
+          state: shift.offer.address.state,
+          postalCode: shift.offer.address.postalCode,
+        },
+        employerUser: {
+          userImages: shift.offer.employerUser.userImages,
+          employerData: {
+            description: shift.offer.employerUser.employerData.description,
+          },
+        },
+      },
+    };
+    return formatShift;
   }
 
   async findByWorkerUserId(workerUserId: string, pagination?: PaginationDto) {
