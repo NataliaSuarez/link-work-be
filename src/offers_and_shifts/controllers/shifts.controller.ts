@@ -7,6 +7,7 @@ import {
   UseGuards,
   NotFoundException,
   Query,
+  UseFilters,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 
@@ -20,7 +21,9 @@ import { Shift } from '../entities/shift.entity';
 import { Role } from '../../users/entities/user.entity';
 import { PaginationDto } from '../../common/dto/pagination.dto';
 import { EmailConfirmationGuard } from '../../auth/mail/emailConfirmation.guard';
+import { AllExceptionsFilter } from '../../utils/filters/all-exceptions.filter';
 
+@UseFilters(AllExceptionsFilter)
 @ApiBearerAuth()
 @UseGuards(EmailConfirmationGuard)
 @UseGuards(AccessTokenGuard)
