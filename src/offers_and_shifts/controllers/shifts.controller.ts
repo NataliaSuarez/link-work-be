@@ -53,10 +53,10 @@ export class ShiftsController {
       'Obtener shift por su ID solo si pertenece al usuario que lo consulta',
   })
   async get(@Param('id') shiftId: string, @GetReqUser('id') reqUserId) {
-    const shift = await this.shiftService.findOneById(shiftId);
+    const shift = await this.shiftService.customFindById(shiftId);
     if (
       !shift ||
-      (shift.workerUser.id !== reqUserId &&
+      (shift.applicant.id !== reqUserId &&
         shift.offer.employerUser.id !== reqUserId)
     ) {
       throw new NotFoundException('Shift not found');

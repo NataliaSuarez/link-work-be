@@ -146,6 +146,7 @@ export class ShiftsService {
           postalCode: shift.offer.address.postalCode,
         },
         employerUser: {
+          id: employer.id,
           userImages: shift.offer.employerUser.userImages,
           employerData: {
             description: employer.employerData?.description,
@@ -153,6 +154,7 @@ export class ShiftsService {
         },
       },
     };
+    return formatShift;
   }
 
   async findOneById(id: string): Promise<Shift> {
