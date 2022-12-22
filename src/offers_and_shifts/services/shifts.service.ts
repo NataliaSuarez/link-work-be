@@ -6,13 +6,7 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import {
-  Repository,
-  Equal,
-  FindOptionsWhere,
-  LessThanOrEqual,
-  FindOptionsRelations,
-} from 'typeorm';
+import { Repository, Equal, FindOptionsWhere, LessThanOrEqual } from 'typeorm';
 
 import { OfferStatus } from '../entities/offer.entity';
 import { OffersService } from './offers.service';
@@ -87,13 +81,20 @@ export class ShiftsService {
     }
   }
 
-  async findOneById(
-    id: string,
-    relations?: FindOptionsRelations<Shift>,
-  ): Promise<any> {
+  async findOneById(id: string): Promise<any> {
     const shift = await this.shiftRepo.findOne({
       where: { id },
-      relations,
+      relations: {
+        workerUser: {
+          workerData: true,
+        },
+        offer: {
+          address: true,
+          employerUser: {
+            employerData: true,
+          },
+        },
+      },
     });
     const profileImgUrl = await this.imgRepo.findOne({
       where: {

@@ -50,10 +50,7 @@ export class ShiftsController {
       'Obtener shift por su ID solo si pertenece al usuario que lo consulta',
   })
   async get(@Param('id') shiftId: string, @GetReqUser('id') reqUserId) {
-    const shift = await this.shiftService.findOneById(shiftId, {
-      workerUser: true,
-      offer: true,
-    });
+    const shift = await this.shiftService.findOneById(shiftId);
     if (
       !shift ||
       (shift.workerUser.id !== reqUserId &&
@@ -88,10 +85,7 @@ export class ShiftsController {
   @CheckAbilities({ action: Action.Read, subject: Shift })
   @ApiOperation({ summary: 'Realizar clock-in' })
   async clockIn(@Param('shiftId') shiftId: string, @GetReqUser() reqUser) {
-    const shift = await this.shiftService.findOneById(shiftId, {
-      workerUser: true,
-      offer: true,
-    });
+    const shift = await this.shiftService.findOneById(shiftId);
     if (
       !shift ||
       (shift.workerUser.id !== reqUser.id &&
@@ -111,10 +105,7 @@ export class ShiftsController {
   @CheckAbilities({ action: Action.Read, subject: Shift })
   @ApiOperation({ summary: 'Realizar clock-out' })
   async clockOut(@Param('shiftId') shiftId: string, @GetReqUser() reqUser) {
-    const shift = await this.shiftService.findOneById(shiftId, {
-      workerUser: true,
-      offer: true,
-    });
+    const shift = await this.shiftService.findOneById(shiftId);
     if (
       !shift ||
       (shift.workerUser.id !== reqUser.id &&
