@@ -126,6 +126,7 @@ export class ShiftsService {
           'offer.from',
           'offer.to',
           'offer.usdHour',
+          'offer.createAt',
           'address.id',
           'address.address',
           'address.city',
@@ -138,6 +139,16 @@ export class ShiftsService {
         .getRawMany();
 
       for (const shift of shifts) {
+        const offer = await this.offersService.findOneById(shift.offer_id);
+        const employerUser = await this.usersRepo.findOne({
+          where: {
+            id: offer.employerUser.id,
+          },
+          relations: {
+            userImages: true,
+            employerData: true,
+          },
+        });
         const profileImgUrl = await this.imgRepo.findOne({
           where: {
             type: ImageType.PROFILE_IMG,
@@ -173,12 +184,19 @@ export class ShiftsService {
             from: shift.offer_from,
             to: shift.offer_to,
             usdHour: shift.offer_usdHour,
+            createAt: shift.offer_createAt,
             address: {
               id: shift.address_id,
               address: shift.address_address,
               city: shift.address_city,
               state: shift.address_state,
               postalCode: shift.address_postalCode,
+            },
+            employerUser: {
+              userImages: employerUser.userImages,
+              employerData: {
+                description: employerUser.employerData.description,
+              },
             },
           },
         };
@@ -230,6 +248,7 @@ export class ShiftsService {
           'offer.from',
           'offer.to',
           'offer.usdHour',
+          'offer.createAt',
           'address.id',
           'address.address',
           'address.city',
@@ -243,6 +262,16 @@ export class ShiftsService {
         .skip(pagination?.offset ?? 0)
         .take(pagination?.limit ?? 100)
         .getRawMany();
+
+      const employerUser = await this.usersRepo.findOne({
+        where: {
+          id: employerUserId,
+        },
+        relations: {
+          userImages: true,
+          employerData: true,
+        },
+      });
 
       for (const shift of shifts) {
         const profileImgUrl = await this.imgRepo.findOne({
@@ -280,12 +309,19 @@ export class ShiftsService {
             from: shift.offer_from,
             to: shift.offer_to,
             usdHour: shift.offer_usdHour,
+            createAt: shift.offer_createAt,
             address: {
               id: shift.address_id,
               address: shift.address_address,
               city: shift.address_city,
               state: shift.address_state,
               postalCode: shift.address_postalCode,
+            },
+            employerUser: {
+              userImages: employerUser.userImages,
+              employerData: {
+                description: employerUser.employerData.description,
+              },
             },
           },
         };
