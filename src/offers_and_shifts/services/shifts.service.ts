@@ -81,7 +81,7 @@ export class ShiftsService {
     }
   }
 
-  async findOneById(id: string): Promise<any> {
+  async customFindById(id: string) {
     const shift = await this.shiftRepo.findOne({
       where: { id },
       relations: {
@@ -90,10 +90,16 @@ export class ShiftsService {
         },
         offer: {
           address: true,
-          employerUser: {
-            employerData: true,
-          },
+          employerUser: true,
         },
+      },
+    });
+    const employer = await this.usersRepo.findOne({
+      where: {
+        id: shift.offer.employerUser.id,
+      },
+      relations: {
+        employerData: true,
       },
     });
     const profileImgUrl = await this.imgRepo.findOne({
@@ -110,6 +116,61 @@ export class ShiftsService {
     } else {
       profileImg = null;
     }
+    const formatShift = {
+      id: shift.id,
+      clockIn: shift.clockIn,
+      confirmedClockIn: shift.confirmedClockIn,
+      clockOut: shift.clockOut,
+      confirmedClockOut: shift.confirmedClockOut,
+      status: shift.status,
+      applicant: {
+        id: shift.workerUser.id,
+        firstName: shift.workerUser.firstName,
+        lastName: shift.workerUser.lastName,
+        stars: shift.workerUser.workerData.stars,
+        totalReviews: shift.workerUser.workerData.totalReviews,
+        profileUrl: profileImg,
+      },
+      offer: {
+        id: shift.offer.id,
+        title: shift.offer.title,
+        from: shift.offer.from,
+        to: shift.offer.to,
+        usdHour: shift.offer.usdHour,
+        createAt: shift.offer.createAt,
+        address: {
+          id: shift.offer.address.id,
+          address: shift.offer.address.address,
+          city: shift.offer.address.city,
+          state: shift.offer.address.state,
+          postalCode: shift.offer.address.postalCode,
+        },
+        employerUser: {
+          userImages: shift.offer.employerUser.userImages,
+          employerData: {
+            description: employer.employerData?.description,
+          },
+        },
+      },
+    };
+  }
+
+  async findOneById(id: string): Promise<Shift> {
+    const shift = await this.shiftRepo.findOne({
+      where: { id },
+      relations: {
+        workerUser: {
+          workerData: true,
+        },
+        offer: {
+          address: true,
+          employerUser: {
+            employerData: true,
+          },
+        },
+      },
+    });
+
     return shift;
   }
 
