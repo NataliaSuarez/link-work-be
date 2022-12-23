@@ -69,7 +69,8 @@ export class OffersService {
         take: limit,
         skip: offset,
         loadEagerRelations: false,
-        loadRelationIds: { relations: ['employerUser', 'address'] },
+        relations: { address: true },
+        loadRelationIds: { relations: ['employerUser'] },
       });
     } else {
       return await this.offersRepo.find();
