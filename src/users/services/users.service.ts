@@ -261,12 +261,13 @@ export class UsersService {
 
   async desactivate(userId: string, desactivate: boolean) {
     let reactivateRes;
+    const user = await this.findOneById(userId);
     try {
       if (desactivate) {
         await this.isUserDeletable(userId);
         await this.userRepository.softDelete(userId);
         console.log(`User ${userId} desactivated`);
-        return { message: `User ${userId} desactivated` };
+        return { message: `User ${user.email} desactivated` };
       } else {
         reactivateRes = await this.userRepository.restore(userId);
       }
@@ -275,7 +276,7 @@ export class UsersService {
       throw new InternalServerErrorException(error.message);
     }
     if (reactivateRes.affected !== 0) {
-      return { message: `User ${userId} reactivated` };
+      return { message: `User ${user.email} reactivated` };
     } else {
       throw new NotFoundException('User not found');
     }

@@ -144,10 +144,6 @@ export class UsersController {
   @UseGuards(AccessTokenGuard)
   @ApiOperation({ summary: 'Desactivar un usuario' })
   async desactivate(@Param('id') userId: string) {
-    const user = await this.usersService.findOneById(userId);
-    if (!user) {
-      throw new NotFoundException(`User not found`);
-    }
     return await this.usersService.desactivate(userId, true);
   }
 
