@@ -137,7 +137,7 @@ export class ShiftsService {
         from: shift.offer.from,
         to: shift.offer.to,
         usdHour: shift.offer.usdHour,
-        createAt: shift.offer.createAt,
+        createdAt: shift.offer.createAt,
         videoUrl: shift.offer.videoUrl,
         address: {
           id: shift.offer.address.id,
@@ -151,9 +151,8 @@ export class ShiftsService {
         employerUser: {
           id: employer.id,
           userImages: shift.offer.employerUser.userImages,
-          employerData: {
-            description: employer.employerData?.description,
-          },
+          businessName: employer.employerData?.businessName,
+          businessDescription: employer.employerData?.description,
         },
       },
     };
@@ -253,7 +252,7 @@ export class ShiftsService {
           confirmedClockIn: shift.shifts_confirmedClockIn,
           clockOut: shift.shifts_clockOut,
           confirmedClockOut: shift.shifts_confirmedClockOut,
-          status: shift.shifts_status,
+          status: Number('shift.shifts_status'),
           applicant: {
             id: shift.applicant_id,
             firstName: shift.applicant_firstName,
@@ -268,7 +267,7 @@ export class ShiftsService {
             from: shift.offer_from,
             to: shift.offer_to,
             usdHour: shift.offer_usdHour,
-            createAt: shift.offer_createAt,
+            createdAt: shift.offer_createAt,
             videoUrl: shift.offer_videoUrl,
             address: {
               id: shift.address_id,
@@ -384,7 +383,7 @@ export class ShiftsService {
           confirmedClockIn: shift.shifts_confirmedClockIn,
           clockOut: shift.shifts_clockOut,
           confirmedClockOut: shift.shifts_confirmedClockOut,
-          status: shift.shifts_status,
+          status: Number('shift.shifts_status'),
           applicant: {
             id: shift.applicant_id,
             firstName: shift.applicant_firstName,
@@ -399,7 +398,7 @@ export class ShiftsService {
             from: shift.offer_from,
             to: shift.offer_to,
             usdHour: shift.offer_usdHour,
-            createAt: shift.offer_createAt,
+            createdAt: shift.offer_createAt,
             videoUrl: shift.offer_videoUrl,
             address: {
               id: shift.address_id,
@@ -411,10 +410,10 @@ export class ShiftsService {
               long: shift.address_long,
             },
             employerUser: {
+              id: employerUser.id,
               userImages: employerUser.userImages,
-              employerData: {
-                description: employerUser.employerData.description,
-              },
+              businessName: employerUser.employerData.businessName,
+              businessDescription: employerUser.employerData.description,
             },
           },
         };
