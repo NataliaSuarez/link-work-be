@@ -136,17 +136,27 @@ export class UsersService {
       const regExp = /^businessImg/;
 
       if (regExp.test(fileName[0])) {
-        if (user.userImages.length > 0) {
-          user.userImages.forEach(async (img) => {
-            if (fileName[0] == img.type) {
-              const fileUrl = await this.doSpaceService.uploadImg(file, userId);
-              await this.doSpaceService.deleteFile(img.imgUrl);
-              return await this.imgRepository.update(img.id, {
-                imgUrl: fileUrl,
-              });
-            }
-          });
-        }
+        const fileUrl = await this.doSpaceService.uploadBusinessImg(
+          file,
+          userId,
+        );
+        const newImg = this.imgRepository.create({
+          imgUrl: fileUrl,
+        });
+        newImg.user = user;
+        newImg.type = ImageType.BUSINESS_IMG;
+        return await this.imgRepository.save(newImg);
+      }
+      if (user.userImages.length > 0) {
+        user.userImages.forEach(async (img) => {
+          if (fileName[0] == img.type) {
+            const fileUrl = await this.doSpaceService.uploadImg(file, userId);
+            await this.doSpaceService.deleteFile(img.imgUrl);
+            return await this.imgRepository.update(img.id, {
+              imgUrl: fileUrl,
+            });
+          }
+        });
       }
 
       const fileUrl = await this.doSpaceService.uploadImg(file, userId);
@@ -156,8 +166,6 @@ export class UsersService {
       newImg.user = user;
       if (fileName[0] == ImageType.PROFILE_IMG) {
         newImg.type = ImageType.PROFILE_IMG;
-      } else if (regExp.test(fileName[0])) {
-        newImg.type = ImageType.BUSINESS_IMG;
       } else if (fileName[0] == ImageType.ID_BACK_IMG) {
         newImg.type = ImageType.ID_BACK_IMG;
       } else if (fileName[0] == ImageType.ID_FRONT_IMG) {

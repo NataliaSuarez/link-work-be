@@ -85,12 +85,6 @@ export class OffersService {
       where: { id },
       relations,
     });
-    if (offer.videoUrl) {
-      const signedURL = await this.doSpaceService.tempAccessToPrivateFileUrl(
-        offer.videoUrl,
-      );
-      offer.videoUrl = signedURL;
-    }
     return offer;
   }
 
@@ -98,6 +92,9 @@ export class OffersService {
     const offers = await this.offersRepo.find({
       where: { employerUser: { id: employerUserId } },
       loadEagerRelations: false,
+      relations: {
+        applicants: true,
+      },
     });
     return offers;
   }
