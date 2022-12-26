@@ -125,7 +125,10 @@ export class OffersController {
   @CheckAbilities({ action: Action.Read, subject: Offer })
   @ApiOperation({ summary: 'Obtener oferta por su ID' })
   async get(@Param('id', ParseUUIDPipe) id: string) {
-    const offer = await this.offerService.findOneById(id, { applicants: true });
+    const offer = await this.offerService.findOneById(id, {
+      applicants: true,
+      employerUser: { employerData: true, userImages: true },
+    });
     if (!offer) {
       throw new NotFoundException('Offer not found');
     }
