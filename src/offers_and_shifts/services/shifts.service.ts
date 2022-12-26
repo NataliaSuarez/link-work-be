@@ -138,12 +138,15 @@ export class ShiftsService {
         to: shift.offer.to,
         usdHour: shift.offer.usdHour,
         createAt: shift.offer.createAt,
+        videoUrl: shift.offer.videoUrl,
         address: {
           id: shift.offer.address.id,
           address: shift.offer.address.address,
           city: shift.offer.address.city,
           state: shift.offer.address.state,
           postalCode: shift.offer.address.postalCode,
+          lat: shift.offer.address.lat,
+          long: shift.offer.address.long,
         },
         employerUser: {
           id: employer.id,
@@ -205,11 +208,14 @@ export class ShiftsService {
           'offer.to',
           'offer.usdHour',
           'offer.createAt',
+          'offer.videoUrl',
           'address.id',
           'address.address',
           'address.city',
           'address.state',
           'address.postalCode',
+          'address.lat',
+          'address.long',
         ])
         .where('shifts.workerUserId = :workerUserId', { workerUserId })
         .skip(pagination?.offset ?? 0)
@@ -263,12 +269,15 @@ export class ShiftsService {
             to: shift.offer_to,
             usdHour: shift.offer_usdHour,
             createAt: shift.offer_createAt,
+            videoUrl: shift.offer_videoUrl,
             address: {
               id: shift.address_id,
               address: shift.address_address,
               city: shift.address_city,
               state: shift.address_state,
               postalCode: shift.address_postalCode,
+              lat: shift.address_lat,
+              long: shift.address_long,
             },
             employerUser: {
               userImages: employerUser.userImages,
@@ -327,11 +336,14 @@ export class ShiftsService {
           'offer.to',
           'offer.usdHour',
           'offer.createAt',
+          'offer.videoUrl',
           'address.id',
           'address.address',
           'address.city',
           'address.state',
           'address.postalCode',
+          'address.lat',
+          'address.long',
         ])
         .where(
           'shifts.offerId in (select id from offers where "employerUserId" = :employerUserId)',
@@ -388,12 +400,15 @@ export class ShiftsService {
             to: shift.offer_to,
             usdHour: shift.offer_usdHour,
             createAt: shift.offer_createAt,
+            videoUrl: shift.offer_videoUrl,
             address: {
               id: shift.address_id,
               address: shift.address_address,
               city: shift.address_city,
               state: shift.address_state,
               postalCode: shift.address_postalCode,
+              lat: shift.address_lat,
+              long: shift.address_long,
             },
             employerUser: {
               userImages: employerUser.userImages,
