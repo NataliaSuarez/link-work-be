@@ -252,7 +252,7 @@ export class ShiftsService {
           confirmedClockIn: shift.shifts_confirmedClockIn,
           clockOut: shift.shifts_clockOut,
           confirmedClockOut: shift.shifts_confirmedClockOut,
-          status: Number('shift.shifts_status'),
+          status: shift.shifts_status,
           applicant: {
             id: shift.applicant_id,
             firstName: shift.applicant_firstName,
@@ -287,8 +287,10 @@ export class ShiftsService {
           },
         };
         if (formatShift.status == ShiftStatus.CREATED) {
+          formatShift.status = parseInt(formatShift.status);
           acceptedShifts.push(formatShift);
         } else if (formatShift.status == ShiftStatus.ACTIVE) {
+          formatShift.status = parseInt(formatShift.status);
           activeShifts.push(formatShift);
         }
       }
@@ -383,7 +385,7 @@ export class ShiftsService {
           confirmedClockIn: shift.shifts_confirmedClockIn,
           clockOut: shift.shifts_clockOut,
           confirmedClockOut: shift.shifts_confirmedClockOut,
-          status: Number('shift.shifts_status'),
+          status: shift.shifts_status,
           applicant: {
             id: shift.applicant_id,
             firstName: shift.applicant_firstName,
@@ -418,8 +420,10 @@ export class ShiftsService {
           },
         };
         if (formatShift.status == ShiftStatus.CREATED) {
+          formatShift.status = parseInt(formatShift.status);
           acceptedShifts.push(formatShift);
         } else if (formatShift.status == ShiftStatus.ACTIVE) {
+          formatShift.status = parseInt(formatShift.status);
           activeShifts.push(formatShift);
         }
       }
