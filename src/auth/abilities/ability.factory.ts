@@ -20,6 +20,7 @@ export enum Action {
   Read = 'read',
   Update = 'update',
   Delete = 'delete',
+  Remove = 'remove',
 }
 
 export type Subjects =
@@ -52,7 +53,7 @@ export class AbilityFactory {
     }
     if (user.role === Role.WORKER) {
       can([Action.Read, Action.Update], User);
-      can([Action.Read], Offer);
+      can([Action.Read, Action.Remove], Offer);
       can([Action.Read], Shift);
       can([Action.Create, Action.Read, Action.Update], WorkerData);
       can([Action.Read], EmployerData);

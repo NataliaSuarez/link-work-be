@@ -206,7 +206,7 @@ export class OffersController {
   }
 
   @Delete(':id/applicant/:applicantUserId')
-  @CheckAbilities({ action: Action.Update, subject: Offer })
+  @CheckAbilities({ action: Action.Remove, subject: Offer })
   @ApiOperation({ summary: 'Eliminar aplicante de una oferta' })
   async deleteApplicant(
     @Param('id', ParseUUIDPipe) id: string,
