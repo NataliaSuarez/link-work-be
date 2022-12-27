@@ -230,9 +230,9 @@ export class OffersController {
     return await this.offerService.apply(reqUserId, offerId);
   }
 
-  @Post(':offerId/add-fav')
+  @Post(':offerId/favourite')
   @CheckAbilities({ action: Action.Read, subject: Offer })
-  @ApiOperation({ summary: 'Agregar oferta a mis favoritos' })
+  @ApiOperation({ summary: 'Agregar o eliminar oferta de mis favoritos' })
   async addToFav(
     @Param('offerId', ParseUUIDPipe) offerId: string,
     @GetReqUser('id') reqUserId,

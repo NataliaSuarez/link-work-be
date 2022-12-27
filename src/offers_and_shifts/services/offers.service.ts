@@ -377,10 +377,21 @@ export class OffersService {
         id: workerUserId,
         role: Role.WORKER,
       },
+      loadRelationIds: { relations: ['favoritedOffers'] },
     });
     if (!workerUser) {
       throw new ForbiddenException('Only workers can add to fav');
     }
+    workerUser.favoriteOffers.forEach(async (offer) => {
+      if (offer.id === offerId) {
+        await this.offersRepo
+          .createQueryBuilder()
+          .relation(User, 'favoritedBy')
+          .of(offerId)
+          .remove(workerUserId);
+        return { message: 'offer removed from favs' };
+      }
+    });
     const offer = await this.offersRepo.findOne({
       where: {
         id: offerId,
