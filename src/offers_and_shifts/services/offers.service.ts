@@ -367,7 +367,7 @@ export class OffersService {
 
       return hours < 40;
     } catch (error) {
-      throw new InternalServerErrorException();
+      throw new InternalServerErrorException(error.message);
     }
   }
 
@@ -377,32 +377,40 @@ export class OffersService {
         id: workerUserId,
         role: Role.WORKER,
       },
-      loadRelationIds: { relations: ['favoritedOffers'] },
     });
     if (!workerUser) {
       throw new ForbiddenException('Only workers can add to fav');
     }
-    workerUser.favoriteOffers.forEach(async (offer) => {
-      if (offer.id === offerId) {
+
+    try {
+      const offerWasFavorited = await this.offersRepo.findOne({
+        where: {
+          id: offerId,
+          favoritedBy: {
+            id: workerUserId,
+          },
+        },
+      });
+      if (offerWasFavorited) {
         await this.offersRepo
           .createQueryBuilder()
-          .relation(User, 'favoritedBy')
+          .relation('favoritedBy')
           .of(offerId)
           .remove(workerUserId);
         return { message: 'offer removed from favs' };
       }
-    });
-    const offer = await this.offersRepo.findOne({
-      where: {
-        id: offerId,
-      },
-      relations: { favoritedBy: true },
-    });
-    if (!offer) {
-      throw new NotFoundException(`Offer not found`);
-    }
-    offer.favoritedBy.push(workerUser);
-    try {
+      const offer = await this.offersRepo.findOne({
+        where: {
+          id: offerId,
+        },
+        relations: {
+          favoritedBy: true,
+        },
+      });
+      if (!offer) {
+        throw new NotFoundException(`Offer not found`);
+      }
+      offer.favoritedBy.push(workerUser);
       await this.offersRepo.save(offer);
       return { message: 'offer added to fav' };
     } catch (error) {

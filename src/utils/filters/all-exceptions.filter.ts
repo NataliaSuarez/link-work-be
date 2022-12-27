@@ -6,7 +6,6 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { HttpAdapterHost } from '@nestjs/core';
-import { HttpResponse } from 'aws-sdk';
 
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
@@ -27,7 +26,9 @@ export class AllExceptionsFilter implements ExceptionFilter {
     const httpResponse =
       exception instanceof HttpException
         ? exception.getResponse()
-        : HttpResponse;
+        : { message: 'Internal server error' };
+
+    console.dir(exception);
 
     const errorMessage = JSON.parse(JSON.stringify(httpResponse)).message;
 

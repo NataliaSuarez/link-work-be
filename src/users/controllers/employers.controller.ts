@@ -35,7 +35,6 @@ import { CreateAddressDto } from '../dtos/users.dto';
 import { GetReqUser } from '../../auth/get-req-user.decorator';
 import { AccessTokenGuard } from '../../auth/jwt/accessToken.guard';
 import { EmailConfirmationGuard } from '../../auth/mail/emailConfirmation.guard';
-import { UsersService } from '../services/users.service';
 import { FileExtender } from '../../utils/interceptors/file.extender';
 import { AllExceptionsFilter } from '../../utils/filters/all-exceptions.filter';
 

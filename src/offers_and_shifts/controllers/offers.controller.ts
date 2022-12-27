@@ -211,12 +211,7 @@ export class OffersController {
   async deleteApplicant(
     @Param('id', ParseUUIDPipe) id: string,
     @Param('applicantUserId', ParseUUIDPipe) applicantUserId: string,
-    @GetReqUser('id') reqUserId,
   ) {
-    const offer = await this.offerService.findOneById(id);
-    if (!offer || offer.employerUser.id !== reqUserId) {
-      throw new NotFoundException('Offer not found');
-    }
     return await this.offerService.removeApplicant(id, applicantUserId);
   }
 
