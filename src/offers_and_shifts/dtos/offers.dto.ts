@@ -83,4 +83,8 @@ export class FilterOffersDto extends PaginationDto {
   @IsOptional()
   @IsEnum(OfferStatus)
   status: number;
+
+  @IsOptional()
+  @IsString()
+  fromDate: string;
 }

@@ -54,7 +54,7 @@ export class OffersService {
     if (params) {
       const where: FindOptionsWhere<Offer> = {};
       const { limit, offset } = params;
-      const { minUsdHour, status, category } = params;
+      const { minUsdHour, status, category, fromDate } = params;
       if (minUsdHour) {
         where.usdHour = MoreThanOrEqual(minUsdHour);
       }
@@ -63,6 +63,9 @@ export class OffersService {
       }
       if (category) {
         where.category = Equal(category);
+      }
+      if (fromDate) {
+        where.from = MoreThanOrEqual(new Date(fromDate));
       }
       return await this.offersRepo.find({
         where,
