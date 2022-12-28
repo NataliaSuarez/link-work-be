@@ -253,7 +253,10 @@ export class OffersService {
   }
 
   async removeApplicant(offerId: string, applicantUserId: string) {
-    const offer = await this.findOneById(offerId, { applicants: true });
+    const offer = await this.findOneById(offerId, {
+      applicants: true,
+      favoritedBy: true,
+    });
     if (!offer) {
       throw new NotFoundException('Offer not found');
     }
@@ -261,6 +264,9 @@ export class OffersService {
       (applicant) => applicant.id != applicantUserId,
     );
     offer.applicantsCount -= 1;
+    offer.favoritedBy = offer.favoritedBy.filter(
+      (user) => user.id != applicantUserId,
+    );
     try {
       await this.offersRepo.save(offer);
       return { message: 'Applicant removed from offer' };
@@ -293,7 +299,7 @@ export class OffersService {
       where: {
         id: offerId,
       },
-      relations: { applicants: true },
+      relations: { applicants: true, favoritedBy: true },
     });
     if (!offer) {
       throw new NotFoundException(`Offer not found`);
@@ -325,6 +331,9 @@ export class OffersService {
     }
     offer.applicants.push(workerUser);
     offer.applicantsCount += 1;
+    if (!offer.favoritedBy.find((user) => user.id === workerUserId)) {
+      offer.favoritedBy.push(workerUser);
+    }
     try {
       return await this.offersRepo.save(offer);
     } catch (error) {
