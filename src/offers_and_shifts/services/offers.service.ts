@@ -72,13 +72,13 @@ export class OffersService {
         take: limit,
         skip: offset,
         loadEagerRelations: false,
-        loadRelationIds: { relations: ['applicants'] },
         relations: {
           address: true,
           employerUser: {
             employerData: true,
             userImages: true,
           },
+          applicants: true,
         },
       });
     } else {
