@@ -69,6 +69,7 @@ export class OffersService {
         take: limit,
         skip: offset,
         loadEagerRelations: false,
+        loadRelationIds: { relations: ['applicants'] },
         relations: {
           address: true,
           employerUser: {
