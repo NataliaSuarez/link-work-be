@@ -218,34 +218,40 @@ export class AuthService {
     return tokens;
   }
 
-  async forgotPassword(emailDto: EmailDto): Promise<void> {
+  async forgotPassword(emailDto: EmailDto) {
     const user = await this.usersService.findByEmail(emailDto.email);
     if (!user) {
-      throw new NotFoundException('User does not exist');
+      return { message: 'An email was sent if the user exists' };
     }
-    const token = await this.signUser(user);
-    const hashedToken = await this.hashData(token);
-    await this.usersService.update(user, { retrieveToken: hashedToken });
-    const forgotLink = `https://fr21309mu.getwonder.tech/auth/forgotPassword?token=${token}`;
-    const firstMsg = 'Here is your request for password recovery';
-    const secondMsg =
-      'Please click the button below, if it was not you who requested it, ignore the message';
-    const buttonMsg = 'Set New Password';
-    const subjectMsg = 'Password recovery request';
-    return this.sendGridService.send({
-      to: user.email,
-      from: 'LinkWork Team <matias.viano@getwonder.tech>',
-      subject: `Forgot Password`,
-      templateId: 'd-50336614d4c24651baf4f4a44daf38e9',
-      dynamicTemplateData: {
-        first_name: user.firstName,
-        url_confirm: forgotLink,
-        first_msg: firstMsg,
-        second_msg: secondMsg,
-        button_msg: buttonMsg,
-        subject_msg: subjectMsg,
-      },
-    });
+    try {
+      const token = await this.signUser(user);
+      const hashedToken = await this.hashData(token);
+      await this.usersService.update(user, { retrieveToken: hashedToken });
+      const forgotLink = `https://fr21309mu.getwonder.tech/auth/forgotPassword?token=${token}`;
+      const firstMsg = 'Here is your request for password recovery';
+      const secondMsg =
+        'Please click the button below, if it was not you who requested it, ignore the message';
+      const buttonMsg = 'Set New Password';
+      const subjectMsg = 'Password recovery request';
+      await this.sendGridService.send({
+        to: user.email,
+        from: 'LinkWork Team <matias.viano@getwonder.tech>',
+        subject: `Forgot Password`,
+        templateId: 'd-50336614d4c24651baf4f4a44daf38e9',
+        dynamicTemplateData: {
+          first_name: user.firstName,
+          url_confirm: forgotLink,
+          first_msg: firstMsg,
+          second_msg: secondMsg,
+          button_msg: buttonMsg,
+          subject_msg: subjectMsg,
+        },
+      });
+      return { message: 'An email was sent if the user exists' };
+    } catch (error) {
+      console.error(error);
+      throw new InternalServerErrorException(error.message);
+    }
   }
 
   async signUser(user: User): Promise<string> {
