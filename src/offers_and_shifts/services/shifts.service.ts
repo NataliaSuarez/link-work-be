@@ -496,7 +496,13 @@ export class ShiftsService {
       const newShift = this.shiftRepo.create();
       newShift.workerUser = workerUser;
       newShift.offer = savedOffer;
-      return await this.shiftRepo.save(newShift);
+      const savedShift = await this.shiftRepo.save(newShift);
+      offer.applicants.forEach(async (applicant) => {
+        if (applicant.id != workerUserId) {
+          await this.offersService.removeApplicant(offer.id, applicant.id);
+        }
+      });
+      return savedShift;
     } catch (error) {
       console.error(error);
       throw new InternalServerErrorException(error.message);

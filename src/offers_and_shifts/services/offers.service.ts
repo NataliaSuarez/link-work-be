@@ -82,7 +82,17 @@ export class OffersService {
         },
       });
     } else {
-      return await this.offersRepo.find();
+      return await this.offersRepo.find({
+        loadEagerRelations: false,
+        relations: {
+          address: true,
+          employerUser: {
+            employerData: true,
+            userImages: true,
+          },
+          applicants: true,
+        },
+      });
     }
   }
 
@@ -102,7 +112,9 @@ export class OffersService {
       where: { employerUser: { id: employerUserId } },
       loadEagerRelations: false,
       relations: {
-        applicants: true,
+        applicants: {
+          userImages: true,
+        },
       },
     });
     return offers;
@@ -292,7 +304,9 @@ export class OffersService {
       workerUserId,
     );
     if (workerStripeData.capabilities.transfers !== 'active') {
-      throw new ConflictException(`Worker doesn't have transfers active`);
+      throw new ConflictException(
+        `Worker doesn't have money transfers active. Check personal and banking data`,
+      );
     }
 
     const offer = await this.offersRepo.findOne({
