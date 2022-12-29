@@ -123,11 +123,19 @@ export class OffersService {
   async findFavsbyUserId(workerUserId: string) {
     const offers = await this.offersRepo.find({
       where: { favoritedBy: { id: workerUserId } },
+      relations: { applicants: true },
     });
-    if (!offers) {
-      return { message: 'This user has not favourites offers' };
+    const offersApplicantsFiltered = [];
+    if (offers) {
+      offers.forEach((offer) => {
+        offer.applicants = offer.applicants.filter(
+          (user) => user.id === workerUserId,
+        );
+        offersApplicantsFiltered.push(offer);
+      });
     }
-    return offers;
+
+    return offersApplicantsFiltered;
   }
 
   async findByEmployerUserId(
