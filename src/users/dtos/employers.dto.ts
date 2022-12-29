@@ -35,7 +35,7 @@ export class CreateEmployerDto {
   @IsOptional()
   @ApiProperty()
   @ApiPropertyOptional()
-  readonly description?: string;
+  description?: string;
 
   @IsNumber()
   @IsOptional()

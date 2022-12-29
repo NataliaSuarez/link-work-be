@@ -7,7 +7,6 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { ConfigService } from '@nestjs/config';
 
 import { CreateEmployerDto, UpdateEmployerDto } from '../dtos/employers.dto';
 import { UsersService } from './users.service';
@@ -59,6 +58,9 @@ export class EmployersService {
       });
       if (user.role !== Role.EMPLOYER) {
         throw new ForbiddenException('User needs to be registered as employer');
+      }
+      if (!data.description) {
+        data.description = '';
       }
       const newAddress = this.addressRepository.create({
         address: data.addressData.address,
