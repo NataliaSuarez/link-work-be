@@ -2,7 +2,11 @@ import * as moment from 'moment';
 
 export function getHoursDiff(startDate, endDate) {
   const msInHour = 1000 * 60 * 60;
-  return Math.round(Math.abs(endDate - startDate) / msInHour);
+  let dif = Math.round(Math.abs(endDate - startDate) / msInHour);
+  if (endDate < startDate) {
+    dif = dif * -1;
+  }
+  return dif;
 }
 export function getDay0(date) {
   const day = new Date(date).getDay();

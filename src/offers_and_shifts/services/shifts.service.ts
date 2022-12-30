@@ -22,7 +22,7 @@ import * as moment from 'moment';
 import { PaginationDto } from '../../common/dto/pagination.dto';
 import { User } from '../../users/entities/user.entity';
 import { UserImage, ImageType } from '../../users/entities/user_image.entity';
-
+import { getHoursDiff } from '../../utils/dates';
 @Injectable()
 export class ShiftsService {
   constructor(
@@ -286,12 +286,21 @@ export class ShiftsService {
             },
           },
         };
-        if (formatShift.status == ShiftStatus.CREATED) {
-          formatShift.status = parseInt(formatShift.status);
-          acceptedShifts.push(formatShift);
-        } else if (formatShift.status == ShiftStatus.ACTIVE) {
-          formatShift.status = parseInt(formatShift.status);
-          activeShifts.push(formatShift);
+        const dateNow: Date = new Date();
+        if (
+          formatShift.status == ShiftStatus.CREATED ||
+          formatShift.status == ShiftStatus.ACTIVE
+        ) {
+          if (
+            getHoursDiff(dateNow, formatShift.offer.to) > 0 &&
+            getHoursDiff(dateNow, formatShift.offer.from) < 1
+          ) {
+            formatShift.status = parseInt(formatShift.status);
+            activeShifts.push(formatShift);
+          } else {
+            formatShift.status = parseInt(formatShift.status);
+            acceptedShifts.push(formatShift);
+          }
         }
       }
 
@@ -419,12 +428,21 @@ export class ShiftsService {
             },
           },
         };
-        if (formatShift.status == ShiftStatus.CREATED) {
-          formatShift.status = parseInt(formatShift.status);
-          acceptedShifts.push(formatShift);
-        } else if (formatShift.status == ShiftStatus.ACTIVE) {
-          formatShift.status = parseInt(formatShift.status);
-          activeShifts.push(formatShift);
+        const dateNow: Date = new Date();
+        if (
+          formatShift.status == ShiftStatus.CREATED ||
+          formatShift.status == ShiftStatus.ACTIVE
+        ) {
+          if (
+            getHoursDiff(dateNow, formatShift.offer.to) > 0 &&
+            getHoursDiff(dateNow, formatShift.offer.from) < 1
+          ) {
+            formatShift.status = parseInt(formatShift.status);
+            activeShifts.push(formatShift);
+          } else {
+            formatShift.status = parseInt(formatShift.status);
+            acceptedShifts.push(formatShift);
+          }
         }
       }
 
