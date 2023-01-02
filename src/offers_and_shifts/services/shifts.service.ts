@@ -289,7 +289,8 @@ export class ShiftsService {
         const dateNow: Date = new Date();
         if (
           formatShift.status == ShiftStatus.CREATED ||
-          formatShift.status == ShiftStatus.ACTIVE
+          formatShift.status == ShiftStatus.ACTIVE ||
+          formatShift.status == ShiftStatus.UNCONFIRMED
         ) {
           if (
             getHoursDiff(dateNow, formatShift.offer.to) > 0 &&
@@ -431,7 +432,8 @@ export class ShiftsService {
         const dateNow: Date = new Date();
         if (
           formatShift.status == ShiftStatus.CREATED ||
-          formatShift.status == ShiftStatus.ACTIVE
+          formatShift.status == ShiftStatus.ACTIVE ||
+          formatShift.status == ShiftStatus.UNCONFIRMED
         ) {
           if (
             getHoursDiff(dateNow, formatShift.offer.to) > 0 &&
