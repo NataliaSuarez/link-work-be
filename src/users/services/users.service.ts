@@ -11,6 +11,8 @@ import { PostgresErrorCode } from '../../common/enum/postgres-error-code.enum';
 import { OfferStatus } from '../../offers_and_shifts/entities/offer.entity';
 import { ShiftStatus } from '../../offers_and_shifts/entities/shift.entity';
 import { Repository, Equal, LessThan, FindOptionsRelations } from 'typeorm';
+import { ConfigService } from '@nestjs/config';
+import * as Cryptr from 'cryptr';
 
 import {
   CreateUserDto,
@@ -29,6 +31,7 @@ export class UsersService {
     @InjectRepository(UserImage)
     private imgRepository: Repository<UserImage>,
     private doSpaceService: DOSpacesService,
+    private readonly configService: ConfigService,
   ) {}
 
   async findAllFiltered(params?: FilterUsersDto) {
@@ -55,6 +58,17 @@ export class UsersService {
       where: { id: id },
       relations,
     });
+    if (user.role === Role.WORKER) {
+      const cryptr = new Cryptr(this.configService.get('CRYPTR_SECRET'));
+      if (user.workerData.ssn) {
+        const decriptedSSN = cryptr.decrypt(user.workerData.ssn);
+        user.workerData.ssn = decriptedSSN.slice(-4);
+      }
+      if (user.workerData.uscis) {
+        const decriptedUSCIS = cryptr.decrypt(user.workerData.uscis);
+        user.workerData.uscis = decriptedUSCIS.slice(-4);
+      }
+    }
     return user;
   }
 
