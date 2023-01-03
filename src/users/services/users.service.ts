@@ -58,7 +58,10 @@ export class UsersService {
       where: { id: id },
       relations,
     });
-    if (user.role === Role.WORKER) {
+    if (
+      user.role === Role.WORKER &&
+      (user.workerData.ssn || user.workerData.uscis)
+    ) {
       const cryptr = new Cryptr(this.configService.get('CRYPTR_SECRET'));
       if (user.workerData.ssn) {
         const decriptedSSN = cryptr.decrypt(user.workerData.ssn);
