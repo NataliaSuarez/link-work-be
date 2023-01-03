@@ -199,10 +199,10 @@ export class WorkersController {
   @CheckAbilities({ action: Action.Update, subject: WorkerData })
   @ApiOperation({ summary: 'Actualizar datos del perfil de trabajador' })
   async update(
-    @Body() payload: UpdateWorkerDto,
     @GetReqUser('id') reqUserId,
     @UploadedFiles()
     file: Express.Multer.File[],
+    @Body() payload?: UpdateWorkerDto,
   ) {
     if (payload.stripeId) {
       throw new ForbiddenException("Can't update stripe id");
