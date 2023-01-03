@@ -9,9 +9,17 @@ import {
   Max,
   IsObject,
   IsBoolean,
+  IsEnum,
 } from 'class-validator';
 import { ApiProperty, PartialType } from '@nestjs/swagger';
 import { CreateAddressDto } from './users.dto';
+
+export enum WorkerEditType {
+  SSN = 'ssn',
+  USCIS = 'uscis',
+  BANK_DATA = 'bank',
+  OTHER = 'other',
+}
 export class CreateWorkerDto {
   @IsNumber()
   @IsNotEmpty()
@@ -108,6 +116,10 @@ export class CreateWorkerDto {
   @IsNotEmpty()
   @ApiProperty()
   readonly addressData: CreateAddressDto;
+
+  @IsEnum(WorkerEditType)
+  @IsOptional()
+  readonly workerEditEnum?: WorkerEditType;
 }
 
 export class UpdateWorkerDto extends PartialType(CreateWorkerDto) {}

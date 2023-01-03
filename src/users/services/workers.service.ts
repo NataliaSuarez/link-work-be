@@ -16,6 +16,7 @@ import {
   FilterWorkersDto,
   StripeBankAccDto,
   UpdateWorkerDto,
+  WorkerEditType,
 } from '../dtos/workers.dto';
 import { WorkerData } from '../entities/worker_data.entity';
 import { UsersService } from './users.service';
@@ -183,7 +184,11 @@ export class WorkersService {
     }
   }
 
-  async update(userId: string, changes: UpdateWorkerDto) {
+  async update(
+    userId: string,
+    payload: UpdateWorkerDto,
+    editType?: WorkerEditType,
+  ) {
     const worker = await this.workerRepository.findOne({
       where: {
         user: {
@@ -192,7 +197,34 @@ export class WorkersService {
       },
     });
 
+    let changes: UpdateWorkerDto = {};
+
+    if (editType) {
+      switch (editType) {
+        case WorkerEditType.SSN:
+          changes.ssn = payload.ssn;
+          break;
+        case WorkerEditType.USCIS:
+          changes.uscis = payload.uscis;
+          break;
+        case WorkerEditType.BANK_DATA:
+          changes.accountNumber = payload.accountNumber;
+          changes.routingNumber = payload.routingNumber;
+          break;
+        case WorkerEditType.OTHER:
+          const { ssn, uscis, accountNumber, routingNumber, ...newPayload } =
+            payload;
+          changes = newPayload;
+          break;
+      }
+    } else {
+      changes = payload;
+    }
+
     try {
+      console.log('changes');
+      console.dir(changes);
+      console.dir(payload);
       if (changes.addressData) {
         const modifyAddress = await this.addressRepository.findOne({
           where: {

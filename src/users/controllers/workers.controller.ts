@@ -199,11 +199,14 @@ export class WorkersController {
   @CheckAbilities({ action: Action.Update, subject: WorkerData })
   @ApiOperation({ summary: 'Actualizar datos del perfil de trabajador' })
   async update(
+    @Body() payload: UpdateWorkerDto,
     @GetReqUser('id') reqUserId,
     @UploadedFiles()
     file: Express.Multer.File[],
-    @Body() payload?: UpdateWorkerDto,
   ) {
+    if (!payload.workerEditEnum) {
+      throw new BadRequestException("Can't update without the enum");
+    }
     if (payload.stripeId) {
       throw new ForbiddenException("Can't update stripe id");
     }
@@ -225,7 +228,11 @@ export class WorkersController {
         throw new BadRequestException(`${respStripe.raw.code}`);
       }
     }
-    await this.workersService.update(reqUserId, payload);
+    await this.workersService.update(
+      reqUserId,
+      payload,
+      payload.workerEditEnum,
+    );
     return await this.workersService.findByUserId(reqUserId);
   }
 }
