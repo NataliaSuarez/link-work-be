@@ -195,7 +195,11 @@ export class WorkersService {
           id: userId,
         },
       },
+      relations: { user: true },
     });
+    if (!worker) {
+      throw new BadRequestException('The user has not worker data');
+    }
 
     let changes: UpdateWorkerDto = {};
 
@@ -222,11 +226,8 @@ export class WorkersService {
     }
 
     try {
-      console.log('changes');
-      console.dir(changes);
-      console.dir(payload);
       if (changes.addressData) {
-        const modifyAddress = await this.addressRepository.findOne({
+        let modifyAddress = await this.addressRepository.findOne({
           where: {
             user: {
               id: userId,
@@ -240,8 +241,15 @@ export class WorkersService {
           postalCode: changes.addressData.postalCode,
           lat: changes.addressData.lat,
           long: changes.addressData.long,
+          principal: true,
         };
-        this.addressRepository.merge(modifyAddress, newAddress);
+        if (modifyAddress) {
+          this.addressRepository.merge(modifyAddress, newAddress);
+        } else {
+          modifyAddress = this.addressRepository.create(newAddress);
+          modifyAddress.user = worker.user;
+        }
+
         await this.addressRepository.save(modifyAddress);
         if (worker.stripeId) {
           await this.stripeService.updateAccount(worker.stripeId, {
@@ -311,6 +319,9 @@ export class WorkersService {
       });
       if (!worker) {
         throw new ForbiddenException('This user has not worker profile');
+      }
+      if (worker.workerExperience) {
+        await this.doSpaceService.deleteFile(worker.workerExperience);
       }
       const fileUrl = await this.doSpaceService.uploadWorkerVideo(
         file,

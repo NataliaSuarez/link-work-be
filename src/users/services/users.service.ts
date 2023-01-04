@@ -161,33 +161,77 @@ export class UsersService {
         newImg.type = ImageType.BUSINESS_IMG;
         return await this.imgRepository.save(newImg);
       }
-      if (user.userImages.length > 0) {
-        user.userImages.forEach(async (img) => {
-          if (fileName[0] == img.type) {
-            const fileUrl = await this.doSpaceService.uploadImg(file, userId);
-            await this.doSpaceService.deleteFile(img.imgUrl);
-            return await this.imgRepository.update(img.id, {
-              imgUrl: fileUrl,
-            });
-          }
-        });
-      }
 
-      const fileUrl = await this.doSpaceService.uploadImg(file, userId);
-      const newImg = this.imgRepository.create({
-        imgUrl: fileUrl,
-      });
-      newImg.user = user;
-      if (fileName[0] == ImageType.PROFILE_IMG) {
-        newImg.type = ImageType.PROFILE_IMG;
-      } else if (fileName[0] == ImageType.ID_BACK_IMG) {
-        newImg.type = ImageType.ID_BACK_IMG;
-      } else if (fileName[0] == ImageType.ID_FRONT_IMG) {
-        newImg.type = ImageType.ID_FRONT_IMG;
-      } else if (fileName[0] == ImageType.SIGNATURE_IMG) {
-        newImg.type = ImageType.SIGNATURE_IMG;
+      if (user.userImages.length > 0) {
+        let type;
+        switch (fileName[0]) {
+          case ImageType.PROFILE_IMG:
+            type = ImageType.PROFILE_IMG;
+            break;
+
+          case ImageType.SIGNATURE_IMG:
+            type = ImageType.SIGNATURE_IMG;
+            break;
+
+          case ImageType.ID_FRONT_IMG:
+            type = ImageType.ID_FRONT_IMG;
+            break;
+
+          case ImageType.ID_BACK_IMG:
+            type = ImageType.ID_BACK_IMG;
+            break;
+        }
+        const imgExists = await this.imgRepository.findOne({
+          where: {
+            type: type,
+            user: {
+              id: userId,
+            },
+          },
+        });
+        if (imgExists) {
+          await this.doSpaceService.deleteFile(imgExists.imgUrl);
+          const fileUrl = await this.doSpaceService.uploadImg(file, userId);
+          return await this.imgRepository.update(
+            { id: imgExists.id },
+            {
+              imgUrl: fileUrl,
+            },
+          );
+        } else {
+          const fileUrl = await this.doSpaceService.uploadImg(file, userId);
+          const newImg = this.imgRepository.create({
+            imgUrl: fileUrl,
+          });
+          newImg.user = user;
+          if (fileName[0] == ImageType.PROFILE_IMG) {
+            newImg.type = ImageType.PROFILE_IMG;
+          } else if (fileName[0] == ImageType.ID_BACK_IMG) {
+            newImg.type = ImageType.ID_BACK_IMG;
+          } else if (fileName[0] == ImageType.ID_FRONT_IMG) {
+            newImg.type = ImageType.ID_FRONT_IMG;
+          } else if (fileName[0] == ImageType.SIGNATURE_IMG) {
+            newImg.type = ImageType.SIGNATURE_IMG;
+          }
+          return await this.imgRepository.save(newImg);
+        }
+      } else {
+        const fileUrl = await this.doSpaceService.uploadImg(file, userId);
+        const newImg = this.imgRepository.create({
+          imgUrl: fileUrl,
+        });
+        newImg.user = user;
+        if (fileName[0] == ImageType.PROFILE_IMG) {
+          newImg.type = ImageType.PROFILE_IMG;
+        } else if (fileName[0] == ImageType.ID_BACK_IMG) {
+          newImg.type = ImageType.ID_BACK_IMG;
+        } else if (fileName[0] == ImageType.ID_FRONT_IMG) {
+          newImg.type = ImageType.ID_FRONT_IMG;
+        } else if (fileName[0] == ImageType.SIGNATURE_IMG) {
+          newImg.type = ImageType.SIGNATURE_IMG;
+        }
+        return await this.imgRepository.save(newImg);
       }
-      return await this.imgRepository.save(newImg);
     } catch (error) {
       console.error(error);
       throw new InternalServerErrorException(error.message);
