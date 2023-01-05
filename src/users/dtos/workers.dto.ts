@@ -17,6 +17,7 @@ import { CreateAddressDto } from './users.dto';
 export enum WorkerEditType {
   SSN = 'ssn',
   USCIS = 'uscis',
+  BOTH = 'both',
   BANK_DATA = 'bank',
   OTHER = 'other',
 }

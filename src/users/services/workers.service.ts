@@ -211,6 +211,10 @@ export class WorkersService {
         case WorkerEditType.USCIS:
           changes.uscis = payload.uscis;
           break;
+        case WorkerEditType.BOTH:
+          changes.uscis = payload.uscis;
+          changes.ssn = payload.ssn;
+          break;
         case WorkerEditType.BANK_DATA:
           changes.accountNumber = payload.accountNumber;
           changes.routingNumber = payload.routingNumber;
@@ -273,6 +277,51 @@ export class WorkersService {
       if (changes.uscis) {
         const encriptedUSCIS = cryptr.encrypt(changes.uscis);
         changes.uscis = encriptedUSCIS;
+      }
+
+      const savedAddress = await this.addressRepository.findOne({
+        where: {
+          user: {
+            id: userId,
+          },
+        },
+      });
+
+      if (changes.phone) {
+        if (worker.stripeId) {
+          await this.stripeService.updateAccount(worker.stripeId, {
+            individual: {
+              address: {
+                line1: savedAddress.address,
+                postal_code: savedAddress.postalCode,
+                city: savedAddress.city,
+                state: savedAddress.state,
+              },
+              phone: changes.phone,
+            },
+          });
+        }
+      }
+      if (changes.dayOfBirth) {
+        if (!changes.monthOfBirth || !changes.yearOfBirth) {
+          throw new ForbiddenException('Missing month and year to update date');
+        } else if (worker.stripeId) {
+          await this.stripeService.updateAccount(worker.stripeId, {
+            individual: {
+              address: {
+                line1: savedAddress.address,
+                postal_code: savedAddress.postalCode,
+                city: savedAddress.city,
+                state: savedAddress.state,
+              },
+              dob: {
+                day: changes.dayOfBirth,
+                month: changes.monthOfBirth,
+                year: changes.yearOfBirth,
+              },
+            },
+          });
+        }
       }
 
       const updatedWorker = this.workerRepository.merge(worker, changes);
