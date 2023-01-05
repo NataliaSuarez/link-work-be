@@ -7,11 +7,17 @@ import {
   Min,
   Max,
   IsObject,
+  IsEnum,
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
 
 import { CardDto } from '../../stripe/stripe.dto';
 import { CreateAddressDto } from './users.dto';
+
+export enum EmployerEditType {
+  CARD_DATA = 'cardData',
+  OTHER = 'other',
+}
 
 export class CreateEmployerDto {
   @IsNumber()
@@ -69,12 +75,16 @@ export class CreateEmployerDto {
   @IsOptional()
   @ApiProperty()
   @ApiPropertyOptional()
-  readonly cardData?: CardDto;
+  cardData?: CardDto;
 
   @IsObject()
   @IsNotEmpty()
   @ApiProperty()
   readonly addressData: CreateAddressDto;
+
+  @IsEnum(EmployerEditType)
+  @IsOptional()
+  readonly employerEditEnum?: EmployerEditType;
 }
 
 export class UpdateEmployerDto extends PartialType(CreateEmployerDto) {}

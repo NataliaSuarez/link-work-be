@@ -7,7 +7,6 @@ import {
   UseInterceptors,
   UploadedFile,
   UseGuards,
-  NotFoundException,
   Delete,
   Get,
   BadRequestException,
@@ -129,10 +128,10 @@ export class EmployersController {
     if (reqUserId === employerUserId) {
       throw new BadRequestException('Can not review yourself');
     }
-    const employerData = await this.employersService.findByUserId(
+    return await this.employersService.updateStars(
       employerUserId,
+      payload.stars,
     );
-    return await this.employersService.updateStars(employerData, payload.stars);
   }
 
   @Put()
@@ -160,20 +159,23 @@ export class EmployersController {
   @ApiOperation({ summary: 'Actualizar datos de empleador' })
   async update(
     @GetReqUser('id') reqUserId,
-    @Body() data: UpdateEmployerDto,
+    @Body() payload: UpdateEmployerDto,
     @UploadedFiles()
     file: Express.Multer.File[],
   ) {
-    const employerData = await this.employersService.findByUserId(reqUserId);
-    if (!employerData) {
-      throw new NotFoundException('User employer data not found');
+    if (!payload.employerEditEnum) {
+      throw new BadRequestException("Can't update without the enum");
     }
-    if (data.customerId) {
+    if (payload.customerId) {
       throw new ForbiddenException("Can't update stripe id");
     }
     if (file) {
       await this.employersService.uploadEmployerFiles(reqUserId, file);
     }
-    return await this.employersService.update(employerData, data);
+    return await this.employersService.update(
+      reqUserId,
+      payload,
+      payload.employerEditEnum,
+    );
   }
 }

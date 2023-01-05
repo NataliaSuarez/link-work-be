@@ -4,11 +4,16 @@ import {
   Injectable,
   InternalServerErrorException,
   ConflictException,
+  NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
-import { CreateEmployerDto, UpdateEmployerDto } from '../dtos/employers.dto';
+import {
+  CreateEmployerDto,
+  EmployerEditType,
+  UpdateEmployerDto,
+} from '../dtos/employers.dto';
 import { UsersService } from './users.service';
 import { StripeService } from '../../stripe/stripe.service';
 import { DOSpacesService } from '../../spaces/services/doSpacesService';
@@ -131,7 +136,32 @@ export class EmployersService {
     }
   }
 
-  async update(employerData: EmployerData, changes: UpdateEmployerDto) {
+  async update(
+    userId: string,
+    payload: UpdateEmployerDto,
+    editType?: EmployerEditType,
+  ) {
+    const employerData = await this.findByUserId(userId);
+    if (!employerData) {
+      throw new NotFoundException('User employer data not found');
+    }
+    let changes: UpdateEmployerDto = {};
+
+    if (editType) {
+      switch (editType) {
+        case EmployerEditType.CARD_DATA:
+          changes.cardData = payload.cardData;
+          break;
+
+        case EmployerEditType.OTHER:
+          const { cardData, ...newPayload } = payload;
+          changes = newPayload;
+          break;
+      }
+    } else {
+      changes = payload;
+    }
+
     try {
       if (changes.addressData) {
         const modifyAddress = await this.addressRepository.findOne({
@@ -241,7 +271,8 @@ export class EmployersService {
     }
   }
 
-  async updateStars(employerData: EmployerData, stars: number) {
+  async updateStars(employerUserId: string, stars: number) {
+    const employerData = await this.findByUserId(employerUserId);
     const newTotal = employerData.stars + stars;
     const totalReviews = employerData.totalReviews + 1;
     const newAvg = newTotal / totalReviews;
@@ -250,7 +281,7 @@ export class EmployersService {
       totalReviews: totalReviews,
       avgStars: newAvg,
     };
-    return await this.update(employerData, changes);
+    return await this.update(employerUserId, changes);
   }
 
   async uploadBusinessImg(employerUserId: string, file: Express.Multer.File) {
