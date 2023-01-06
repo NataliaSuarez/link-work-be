@@ -180,8 +180,7 @@ export class EmployersService {
           lat: changes.addressData.lat,
           long: changes.addressData.long,
         };
-        this.addressRepository.merge(modifyAddress, newAddress);
-        await this.addressRepository.save(modifyAddress);
+        await this.addressRepository.update(modifyAddress.id, newAddress);
       }
       if (changes.cardData) {
         if (employerData.customerId) {
