@@ -238,6 +238,15 @@ export class UsersService {
     }
   }
 
+  async deleteUserImg(imgId: string, imgUrl: string) {
+    try {
+      await this.imgRepository.delete(imgId);
+      await this.doSpaceService.deleteFile(imgUrl);
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
   async update(user: User, changes: UpdateUserDto) {
     if (
       changes.email ||

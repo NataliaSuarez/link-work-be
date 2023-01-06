@@ -326,9 +326,28 @@ export class EmployersService {
   }
 
   async uploadEmployerFiles(userId: string, files: Express.Multer.File[]) {
+    const businessImgs = await this.imgRepository.find({
+      where: {
+        user: {
+          id: userId,
+        },
+        type: ImageType.BUSINESS_IMG,
+      },
+    });
+    let flag = 0;
+    const regExp = /^businessImg/;
     try {
       for (const file of files) {
+        const fileName = file.originalname.split('.');
+        if (regExp.test(fileName[0])) {
+          flag = 1;
+        }
         await this.usersService.uploadUserImg(userId, file);
+      }
+      if (flag != 0 && businessImgs) {
+        for (const img of businessImgs) {
+          await this.usersService.deleteUserImg(img.id, img.imgUrl);
+        }
       }
       return true;
     } catch (error) {
