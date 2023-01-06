@@ -1,5 +1,5 @@
 import * as moment from 'moment';
-import { ShiftStatus } from 'src/offers_and_shifts/entities/shift.entity';
+import { ShiftStatus } from '../offers_and_shifts/entities/shift.entity';
 
 export function getHoursDiff(startDate, endDate) {
   const msInHour = 1000 * 60 * 60;

@@ -29,7 +29,7 @@ import { AccessTokenGuard } from '../../auth/jwt/accessToken.guard';
 import { GetReqUser } from '../../auth/get-req-user.decorator';
 import { Role, User } from '../entities/user.entity';
 import { AllExceptionsFilter } from '../../utils/filters/all-exceptions.filter';
-import { AuthService } from 'src/auth/auth.service';
+import { AuthService } from '../../auth/auth.service';
 
 @UseFilters(AllExceptionsFilter)
 @Controller('users')

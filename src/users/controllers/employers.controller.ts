@@ -118,6 +118,12 @@ export class EmployersController {
     return await this.employersService.deleteAddress(addressId);
   }
 
+  @Delete('delete-business-img/:imgId')
+  @ApiOperation({ summary: 'Eliminar una imagen del local' })
+  async deleteBusinessImg(@Param('imgId') imgId: string) {
+    return await this.employersService.deleteBusinessImg(imgId);
+  }
+
   @Put(':toUserId/add-review')
   @ApiOperation({ summary: 'Puntuar con estrellas a un empleador' })
   async addReview(
