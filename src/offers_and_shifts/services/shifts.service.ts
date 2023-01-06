@@ -22,7 +22,7 @@ import * as moment from 'moment';
 import { PaginationDto } from '../../common/dto/pagination.dto';
 import { User } from '../../users/entities/user.entity';
 import { UserImage, ImageType } from '../../users/entities/user_image.entity';
-import { getHoursDiff } from '../../utils/dates';
+import { isActiveByHours, isWaitingEnding } from '../../utils/dates';
 @Injectable()
 export class ShiftsService {
   constructor(
@@ -182,6 +182,7 @@ export class ShiftsService {
     try {
       const activeShifts = [];
       const acceptedShifts = [];
+      const doneShifts = [];
 
       const shifts = await this.shiftRepo
         .createQueryBuilder('shifts')
@@ -279,22 +280,21 @@ export class ShiftsService {
               long: shift.address_long,
             },
             employerUser: {
+              id: employerUser.id,
               userImages: employerUser.userImages,
-              employerData: {
-                description: employerUser.employerData.description,
-              },
+              businessName: employerUser.employerData.businessName,
+              businessDescription: employerUser.employerData.description,
             },
           },
         };
-        const dateNow: Date = new Date();
         if (
           formatShift.status == ShiftStatus.CREATED ||
           formatShift.status == ShiftStatus.ACTIVE ||
           formatShift.status == ShiftStatus.UNCONFIRMED
         ) {
           if (
-            getHoursDiff(dateNow, formatShift.offer.to) > 0 &&
-            getHoursDiff(dateNow, formatShift.offer.from) < 1
+            isActiveByHours(formatShift.offer.from, formatShift.offer.to) ||
+            isWaitingEnding(formatShift)
           ) {
             formatShift.status = parseInt(formatShift.status);
             activeShifts.push(formatShift);
@@ -302,12 +302,16 @@ export class ShiftsService {
             formatShift.status = parseInt(formatShift.status);
             acceptedShifts.push(formatShift);
           }
+        } else {
+          formatShift.status = parseInt(formatShift.status);
+          doneShifts.push(formatShift);
         }
       }
 
       return {
         activeShifts: activeShifts,
         acceptedShifts: acceptedShifts,
+        doneShifts: doneShifts,
       };
     } catch (error) {
       console.error(error);
@@ -322,6 +326,7 @@ export class ShiftsService {
     try {
       const activeShifts = [];
       const acceptedShifts = [];
+      const doneShifts = [];
 
       const shifts = await this.shiftRepo
         .createQueryBuilder('shifts')
@@ -429,15 +434,14 @@ export class ShiftsService {
             },
           },
         };
-        const dateNow: Date = new Date();
         if (
           formatShift.status == ShiftStatus.CREATED ||
           formatShift.status == ShiftStatus.ACTIVE ||
           formatShift.status == ShiftStatus.UNCONFIRMED
         ) {
           if (
-            getHoursDiff(dateNow, formatShift.offer.to) > 0 &&
-            getHoursDiff(dateNow, formatShift.offer.from) < 1
+            isActiveByHours(formatShift.offer.from, formatShift.offer.to) ||
+            isWaitingEnding(formatShift)
           ) {
             formatShift.status = parseInt(formatShift.status);
             activeShifts.push(formatShift);
@@ -445,12 +449,16 @@ export class ShiftsService {
             formatShift.status = parseInt(formatShift.status);
             acceptedShifts.push(formatShift);
           }
+        } else {
+          formatShift.status = parseInt(formatShift.status);
+          doneShifts.push(formatShift);
         }
       }
 
       return {
         activeShifts: activeShifts,
         acceptedShifts: acceptedShifts,
+        doneShifts: doneShifts,
       };
     } catch (error) {
       console.error(error);

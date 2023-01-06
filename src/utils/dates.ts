@@ -1,12 +1,13 @@
 import * as moment from 'moment';
+import { ShiftStatus } from 'src/offers_and_shifts/entities/shift.entity';
 
 export function getHoursDiff(startDate, endDate) {
   const msInHour = 1000 * 60 * 60;
-  let dif = Math.round(Math.abs(endDate - startDate) / msInHour);
+  let diff = Math.round(Math.abs(endDate - startDate) / msInHour);
   if (endDate < startDate) {
-    dif = dif * -1;
+    diff = diff * -1;
   }
-  return dif;
+  return diff;
 }
 export function getDay0(date) {
   const day = new Date(date).getDay();
@@ -19,3 +20,19 @@ export function getDay6(date) {
   const result = new Date(moment(date).add(add, 'd').format());
   return result;
 }
+
+export const isActiveByHours = (from, to) => {
+  const now: Date = new Date();
+  const beforeFrom = moment(from).subtract(1, 'hour');
+  // is active 1 hour before the start until the end of the offer
+  return moment(beforeFrom).isBefore(now) && moment(now).isBefore(to);
+};
+export const isWaitingEnding = (shift) => {
+  const now: Date = new Date();
+  const shiftIsOver = moment(shift.offer.to).isBefore(now);
+  return (
+    shiftIsOver &&
+    (shift.status == ShiftStatus.ACTIVE ||
+      shift.status == ShiftStatus.UNCONFIRMED)
+  );
+};
