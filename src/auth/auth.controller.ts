@@ -149,16 +149,16 @@ export class AuthController {
 
       console.log('access token', accessToken);
 
-      // const idToken = jwt.decode(accessToken.id_token, { json: true });
+      //const idToken = jwt.decode(accessToken.id_token, { json: true });
 
-      // const userID = idToken.sub;
+      //const userID = idToken.sub;
 
-      // const userEmail = idToken.email;
-      // const userName = `${request.query.firstName} ${request.query.lastName}`;
+      //const userEmail = idToken.email;
+      const userName = `${request.query.firstName} ${request.query.lastName}`;
 
-      // const sessionID = `NEW SESSION ID for ${userID} / ${userEmail} / ${userName}`;
+      //const sessionID = `NEW SESSION ID for ${userID} / ${userEmail} / ${userName}`;
 
-      // return response.json({ sessionId: sessionID });
+      //return response.json({ sessionId: sessionID });
     } catch (error) {
       console.error(error);
 

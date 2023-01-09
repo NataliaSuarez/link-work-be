@@ -105,28 +105,6 @@ export class UsersController {
     }
   }
 
-  @Post('upload-profile-img')
-  @ApiBearerAuth()
-  @UseGuards(AccessTokenGuard)
-  @UseInterceptors(
-    FileInterceptor('file', {
-      storage: diskStorage({
-        destination: './tmp/uploads/profileImgs',
-      }),
-    }),
-  )
-  @ApiOperation({ summary: 'Cargar foto de perfil' })
-  async addProfileImg(
-    @GetReqUser('id') reqUserId,
-    @UploadedFile() file: Express.Multer.File,
-  ) {
-    const user = await this.usersService.findOneById(reqUserId);
-    if (!user) {
-      throw new NotFoundException(`User not found`);
-    }
-    return await this.usersService.uploadUserImg(reqUserId, file);
-  }
-
   @Put(':id')
   @ApiBearerAuth()
   @UseGuards(AccessTokenGuard)

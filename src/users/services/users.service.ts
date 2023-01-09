@@ -39,8 +39,8 @@ export class UsersService {
       const { limit, offset, role } = params;
       return await this.userRepository.find({
         where: { role: Equal(role) },
-        take: limit,
-        skip: offset,
+        take: Number(limit),
+        skip: Number(offset),
       });
     } else {
       return await this.userRepository.find();
@@ -268,7 +268,8 @@ export class UsersService {
           { password: hash },
         );
       }
-      return await this.userRepository.update({ id: user.id }, changes);
+      await this.userRepository.update({ id: user.id }, changes);
+      return await this.userRepository.findOneBy({ id: user.id });
     } catch (error) {
       console.error(error);
       if (error.code === PostgresErrorCode.UNIQUE) {
