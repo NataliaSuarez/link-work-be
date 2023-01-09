@@ -56,10 +56,6 @@ export class Offer {
   })
   category: OfferCategory;
 
-  @Column({ type: 'text', nullable: true })
-  @ApiProperty({ nullable: true })
-  description: string;
-
   @Column({ type: 'varchar', length: 255, nullable: true })
   @ApiProperty({ nullable: true })
   videoUrl?: string;
