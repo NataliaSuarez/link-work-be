@@ -526,9 +526,7 @@ export class ShiftsService {
       newShift.offer = savedOffer;
       const savedShift = await this.shiftRepo.save(newShift);
       offer.applicants.forEach(async (applicant) => {
-        if (applicant.id != workerUserId) {
-          await this.offersService.removeApplicant(offer.id, applicant.id);
-        }
+        await this.offersService.removeApplicant(offer.id, applicant.id);
       });
       return savedShift;
     } catch (error) {
