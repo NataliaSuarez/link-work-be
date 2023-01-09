@@ -216,7 +216,12 @@ export class OffersService {
       );
 
       offer.videoUrl = fileUrl;
-      return await this.offersRepo.save(offer);
+      await this.offersRepo.save(offer);
+      return await this.offersRepo.findOne({
+        where: { id: offer.id },
+        loadEagerRelations: false,
+        relations: ['employerUser'],
+      });
     } catch (error) {
       console.log(error);
       throw new InternalServerErrorException();
