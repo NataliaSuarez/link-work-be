@@ -44,10 +44,10 @@ export class Offer {
   @Column({ type: 'timestamptz' })
   to: Date;
 
-  @Column({ type: 'int' })
+  @Column({ type: 'float' })
   usdHour: number;
 
-  @Column({ type: 'int' })
+  @Column({ type: 'float' })
   usdTotal: number;
 
   @Column({
