@@ -58,6 +58,9 @@ export class UsersService {
       where: { id: id },
       relations,
     });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
     if (user.role === Role.WORKER && user.workerData) {
       const cryptr = new Cryptr(this.configService.get('CRYPTR_SECRET'));
       if (user.workerData.ssn) {

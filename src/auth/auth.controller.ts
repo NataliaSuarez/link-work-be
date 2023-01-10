@@ -47,7 +47,7 @@ export class AuthController {
   @ApiOperation({ summary: 'Prueba HTML recuperación de password' })
   @Render('password.hbs')
   async forgotPassword() {
-    return { message: 'Hello world!' };
+    return { message: 'Forgot Password' };
   }
 
   @Post('change-password')

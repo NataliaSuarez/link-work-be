@@ -1,6 +1,7 @@
 import { HttpStatus, INestApplication } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import * as request from 'supertest';
+import { v4 as uuidv4 } from 'uuid';
 
 import { AppModule } from '../src/app.module';
 import { AccessTokenGuard } from '../src/auth/jwt/accessToken.guard';
@@ -60,6 +61,11 @@ describe('Users (e2e)', () => {
         .expect(HttpStatus.OK);
 
       expect(response.body.email).toEqual(arrayCreatedUsers[0].email);
+    });
+    it('should return an error if user does not exists', async () => {
+      return await request(server)
+        .get(`/users/${uuidv4()}`)
+        .expect(HttpStatus.NOT_FOUND);
     });
   });
 

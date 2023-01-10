@@ -30,13 +30,16 @@ describe('AuthController (e2e)', () => {
   });
 
   describe('/auth/sign-up (POST)', () => {
-    it('should register an user', async () => {
+    it('should register an user with email and password', async () => {
       const response = await request(server)
         .post('/auth/sign-up')
         .send(mockCreateUser)
         .expect(HttpStatus.CREATED);
 
       expect(response.body).toHaveProperty('message');
+      expect(response.body.message).toEqual(
+        `Email sended to ${mockCreateUser.email}`,
+      );
     });
 
     it('should not register a new user if the passed email already exists', async () => {
@@ -83,6 +86,40 @@ describe('AuthController (e2e)', () => {
         .expect(HttpStatus.NOT_FOUND);
 
       expect(response.body.tokens).not.toBeDefined();
+    });
+  });
+
+  describe('/auth/retrieve-password (POST', () => {
+    it('should send an email to user mail address', async () => {
+      const response = await request(server)
+        .post('/auth/retrieve-password')
+        .send({ email: mockCreateUser.email })
+        .expect(HttpStatus.CREATED);
+
+      expect(response.body).toHaveProperty('message');
+      expect(response.body.message).toEqual(
+        'An email was sent if the user exists',
+      );
+    });
+  });
+
+  describe('/auth/exists-by-email (POST)', () => {
+    it('should return true if user exists', async () => {
+      const response = await request(server)
+        .post('/auth/exists-by-email')
+        .send({ email: mockCreateUser.email })
+        .expect(HttpStatus.CREATED);
+
+      expect(response.text).toBe('true');
+    });
+
+    it('should return false if user does not exists', async () => {
+      const response = await request(server)
+        .post('/auth/exists-by-email')
+        .send({ email: 'fake_mail@gmail.com' })
+        .expect(HttpStatus.CREATED);
+
+      expect(response.text).toEqual('false');
     });
   });
 });
