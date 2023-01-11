@@ -100,10 +100,25 @@ export class OffersService {
     id: string,
     relations?: FindOptionsRelations<Offer>,
   ): Promise<Offer> {
+    if (!relations) {
+      relations = {
+        address: true,
+        employerUser: {
+          employerData: true,
+          userImages: true,
+        },
+        applicants: true,
+      };
+    }
     const offer = await this.offersRepo.findOne({
       where: { id },
-      relations,
+      loadEagerRelations: false,
+      relations: relations,
     });
+    if (!offer) {
+      throw new NotFoundException('Offer not found');
+    }
+
     return offer;
   }
 
