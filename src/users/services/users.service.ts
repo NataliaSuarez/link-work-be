@@ -34,17 +34,15 @@ export class UsersService {
     private readonly configService: ConfigService,
   ) {}
 
-  async findAllFiltered(params?: FilterUsersDto) {
-    if (params) {
-      const { limit, offset, role } = params;
-      return await this.userRepository.find({
-        where: { role: Equal(role) },
-        take: Number(limit),
-        skip: Number(offset),
-      });
-    } else {
+  async findAllFiltered(limit?: number, offset?: number, role?: number) {
+    if (!limit && !offset && !role) {
       return await this.userRepository.find();
     }
+    return await this.userRepository.find({
+      where: { role: Equal(role) },
+      take: limit,
+      skip: offset,
+    });
   }
 
   async findOneById(

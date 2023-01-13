@@ -9,9 +9,6 @@ import {
   UseGuards,
   Patch,
   NotFoundException,
-  UseInterceptors,
-  Post,
-  UploadedFile,
   UseFilters,
 } from '@nestjs/common';
 import {
@@ -20,13 +17,10 @@ import {
   ApiOperation,
   ApiTags,
 } from '@nestjs/swagger';
-import { FileInterceptor } from '@nestjs/platform-express';
-import { diskStorage } from 'multer';
 
 import { FilterUsersDto, UpdateUserDto } from '../dtos/users.dto';
 import { UsersService } from '../services/users.service';
 import { AccessTokenGuard } from '../../auth/jwt/accessToken.guard';
-import { GetReqUser } from '../../auth/get-req-user.decorator';
 import { Role, User } from '../entities/user.entity';
 import { AllExceptionsFilter } from '../../utils/filters/all-exceptions.filter';
 import { AuthService } from '../../auth/auth.service';
@@ -44,8 +38,12 @@ export class UsersController {
   @ApiBearerAuth()
   @UseGuards(AccessTokenGuard)
   @ApiOperation({ summary: 'Filtro y paginación de usuarios' })
-  async getUsers(@Query() params: FilterUsersDto) {
-    return await this.usersService.findAllFiltered(params);
+  async getUsers(
+    @Query('limit') limit?: number,
+    @Query('offset') offset?: number,
+    @Query('role') role?: number,
+  ) {
+    return await this.usersService.findAllFiltered(limit, offset, role);
   }
 
   @Get(':id')

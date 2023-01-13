@@ -35,6 +35,7 @@ import { WorkersService } from '../../users/services/workers.service';
 import { EmployerData } from '../../users/entities/employer_data.entity';
 import { StripeService } from '../../stripe/stripe.service';
 import { getHoursDiff } from '../../utils/dates';
+import { SendgridService } from '../../sendgrid/sendgrid.service';
 
 @Injectable()
 export class OffersService {
@@ -48,6 +49,7 @@ export class OffersService {
     private doSpaceService: DOSpacesService,
     private workerService: WorkersService,
     private stripeService: StripeService,
+    private sendgridService: SendgridService,
   ) {}
 
   async findAllFiltered(params?: FilterOffersDto) {
@@ -275,6 +277,22 @@ export class OffersService {
     }
     try {
       this.offersRepo.merge(offer, changes);
+      offer.favoritedBy.forEach(async (user) => {
+        await this.sendgridService.send({
+          to: user.email,
+          from: 'LinkWork Team <matias.viano@getwonder.tech>',
+          subject: `An offer that you have in favorite has been edited
+          `,
+          templateId: 'd-fd07b18729124e7bb6554193148649ca',
+          dynamicTemplateData: {
+            message_body: `
+            The job offer ${offer.title} has been edited by the business
+            `,
+            footer_body: `
+            Check it out in your favorite offers`,
+          },
+        });
+      });
       return await this.offersRepo.save(offer);
     } catch (error) {
       console.error(error);
@@ -346,7 +364,6 @@ export class OffersService {
     if (!offer) {
       throw new NotFoundException(`Offer not found`);
     }
-
     // Reject application if offer starts in less than 15 minutes or if it was already accepted
     if (
       offer.status !== OfferStatus.CREATED ||
@@ -377,6 +394,18 @@ export class OffersService {
       offer.favoritedBy.push(workerUser);
     }
     try {
+      await this.sendgridService.send({
+        to: offer.employerUser.email,
+        from: 'LinkWork Team <matias.viano@getwonder.tech>',
+        subject: `You have a new applicant`,
+        templateId: 'd-fd07b18729124e7bb6554193148649ca',
+        dynamicTemplateData: {
+          message_body: `
+          ${workerUser.firstName} ${workerUser.lastName} applied to the job offer ${offer.title}
+          `,
+          footer_body: `We trust it could be the one`,
+        },
+      });
       return await this.offersRepo.save(offer);
     } catch (error) {
       console.error(error);

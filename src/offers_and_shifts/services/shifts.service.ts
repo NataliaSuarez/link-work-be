@@ -23,6 +23,7 @@ import { PaginationDto } from '../../common/dto/pagination.dto';
 import { User } from '../../users/entities/user.entity';
 import { UserImage, ImageType } from '../../users/entities/user_image.entity';
 import { isActiveByHours, isWaitingEnding } from '../../utils/dates';
+import { SendgridService } from '../../sendgrid/sendgrid.service';
 @Injectable()
 export class ShiftsService {
   constructor(
@@ -32,6 +33,7 @@ export class ShiftsService {
     @InjectRepository(UserImage) private imgRepo: Repository<UserImage>,
     private offersService: OffersService,
     private stripeService: StripeService,
+    private sendgridService: SendgridService,
   ) {}
 
   async findByStatus(reqUserId: string, status: ShiftStatus) {
@@ -517,6 +519,17 @@ export class ShiftsService {
       if (paymentIntent.status != 'succeeded') {
         throw new ConflictException('Payment intent unsuccessful');
       }
+      await this.sendgridService.send({
+        to: employer.email,
+        from: 'LinkWork Team <matias.viano@getwonder.tech>',
+        subject: `Your payment has been taken`,
+        templateId: 'd-fd07b18729124e7bb6554193148649ca',
+        dynamicTemplateData: {
+          message_body: `A total of ${amount} usd has been taken for the payment of your job offer ${offer.title}
+          `,
+          footer_body: `The money will not be sent to ${workerUser.firstName} ${workerUser.lastName} until the end of the shift`,
+        },
+      });
       const savedOffer = await this.offersService.updateStatus(
         offerId,
         OfferStatus.ACCEPTED,
@@ -526,7 +539,51 @@ export class ShiftsService {
       newShift.offer = savedOffer;
       const savedShift = await this.shiftRepo.save(newShift);
       offer.applicants.forEach(async (applicant) => {
+        if (applicant.id === workerUserId) {
+          await this.sendgridService.send({
+            to: workerUser.email,
+            from: 'LinkWork Team <matias.viano@getwonder.tech>',
+            subject: `Congratulations! You have been accepted on a job offer`,
+            templateId: 'd-fd07b18729124e7bb6554193148649ca',
+            dynamicTemplateData: {
+              message_body: `You have been accepted in the job offer ${offer.title}
+              `,
+              footer_body: `Remember that the shit go from ${offer.from} to ${offer.to}`,
+            },
+          });
+        } else {
+          await this.sendgridService.send({
+            to: applicant.email,
+            from: 'LinkWork Team <matias.viano@getwonder.tech>',
+            subject: `Unfortunately you have not been selected
+            `,
+            templateId: 'd-fd07b18729124e7bb6554193148649ca',
+            dynamicTemplateData: {
+              message_body: `
+              Another candidate has been accepted for the job offer ${offer.title}
+              `,
+              footer_body: `
+              Don't let this discourage you and keep applying to other available offers`,
+            },
+          });
+        }
         await this.offersService.removeApplicant(offer.id, applicant.id);
+      });
+      offer.favoritedBy.forEach(async (user) => {
+        await this.sendgridService.send({
+          to: user.email,
+          from: 'LinkWork Team <matias.viano@getwonder.tech>',
+          subject: `An offer that you have in favorite has been closed
+          `,
+          templateId: 'd-fd07b18729124e7bb6554193148649ca',
+          dynamicTemplateData: {
+            message_body: `
+            Another candidate has been accepted for the job offer ${offer.title}
+            `,
+            footer_body: `
+            Don't let this discourage you and keep applying to other available offers`,
+          },
+        });
       });
       return savedShift;
     } catch (error) {
@@ -626,6 +683,30 @@ export class ShiftsService {
           shift: shift,
           user: shift.offer.employerUser,
         };
+        await this.sendgridService.send({
+          to: shift.workerUser.email,
+          from: 'LinkWork Team <matias.viano@getwonder.tech>',
+          subject: `We have sent a payment to your bank account`,
+          templateId: 'd-fd07b18729124e7bb6554193148649ca',
+          dynamicTemplateData: {
+            message_body: `
+            A payment of ${amount} usd has been sent for the job offer ${shift.offer.title}
+            `,
+            footer_body: `Check it out in your bank account`,
+          },
+        });
+        await this.sendgridService.send({
+          to: shift.offer.employerUser.email,
+          from: 'LinkWork Team <matias.viano@getwonder.tech>',
+          subject: `We have sent a payment for your job offer`,
+          templateId: 'd-fd07b18729124e7bb6554193148649ca',
+          dynamicTemplateData: {
+            message_body: `
+            We have sent a payment to ${shift.workerUser.firstName} ${shift.workerUser.lastName} for the job offer ${shift.offer.title}
+            `,
+            footer_body: `We hope you had a good experience`,
+          },
+        });
         const newClock = this.clocksRepo.create(clockHistory);
         await this.clocksRepo.save(newClock);
         return await this.update(shift, {
