@@ -128,15 +128,16 @@ export class OffersController {
     return await this.offerService.findOneById(id);
   }
 
-  @Get(':id/applicants')
+  @Get(':offerId/applicants')
   @CheckAbilities({ action: Action.Read, subject: Offer })
   @ApiOperation({ summary: 'Obtener los aplicantes de una oferta' })
   async getApplicants(
-    @Param('id', ParseUUIDPipe) offerId: string,
+    @Param('offerId', ParseUUIDPipe) offerId: string,
     @GetReqUser('id') reqUserId,
   ) {
     const offer = await this.offerService.findOneById(offerId, {
       applicants: true,
+      employerUser: true,
     });
 
     if (!offer || offer.employerUser.id !== reqUserId) {

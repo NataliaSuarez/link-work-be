@@ -38,12 +38,8 @@ export class UsersController {
   @ApiBearerAuth()
   @UseGuards(AccessTokenGuard)
   @ApiOperation({ summary: 'Filtro y paginación de usuarios' })
-  async getUsers(
-    @Query('limit') limit?: number,
-    @Query('offset') offset?: number,
-    @Query('role') role?: number,
-  ) {
-    return await this.usersService.findAllFiltered(limit, offset, role);
+  async getUsers(@Query() params?: FilterUsersDto) {
+    return await this.usersService.findAllFiltered(params);
   }
 
   @Get(':id')

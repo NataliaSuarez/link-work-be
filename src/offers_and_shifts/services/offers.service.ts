@@ -113,7 +113,7 @@ export class OffersService {
       };
     }
     const offer = await this.offersRepo.findOne({
-      where: { id },
+      where: { id: id },
       loadEagerRelations: false,
       relations: relations,
     });
@@ -281,15 +281,11 @@ export class OffersService {
         await this.sendgridService.send({
           to: user.email,
           from: 'LinkWork Team <matias.viano@getwonder.tech>',
-          subject: `An offer that you have in favorite has been edited
-          `,
           templateId: 'd-fd07b18729124e7bb6554193148649ca',
           dynamicTemplateData: {
-            message_body: `
-            The job offer ${offer.title} has been edited by the business
-            `,
-            footer_body: `
-            Check it out in your favorite offers`,
+            subject_msg: `An offer that you have in favorite has been edited`,
+            message_body: `The job offer ${offer.title} has been edited by the business`,
+            second_body: `Check it out in your favorite offers`,
           },
         });
       });
@@ -397,13 +393,11 @@ export class OffersService {
       await this.sendgridService.send({
         to: offer.employerUser.email,
         from: 'LinkWork Team <matias.viano@getwonder.tech>',
-        subject: `You have a new applicant`,
         templateId: 'd-fd07b18729124e7bb6554193148649ca',
         dynamicTemplateData: {
-          message_body: `
-          ${workerUser.firstName} ${workerUser.lastName} applied to the job offer ${offer.title}
-          `,
-          footer_body: `We trust it could be the one`,
+          subject_msg: `You have a new applicant`,
+          message_body: `${workerUser.firstName} ${workerUser.lastName} applied to the job offer ${offer.title}`,
+          second_body: `We trust it could be the one`,
         },
       });
       return await this.offersRepo.save(offer);
