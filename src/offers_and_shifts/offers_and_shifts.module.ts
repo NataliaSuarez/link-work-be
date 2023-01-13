@@ -1,14 +1,13 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ConfigService } from '@nestjs/config';
 
 import { Offer } from './entities/offer.entity';
 import { OffersService } from './services/offers.service';
 import { OffersController } from './controllers/offers.controller';
-
 import { Shift } from './entities/shift.entity';
 import { ShiftsService } from './services/shifts.service';
 import { ShiftsController } from './controllers/shifts.controller';
-
 import { WorkerData } from '../users/entities/worker_data.entity';
 import { EmployerData } from '../users/entities/employer_data.entity';
 import { EmployersService } from '../users/services/employers.service';
@@ -21,7 +20,7 @@ import { DOSpacesServiceProvider } from '../spaces/services';
 import { UserImage } from '../users/entities/user_image.entity';
 import { Address } from '../users/entities/address.entity';
 import { WorkersService } from '../users/services/workers.service';
-import { ConfigService } from '@nestjs/config';
+import { SendgridService } from '../sendgrid/sendgrid.service';
 
 @Module({
   imports: [
@@ -47,6 +46,7 @@ import { ConfigService } from '@nestjs/config';
     DOSpacesServiceProvider,
     WorkersService,
     ConfigService,
+    SendgridService,
   ],
   exports: [OffersService, ShiftsService],
 })
