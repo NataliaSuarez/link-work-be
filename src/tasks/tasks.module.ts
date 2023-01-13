@@ -18,6 +18,7 @@ import { DOSpacesService } from '../spaces/services/doSpacesService';
 import { DOSpacesServiceProvider } from '../spaces/services';
 import { UserImage } from '../users/entities/user_image.entity';
 import { Address } from '../users/entities/address.entity';
+import { SendgridService } from '../sendgrid/sendgrid.service';
 
 @Module({
   imports: [
@@ -42,6 +43,7 @@ import { Address } from '../users/entities/address.entity';
     UsersService,
     DOSpacesService,
     DOSpacesServiceProvider,
+    SendgridService,
   ],
 })
 export class TasksModule {}
