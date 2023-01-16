@@ -121,6 +121,11 @@ export class CreateUserDto {
   @IsOptional()
   @ApiProperty()
   readonly googleToken?: string;
+
+  @IsString()
+  @IsOptional()
+  @ApiProperty({ nullable: true })
+  readonly lastLogin?: Date;
 }
 
 export class UpdateUserDto extends PartialType(CreateUserDto) {}

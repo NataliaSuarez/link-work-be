@@ -136,6 +136,7 @@ export class AuthService {
       role: user.role,
     });
     await this.updateRefreshToken(user.id, tokens.refreshToken);
+    await this.usersService.update(user, { lastLogin: new Date() });
     const objRta = {
       tokens: tokens,
       userData: {

@@ -124,6 +124,9 @@ export class User {
   @DeleteDateColumn()
   desactivatedAt: Date;
 
+  @Column({ type: 'timestamptz', nullable: true })
+  lastLogin: Date;
+
   @Column({ type: 'varchar', length: 255, nullable: true })
   @ApiProperty({ nullable: true })
   retrieveToken: string;
