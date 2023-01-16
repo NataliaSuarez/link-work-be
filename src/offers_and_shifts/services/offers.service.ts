@@ -306,7 +306,11 @@ export class OffersService {
     }
   }
 
-  async removeApplicant(offerId: string, applicantUserId: string) {
+  async removeApplicant(
+    offerId: string,
+    applicantUserId: string,
+    userId: string,
+  ) {
     const offer = await this.findOneById(offerId, {
       applicants: true,
       favoritedBy: true,
@@ -323,6 +327,18 @@ export class OffersService {
     );
     try {
       await this.offersRepo.save(offer);
+      if (applicantUserId === userId) {
+        await this.sendgridService.send({
+          to: offer.employerUser.email,
+          from: 'LinkWork Team <matias.viano@getwonder.tech>',
+          templateId: 'd-fd07b18729124e7bb6554193148649ca',
+          dynamicTemplateData: {
+            subject_msg: `An applicant has canceled its application`,
+            message_body: `We notify you that an applicant has canceled its application to the job offer ${offer.title}`,
+            second_body: `We wish you the best of luck in your search.`,
+          },
+        });
+      }
       return { message: 'Applicant removed from offer' };
     } catch (error) {
       throw new InternalServerErrorException();

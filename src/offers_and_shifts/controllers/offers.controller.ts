@@ -205,8 +205,13 @@ export class OffersController {
   async deleteApplicant(
     @Param('id', ParseUUIDPipe) id: string,
     @Param('applicantUserId', ParseUUIDPipe) applicantUserId: string,
+    @GetReqUser('id') reqUserId,
   ) {
-    return await this.offerService.removeApplicant(id, applicantUserId);
+    return await this.offerService.removeApplicant(
+      id,
+      applicantUserId,
+      reqUserId,
+    );
   }
 
   @Post(':offerId/apply')
