@@ -561,7 +561,11 @@ export class ShiftsService {
             },
           });
         }
-        await this.offersService.removeApplicant(offer.id, applicant.id);
+        await this.offersService.removeApplicant(
+          offer.id,
+          applicant.id,
+          employerUserId,
+        );
       });
       const updatedOffer = await this.offersService.findOneById(offerId, {
         favoritedBy: true,
