@@ -31,6 +31,7 @@ export enum Role {
   UNASSIGNED = 0,
   EMPLOYER = 1,
   WORKER = 2,
+  ADMIN = 3,
 }
 
 export enum ProfileStatus {

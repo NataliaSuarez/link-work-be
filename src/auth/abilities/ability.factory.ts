@@ -59,6 +59,14 @@ export class AbilityFactory {
       can([Action.Read], EmployerData);
       can([Action.Manage], UserImage);
     }
+    if (user.role === Role.ADMIN) {
+      can([Action.Manage], User);
+      can([Action.Manage], Offer);
+      can([Action.Manage], Shift);
+      can([Action.Manage], EmployerData);
+      can([Action.Manage], WorkerData);
+      can([Action.Manage], UserImage);
+    }
 
     return build({
       detectSubjectType: (item) =>

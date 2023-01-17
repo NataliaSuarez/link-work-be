@@ -54,11 +54,11 @@ export class WorkersController {
     private usersService: UsersService,
   ) {}
 
-  @Get('stripe-account-data')
+  @Get('stripe-account-data/:userId')
   @CheckAbilities({ action: Action.Read, subject: WorkerData })
-  @ApiOperation({ summary: 'Obtener data del worker en Stripe' })
-  async getStripeData(@GetReqUser('id') workerUserId) {
-    return await this.workersService.checkStripeAccount(workerUserId);
+  @ApiOperation({ summary: 'Obtener data de un worker en Stripe' })
+  async getStripeData(@Param('userId') userId: string) {
+    return await this.workersService.checkStripeAccount(userId);
   }
 
   @Post()

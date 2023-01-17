@@ -46,10 +46,10 @@ import { AllExceptionsFilter } from '../../utils/filters/all-exceptions.filter';
 export class EmployersController {
   constructor(private employersService: EmployersService) {}
 
-  @Get('stripe-customer-data')
-  @ApiOperation({ summary: 'Obtener data del usuario en Stripe' })
-  async getStripeData(@GetReqUser('id') reqUserId) {
-    return await this.employersService.retrieveStripeData(reqUserId);
+  @Get('stripe-customer-data/:userId')
+  @ApiOperation({ summary: 'Obtener data de un usuario en Stripe' })
+  async getStripeData(@Param('userId') userId: string) {
+    return await this.employersService.retrieveStripeData(userId);
   }
 
   @Post()
