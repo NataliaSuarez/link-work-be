@@ -41,11 +41,13 @@ export class UsersService {
         where: { role: Equal(role) },
         take: limit,
         skip: offset,
+        relations: ['workerData', 'employerData'],
       });
     }
     return await this.userRepository.find({
       take: limit,
       skip: offset,
+      relations: ['workerdata', 'employerData'],
     });
   }
 
