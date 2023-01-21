@@ -23,6 +23,7 @@ import { LoggerService } from './loggerService/logger.service';
 import { SendgridService } from './sendgrid/sendgrid.service';
 import { NestjsFormDataModule } from 'nestjs-form-data';
 import { SupportModule } from './support/support.module';
+import { Room } from './chat/room.entity';
 @Module({
   imports: [
     DatabaseModule,
@@ -38,7 +39,7 @@ import { SupportModule } from './support/support.module';
     AuthModule,
     StripeModule,
     TypegooseModule.forRoot(process.env.MONGO_URI),
-    TypegooseModule.forFeature([Chat]),
+    TypegooseModule.forFeature([Chat, Room]),
     ChatModule,
     ScheduleModule.forRoot(),
     TasksModule,

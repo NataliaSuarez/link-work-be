@@ -16,6 +16,11 @@ export class Chat {
   })
   room: string;
 
+  @prop({
+    default: () => Date.now(),
+  })
+  created_at: Date;
+
   constructor(chat?: Partial<Chat>) {
     Object.assign(this, chat);
   }
