@@ -52,6 +52,15 @@ export class ShiftsController {
     }
   }
 
+  @Get('admin/:id')
+  @CheckAbilities({ action: Action.Read, subject: Shift })
+  @ApiOperation({
+    summary: 'Obtener shift por su ID',
+  })
+  async getById(@Param('id') shiftId: string) {
+    return await this.shiftService.customFindById(shiftId);
+  }
+
   @Get(':id')
   @CheckAbilities({ action: Action.Read, subject: Shift })
   @ApiOperation({
