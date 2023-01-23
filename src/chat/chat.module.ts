@@ -23,6 +23,7 @@ import { EmployersService } from '../users/services/employers.service';
 import { WorkersService } from '../users/services/workers.service';
 import { DOSpacesService } from '../spaces/services/doSpacesService';
 import { DOSpacesServiceProvider } from '../spaces/services';
+import { SendgridService } from '../sendgrid/sendgrid.service';
 
 @Module({
   imports: [
@@ -50,6 +51,7 @@ import { DOSpacesServiceProvider } from '../spaces/services';
     WorkersService,
     DOSpacesService,
     DOSpacesServiceProvider,
+    SendgridService,
   ],
 })
 export class ChatModule {}
