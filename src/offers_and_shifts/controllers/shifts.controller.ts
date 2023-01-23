@@ -11,7 +11,7 @@ import {
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 
-import { CreateShiftDto } from '../dtos/shift.dto';
+import { CreateShiftDto, FilterShiftsDto } from '../dtos/shift.dto';
 import { ShiftsService } from '../services/shifts.service';
 import { AccessTokenGuard } from '../../auth/jwt/accessToken.guard';
 import { GetReqUser } from '../../auth/get-req-user.decorator';
@@ -31,6 +31,12 @@ import { AllExceptionsFilter } from '../../utils/filters/all-exceptions.filter';
 @Controller('shifts')
 export class ShiftsController {
   constructor(private shiftService: ShiftsService) {}
+
+  @Get('all')
+  @ApiOperation({ summary: 'Filtro y paginación de shifts' })
+  async getOffers(@Query() params?: FilterShiftsDto) {
+    return await this.shiftService.findAllFiltered(params);
+  }
 
   @Get()
   @ApiOperation({ summary: 'Obtener los shifts del usuario' })
