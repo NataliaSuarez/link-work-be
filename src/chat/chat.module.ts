@@ -42,18 +42,6 @@ import { WorkersService } from '../users/services/workers.service';
     UsersModule,
     OffersAndShiftsModule,
   ],
-  providers: [
-    ChatGateway,
-    ChatService,
-    RoomService,
-    ShiftsService,
-    OffersService,
-    StripeService,
-    EmployersService,
-    WorkersService,
-    DOSpacesService,
-    DOSpacesServiceProvider,
-    SendgridService,
-  ],
+  providers: [ChatGateway, ChatService, RoomService],
 })
 export class ChatModule {}
