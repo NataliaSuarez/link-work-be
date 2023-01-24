@@ -34,5 +34,4 @@ export const configValidationSchema = Joi.object({
   CRYPTR_SECRET: Joi.string().required(),
   APP_PLACEHOLDER_1: Joi.string().required(),
   APP_PLACEHOLDER_2: Joi.string().required(),
-  WS_PORT: Joi.number().required(),
 });
