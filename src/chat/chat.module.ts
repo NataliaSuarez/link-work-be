@@ -17,14 +17,6 @@ import { Address } from '../users/entities/address.entity';
 import { EmployerData } from '../users/entities/employer_data.entity';
 import { WorkerData } from '../users/entities/worker_data.entity';
 import { OffersAndShiftsModule } from '../offers_and_shifts/offers_and_shifts.module';
-import { SendgridService } from '../sendgrid/sendgrid.service';
-import { DOSpacesServiceProvider } from '../spaces/services';
-import { DOSpacesService } from '../spaces/services/doSpacesService';
-import { StripeService } from '../stripe/stripe.service';
-import { ShiftsService } from '../offers_and_shifts/services/shifts.service';
-import { OffersService } from '../offers_and_shifts/services/offers.service';
-import { EmployersService } from '../users/services/employers.service';
-import { WorkersService } from '../users/services/workers.service';
 
 @Module({
   imports: [

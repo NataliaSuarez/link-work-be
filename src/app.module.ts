@@ -24,6 +24,7 @@ import { SendgridService } from './sendgrid/sendgrid.service';
 import { NestjsFormDataModule } from 'nestjs-form-data';
 import { SupportModule } from './support/support.module';
 import { Room } from './chat/room.entity';
+import { RedirectionsModule } from './redirections/redirections.module';
 @Module({
   imports: [
     DatabaseModule,
@@ -46,6 +47,7 @@ import { Room } from './chat/room.entity';
     SpacesModule,
     NestjsFormDataModule,
     SupportModule,
+    RedirectionsModule,
   ],
   controllers: [AppController],
 
