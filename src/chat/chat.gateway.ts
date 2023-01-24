@@ -1,3 +1,4 @@
+import * as moment from 'moment';
 import {
   OnGatewayConnection,
   OnGatewayDisconnect,
@@ -17,6 +18,7 @@ import { Role } from '../users/entities/user.entity';
 import { RoomService } from './room.service';
 import { Room } from './room.entity';
 import { ShiftsService } from '../offers_and_shifts/services/shifts.service';
+import { Shift } from 'src/offers_and_shifts/entities/shift.entity';
 
 @WebSocketGateway(Number(process.env.CHAT_SOCKET_PORT) || 81, {
   cors: { origin: '*' },
@@ -46,12 +48,37 @@ export class ChatGateway
     console.log('Alguien se fue');
   }
 
-  async getRoomData({ shiftId, offerId, applicantId, employerId }: Room) {
+  async getRoomData({
+    // shiftId, offerId,
+    applicantId,
+    employerId,
+  }: Room) {
     const roomName = `room_${applicantId}_${employerId}`;
     const employer = await this.employersService.findByUserId(employerId);
     const applicant = await this.workersService.findByUserId(applicantId);
     const lastChat = await this.chatService.getLastChat(roomName);
-    const shift = await this.shiftService.findOneById(shiftId);
+    const workerShifts = await this.shiftService.findByWorkerUserId(
+      applicantId,
+    );
+    const nextShift = [
+      ...workerShifts.acceptedShifts,
+      ...workerShifts.activeShifts,
+    ].reduce((nextShift: Shift, currShift: Shift) => {
+      let result = currShift;
+      if (currShift.offer.employerUser.id == employer.id) result = currShift;
+      const now: Date = new Date();
+      if (moment(currShift.offer.from).isBefore(now)) result = currShift;
+
+      // check for nearlest shift
+      if (
+        nextShift.offer.employerUser.id == employer.id &&
+        moment(nextShift.offer.from).isBefore(now) &&
+        moment(nextShift.offer.from).isAfter(currShift.offer.from)
+      )
+        result = nextShift;
+
+      return result;
+    });
 
     return {
       room: roomName,
@@ -78,11 +105,11 @@ export class ChatGateway
         totalReviews: employer.totalReviews,
       },
       summaryShift: {
-        id: shift.id,
-        from: shift.offer.from,
-        to: shift.offer.to,
-        offerId: shift.offer.id,
-        offerTitle: shift.offer.title,
+        id: nextShift.id,
+        from: nextShift.offer.from,
+        to: nextShift.offer.to,
+        offerId: nextShift.offer.id,
+        offerTitle: nextShift.offer.title,
       },
       ...(lastChat
         ? {
@@ -99,8 +126,8 @@ export class ChatGateway
   async handleJoinRooms(client: Socket, userId: string) {
     const user = await this.userService.findOneById(userId);
     const rooms = await this.roomService.getRooms({
-      applicantId: user.role == Role.WORKER ? userId : null,
-      employerId: user.role == Role.EMPLOYER ? userId : null,
+      applicantId: user.role == Role.WORKER ? user.id : null,
+      employerId: user.role == Role.EMPLOYER ? user.id : null,
     });
     if (!user || rooms.length == 0) return;
     rooms.forEach(async (room: Room) => {
@@ -152,8 +179,8 @@ export class ChatGateway
   ) {
     const { shiftId, offerId, applicantId, employerId } = payload;
     const room: Room = {
-      shiftId: shiftId,
-      offerId: offerId,
+      // shiftId: shiftId,
+      // offerId: offerId,
       applicantId: applicantId,
       employerId: employerId,
     };
