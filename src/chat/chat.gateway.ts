@@ -18,7 +18,7 @@ import { RoomService } from './room.service';
 import { Room } from './room.entity';
 import { ShiftsService } from '../offers_and_shifts/services/shifts.service';
 
-@WebSocketGateway(81, {
+@WebSocketGateway(Number(process.env.CHAT_SOCKET_PORT) || 81, {
   cors: { origin: '*' },
 })
 export class ChatGateway

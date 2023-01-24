@@ -36,19 +36,61 @@ export class UsersService {
 
   async findAllFiltered(params?: FilterUsersDto) {
     const { limit, offset, role } = params;
+    const cryptr = new Cryptr(this.configService.get('CRYPTR_SECRET'));
     if (role) {
+      if (role === Role.WORKER) {
+        const users = await this.userRepository.find({
+          where: { role: Equal(Role.WORKER) },
+          take: limit,
+          skip: offset,
+          relations: { workerData: true },
+        });
+        const modifiedUsers = [];
+        users.forEach((user) => {
+          if (user.workerData.ssn) {
+            const decriptedSSN = cryptr.decrypt(user.workerData.ssn);
+            user.workerData.ssn = decriptedSSN.slice(-4);
+          }
+          if (user.workerData.uscis) {
+            const decriptedUSCIS = cryptr.decrypt(user.workerData.uscis);
+            user.workerData.uscis = decriptedUSCIS.slice(-4);
+          }
+          modifiedUsers.push(user);
+        });
+        return modifiedUsers;
+      }
       return await this.userRepository.find({
-        where: { role: Equal(role) },
+        where: { role: Equal(Role.EMPLOYER) },
         take: limit,
         skip: offset,
-        relations: { workerData: true, employerData: true },
+        relations: { employerData: true },
       });
     }
-    return await this.userRepository.find({
+    const users = [];
+    const workers = await this.userRepository.find({
+      where: { role: Equal(Role.WORKER) },
       take: limit,
       skip: offset,
-      relations: { workerData: true, employerData: true },
+      relations: { workerData: true },
     });
+    workers.forEach((user) => {
+      if (user.workerData.ssn) {
+        const decriptedSSN = cryptr.decrypt(user.workerData.ssn);
+        user.workerData.ssn = decriptedSSN.slice(-4);
+      }
+      if (user.workerData.uscis) {
+        const decriptedUSCIS = cryptr.decrypt(user.workerData.uscis);
+        user.workerData.uscis = decriptedUSCIS.slice(-4);
+      }
+      users.push(user);
+    });
+    const employers = await this.userRepository.find({
+      where: { role: Equal(Role.EMPLOYER) },
+      take: limit,
+      skip: offset,
+      relations: { employerData: true },
+    });
+    return users.concat(employers);
   }
 
   async findOneById(
