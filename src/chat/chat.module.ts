@@ -17,6 +17,10 @@ import { Address } from '../users/entities/address.entity';
 import { EmployerData } from '../users/entities/employer_data.entity';
 import { WorkerData } from '../users/entities/worker_data.entity';
 import { OffersAndShiftsModule } from '../offers_and_shifts/offers_and_shifts.module';
+import { SendgridService } from '../sendgrid/sendgrid.service';
+import { DOSpacesServiceProvider } from '../spaces/services';
+import { DOSpacesService } from '../spaces/services/doSpacesService';
+import { StripeService } from '../stripe/stripe.service';
 
 @Module({
   imports: [
@@ -34,6 +38,14 @@ import { OffersAndShiftsModule } from '../offers_and_shifts/offers_and_shifts.mo
     UsersModule,
     OffersAndShiftsModule,
   ],
-  providers: [ChatGateway, ChatService, RoomService],
+  providers: [
+    ChatGateway,
+    ChatService,
+    RoomService,
+    StripeService,
+    DOSpacesService,
+    DOSpacesServiceProvider,
+    SendgridService,
+  ],
 })
 export class ChatModule {}
