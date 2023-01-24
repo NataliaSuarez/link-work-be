@@ -20,7 +20,8 @@ import { Room } from './room.entity';
 import { ShiftsService } from '../offers_and_shifts/services/shifts.service';
 import { Shift } from 'src/offers_and_shifts/entities/shift.entity';
 
-@WebSocketGateway(Number(process.env.WS_PORT) || 81, {
+const ws_port = Number(process.env.WS_PORT);
+@WebSocketGateway(ws_port || 3000, {
   cors: { origin: '*' },
 })
 export class ChatGateway
