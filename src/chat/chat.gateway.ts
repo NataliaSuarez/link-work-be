@@ -89,7 +89,7 @@ export class ChatGateway
         )
           ? applicant.user.userImages.find((i) => i.type == 'profileImg').imgUrl
           : '',
-        stars: applicant.avgStars,
+        stars: applicant.stars,
         totalReviews: applicant.totalReviews,
       },
       employer: {
@@ -100,7 +100,7 @@ export class ChatGateway
         )
           ? employer.user.userImages.find((i) => i.type == 'businessImg').imgUrl
           : '',
-        stars: employer.avgStars,
+        stars: employer.stars,
         totalReviews: employer.totalReviews,
       },
       summaryShift: {
