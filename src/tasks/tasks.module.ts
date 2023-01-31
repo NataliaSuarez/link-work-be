@@ -10,7 +10,7 @@ import { TasksService } from './tasks.service';
 import { Clock } from '../offers_and_shifts/entities/clock.entity';
 import { UserImage } from '../users/entities/user_image.entity';
 import { Address } from '../users/entities/address.entity';
-import { OffersAndShiftsModule } from 'src/offers_and_shifts/offers_and_shifts.module';
+import { OffersAndShiftsModule } from '../offers_and_shifts/offers_and_shifts.module';
 import { UsersModule } from '../users/users.module';
 
 @Module({
