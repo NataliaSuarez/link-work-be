@@ -110,25 +110,28 @@ export class AuthService {
   }
 
   async signIn({ email, password }: AuthDto) {
-    const checkUser = await this.usersService.findByEmail(email);
-    if (!checkUser) throw new ForbiddenException('User does not exist');
-    if (checkUser.desactivatedAt) {
+    const user = await this.usersService.findByEmail(email);
+    if (!user) throw new ForbiddenException('Incorrect email or password');
+    if (user.desactivatedAt) {
       const reactivateUser = await this.usersService.desactivate(
-        checkUser.id,
+        user.id,
         false,
       );
       console.log(reactivateUser);
     }
-    const user = await this.usersService.findCredentials(email);
-    if (!user) throw new BadRequestException('Incorrect email or password');
     if (password) {
+      if (user.registerType === RegisterType.GOOGLE) {
+        throw new BadRequestException(
+          'This user was registered using a Google account',
+        );
+      } else if (user.registerType === RegisterType.APPLE) {
+        throw new BadRequestException(
+          'This user was registered using an Apple account',
+        );
+      }
       const passwordMatches = await argon2.verify(user.password, password);
       if (!passwordMatches)
         throw new BadRequestException('Incorrect email or password');
-    } else {
-      if (user.registerType === 0) {
-        throw new BadRequestException('User already exists');
-      }
     }
     const tokens = await this.getTokens({
       sub: user.id,

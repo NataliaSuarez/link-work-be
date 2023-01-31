@@ -11,6 +11,7 @@ import {
   UseFilters,
   Res,
   Redirect,
+  ForbiddenException,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
@@ -82,6 +83,9 @@ export class AuthController {
   @UseFilters(AllExceptionsFilter)
   @ApiOperation({ summary: 'Sign in an existing user' })
   async signin(@Body() data: AuthDto) {
+    if (!data.password) {
+      throw new ForbiddenException('You have to provide a password');
+    }
     return await this.authService.signIn(data);
   }
 
@@ -112,7 +116,7 @@ export class AuthController {
   @Redirect('https://docs.nestjs.com', 307)
   @ApiOperation({
     summary:
-      'Callback consumido por Apple para devolver las credenciles utilizadas para realizar el SignIn.',
+      'Callback consumido por Apple para devolver las credenciales utilizadas para realizar el SignIn.',
   })
   async appleRedirect(@Req() request, @Res() response: Response) {
     const redirect = `intent://callback?${new URLSearchParams(
