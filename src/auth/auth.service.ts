@@ -110,7 +110,7 @@ export class AuthService {
   }
 
   async signIn({ email, password }: AuthDto) {
-    const user = await this.usersService.findByEmail(email);
+    const user = await this.usersService.findCredentials(email);
     if (!user) throw new ForbiddenException('Incorrect email or password');
     if (user.desactivatedAt) {
       const reactivateUser = await this.usersService.desactivate(
