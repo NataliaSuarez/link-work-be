@@ -33,7 +33,12 @@ export class ChatService {
   }
 
   async saveChat(chat: Chat): Promise<void> {
-    const createdChat = new this.chatModel(chat);
-    await createdChat.save();
+    if (chat._id) {
+      const dbChat = this.chatModel.findById(chat._id);
+      await dbChat.updateOne(chat).exec();
+    } else {
+      const newChat = new this.chatModel(chat);
+      await newChat.save();
+    }
   }
 }

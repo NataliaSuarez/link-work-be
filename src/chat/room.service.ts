@@ -25,12 +25,30 @@ export class RoomService {
       });
   }
 
+  async getRoom(payload: {
+    applicantId: string;
+    employerId: string;
+  }): Promise<Room> {
+    const { applicantId, employerId } = payload;
+    return await this.roomModel.findOne({
+      applicantId: applicantId,
+      employerId: employerId,
+    });
+  }
+
   async saveRoom(room: Room): Promise<void> {
     const hasRoom = await this.roomModel.findOne({
       applicantId: room.applicantId,
       employerId: room.employerId,
     });
-    if (hasRoom) return;
+    if (
+      hasRoom &&
+      (hasRoom.applicantRead != room.applicantRead ||
+        hasRoom.employerRead != room.employerRead)
+    ) {
+      await hasRoom.updateOne(room);
+      return;
+    }
     const createdRoom = new this.roomModel(room);
     await createdRoom.save();
   }

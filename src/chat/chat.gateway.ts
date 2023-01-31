@@ -124,6 +124,7 @@ export class ChatGateway
   @SubscribeMessage('event_rooms')
   async handleJoinRooms(client: Socket, userId: string) {
     const user = await this.userService.findOneById(userId);
+    client.join(userId);
     const rooms = await this.roomService.getRooms({
       applicantId: user.role == Role.WORKER ? user.id : null,
       employerId: user.role == Role.EMPLOYER ? user.id : null,
@@ -132,6 +133,7 @@ export class ChatGateway
     rooms.forEach(async (room: Room) => {
       const data = await this.getRoomData(room);
       client.emit('new_room', data);
+      client.emit('room_read', room);
     });
   }
 
@@ -145,6 +147,8 @@ export class ChatGateway
         sender: obj.sender,
         room: obj.room,
         created_at: new Date(obj.created_at),
+        receiverRead: obj.receiverRead,
+        _id: obj._id,
       };
       client.emit('new_message', chat);
     });
@@ -153,17 +157,68 @@ export class ChatGateway
   @SubscribeMessage('event_message')
   async handleIncommingMessage(
     client: Socket,
-    payload: { room: string; message: string; sender: string },
+    payload: {
+      room: string;
+      applicantId: string;
+      employerId: string;
+      message: string;
+      sender: string;
+    },
   ) {
-    const { room, message, sender } = payload;
+    const { room, message, sender, applicantId, employerId } = payload;
     const chat: Chat = {
       message: message,
       sender: sender,
       room: room,
       created_at: new Date(Date.now()),
+      receiverRead: false,
     };
     await this.chatService.saveChat(chat);
+
+    const fullRoom: Room = await this.roomService.getRoom({
+      applicantId,
+      employerId,
+    });
+    if (sender == applicantId) {
+      fullRoom.employerRead = false;
+      fullRoom.applicantRead = true;
+    }
+    if (sender == employerId) {
+      fullRoom.applicantRead = false;
+      fullRoom.employerRead = true;
+    }
+    await this.roomService.saveRoom(fullRoom);
+    client.join(sender == applicantId ? applicantId : employerId);
+    this.server.emit('room_read', fullRoom);
     this.server.to(room).emit('new_message', chat);
+  }
+
+  @SubscribeMessage('event_messages_read')
+  async handleReadMessages(
+    client: Socket,
+    payload: {
+      room: string;
+      applicantId: string;
+      employerId: string;
+      userId: string;
+    },
+  ) {
+    const { room, userId, applicantId, employerId } = payload;
+    const chats = await this.chatService.getChats(room);
+    chats.forEach(async (obj) => {
+      if (userId != obj.sender) {
+        obj.receiverRead = true;
+        await this.chatService.saveChat(obj);
+      }
+    });
+    const fullRoom: Room = await this.roomService.getRoom({
+      applicantId,
+      employerId,
+    });
+    if (userId == applicantId) fullRoom.applicantRead = true;
+    if (userId == employerId) fullRoom.employerRead = true;
+    await this.roomService.saveRoom(fullRoom);
+    client.emit('room_read', fullRoom);
   }
 
   @SubscribeMessage('event_new_room')

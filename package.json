@@ -45,6 +45,7 @@
     "@nestjs/typeorm": "^9.0.1",
     "@nestjs/websockets": "^9.1.2",
     "@sendgrid/mail": "^7.7.0",
+    "@typegoose/auto-increment": "^2.1.0",
     "@typegoose/typegoose": "^9.12.0",
     "apple-auth": "^0.0.1",
     "argon2": "0.29.1",

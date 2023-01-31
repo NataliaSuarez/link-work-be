@@ -1,6 +1,11 @@
-import { prop } from '@typegoose/typegoose';
+import { AutoIncrementID } from '@typegoose/auto-increment';
+import { plugin, prop } from '@typegoose/typegoose';
 
+@plugin(AutoIncrementID, {})
 export class Chat {
+  @prop()
+  public _id?: number;
+
   @prop({
     required: [true, 'Message is required'],
   })
@@ -20,6 +25,11 @@ export class Chat {
     default: () => Date.now(),
   })
   created_at: Date;
+
+  @prop({
+    default: () => false,
+  })
+  receiverRead: boolean;
 
   constructor(chat?: Partial<Chat>) {
     Object.assign(this, chat);

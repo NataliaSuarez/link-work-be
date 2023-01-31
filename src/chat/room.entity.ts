@@ -21,6 +21,16 @@ export class Room {
   })
   employerId: string;
 
+  @prop({
+    default: () => false,
+  })
+  applicantRead?: boolean;
+
+  @prop({
+    default: () => false,
+  })
+  employerRead?: boolean;
+
   constructor(room?: Partial<Room>) {
     Object.assign(this, room);
   }
