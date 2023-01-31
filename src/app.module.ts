@@ -1,12 +1,9 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { typeOrmAsyncConfig } from './config/typeorm.module';
 import { TypegooseModule } from '@m8a/nestjs-typegoose';
 import { ConfigModule } from '@nestjs/config';
 import { ScheduleModule } from '@nestjs/schedule';
 
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { UsersModule } from './users/users.module';
 import { DatabaseModule } from './database/database.module';
 import { OffersAndShiftsModule } from './offers_and_shifts/offers_and_shifts.module';
@@ -23,8 +20,12 @@ import { LoggerService } from './loggerService/logger.service';
 import { SendgridService } from './sendgrid/sendgrid.service';
 import { NestjsFormDataModule } from 'nestjs-form-data';
 import { SupportModule } from './support/support.module';
+import { NotifyModule } from './notify/notify.module';
 import { Room } from './chat/room.entity';
 import { RedirectionsModule } from './redirections/redirections.module';
+import { typeOrmAsyncConfig } from './config/typeorm.module';
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
 @Module({
   imports: [
     DatabaseModule,
@@ -47,7 +48,11 @@ import { RedirectionsModule } from './redirections/redirections.module';
     SpacesModule,
     NestjsFormDataModule,
     SupportModule,
+    NotifyModule,
     RedirectionsModule,
+    NotifyModule,
+    RedirectionsModule,
+    NotifyModule,
   ],
   controllers: [AppController],
 

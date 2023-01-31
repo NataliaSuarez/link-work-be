@@ -18,7 +18,7 @@ import { Role } from '../users/entities/user.entity';
 import { RoomService } from './room.service';
 import { Room } from './room.entity';
 import { ShiftsService } from '../offers_and_shifts/services/shifts.service';
-import { Shift } from 'src/offers_and_shifts/entities/shift.entity';
+import { Shift } from '../offers_and_shifts/entities/shift.entity';
 @WebSocketGateway(parseInt(process.env.WS_PORT) || 3000, {
   cors: { origin: '*' },
 })

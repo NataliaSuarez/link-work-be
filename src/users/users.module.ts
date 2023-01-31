@@ -29,6 +29,7 @@ import { AuthService } from '../auth/auth.service';
 import { JwtService } from '@nestjs/jwt';
 import { SendgridService } from '../sendgrid/sendgrid.service';
 import { EmailConfirmationService } from '../auth/mail/emailConfirmation.service';
+import { NotifyService } from '../notify/services/notify.service';
 
 @Module({
   imports: [
@@ -58,6 +59,7 @@ import { EmailConfirmationService } from '../auth/mail/emailConfirmation.service
     JwtService,
     SendgridService,
     EmailConfirmationService,
+    NotifyService,
   ],
   exports: [UsersService, EmployersService, WorkersService],
 })

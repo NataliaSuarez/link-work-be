@@ -36,6 +36,8 @@ import { EmployerData } from '../../users/entities/employer_data.entity';
 import { StripeService } from '../../stripe/stripe.service';
 import { getHoursDiff } from '../../utils/dates';
 import { SendgridService } from '../../sendgrid/sendgrid.service';
+import { NotifyService } from '../../notify/services/notify.service';
+import { FullNotificationDto } from '../../notify/dtos/notify.dto';
 
 @Injectable()
 export class OffersService {
@@ -50,6 +52,7 @@ export class OffersService {
     private workerService: WorkersService,
     private stripeService: StripeService,
     private sendgridService: SendgridService,
+    private notificationService: NotifyService,
   ) {}
 
   async findAllFiltered(params?: FilterOffersDto) {
@@ -405,6 +408,41 @@ export class OffersService {
     if (!offer.favoritedBy.find((user) => user.id === workerUserId)) {
       offer.favoritedBy.push(workerUser);
     }
+    const employerUser = await this.usersRepo.findOne({
+      where: { id: offer.employerUser.id },
+    });
+    const notification: FullNotificationDto = {
+      data: {
+        entityId: offer.id,
+        path: '/offer-details-view',
+        argsType: '0',
+        redirect: true,
+      },
+      notification: {
+        title: 'You have a new applicant',
+        body:
+          workerUser.firstName +
+          workerUser.lastName +
+          ' applied to your offer ' +
+          offer.title,
+      },
+      token: employerUser.fcmIdentityToken,
+      android: {
+        priority: 'high',
+      },
+      apns: {
+        payload: {
+          aps: {
+            contentAvailable: true,
+          },
+        },
+        headers: {
+          'apns-push-type': 'background',
+          'apns-priority': '5',
+          'apns-topic': 'io.flutter.plugins.firebase.messaging',
+        },
+      },
+    };
     try {
       await this.sendgridService.send({
         to: offer.employerUser.email,
@@ -416,6 +454,7 @@ export class OffersService {
           second_body: `We trust it could be the one`,
         },
       });
+      this.notificationService.sendNotification(notification);
       return await this.offersRepo.save(offer);
     } catch (error) {
       console.error(error);

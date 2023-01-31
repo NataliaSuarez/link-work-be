@@ -35,6 +35,11 @@ export class CreateUserDto {
   @IsString()
   @IsOptional()
   @ApiProperty({ nullable: true })
+  fcmIdentityToken?: string;
+
+  @IsString()
+  @IsOptional()
+  @ApiProperty({ nullable: true })
   readonly appleIdIdentifier?: string;
 
   @IsString()

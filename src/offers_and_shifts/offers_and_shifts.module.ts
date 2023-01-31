@@ -18,6 +18,7 @@ import { UserImage } from '../users/entities/user_image.entity';
 import { Address } from '../users/entities/address.entity';
 import { SendgridService } from '../sendgrid/sendgrid.service';
 import { UsersModule } from '../users/users.module';
+import { NotifyModule } from '../notify/notify.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { UsersModule } from '../users/users.module';
       Address,
     ]),
     UsersModule,
+    NotifyModule,
   ],
   controllers: [OffersController, ShiftsController],
   providers: [

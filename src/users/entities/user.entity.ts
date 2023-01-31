@@ -53,6 +53,10 @@ export class User {
 
   @Column({ type: 'varchar', length: 255, nullable: true })
   @ApiProperty({ nullable: true })
+  fcmIdentityToken: string;
+
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  @ApiProperty({ nullable: true })
   appleIdIdentifier: string;
 
   @Column({ type: 'varchar', length: 255, nullable: true })
