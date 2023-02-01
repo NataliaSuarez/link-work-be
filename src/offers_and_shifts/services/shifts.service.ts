@@ -540,35 +540,37 @@ export class ShiftsService {
       newShift.workerUser = workerUser;
       newShift.offer = savedOffer;
       const savedShift = await this.shiftRepo.save(newShift);
-      const notification: FullNotificationDto = {
-        data: {
-          entityId: offer.id,
-          path: '/offer-details-view',
-          argsType: '0',
-          redirect: 'true',
-        },
-        notification: {
-          title: 'You have been accepted',
-          body: 'You have a new shift for the offer ' + offer.title,
-        },
-        token: workerUser.fcmIdentityToken,
-        android: {
-          priority: 'high',
-        },
-        apns: {
-          payload: {
-            aps: {
-              contentAvailable: true,
+      if (workerUser.fcmIdentityToken) {
+        const notification: FullNotificationDto = {
+          data: {
+            entityId: offer.id,
+            path: '/offer-details-view',
+            argsType: '0',
+            redirect: 'true',
+          },
+          notification: {
+            title: 'You have been accepted',
+            body: 'You have a new shift for the offer ' + offer.title,
+          },
+          token: workerUser.fcmIdentityToken,
+          android: {
+            priority: 'high',
+          },
+          apns: {
+            payload: {
+              aps: {
+                contentAvailable: true,
+              },
+            },
+            headers: {
+              'apns-push-type': 'background',
+              'apns-priority': '5',
+              'apns-topic': 'io.flutter.plugins.firebase.messaging',
             },
           },
-          headers: {
-            'apns-push-type': 'background',
-            'apns-priority': '5',
-            'apns-topic': 'io.flutter.plugins.firebase.messaging',
-          },
-        },
-      };
-      this.notificationService.sendNotification(notification);
+        };
+        this.notificationService.sendNotification(notification);
+      }
       offer.applicants.forEach(async (applicant) => {
         if (applicant.id === workerUserId) {
           await this.sendgridService.send({

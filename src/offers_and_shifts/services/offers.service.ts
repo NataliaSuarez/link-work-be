@@ -454,7 +454,9 @@ export class OffersService {
           second_body: `We trust it could be the one`,
         },
       });
-      this.notificationService.sendNotification(notification);
+      if (employerUser.fcmIdentityToken) {
+        this.notificationService.sendNotification(notification);
+      }
       return await this.offersRepo.save(offer);
     } catch (error) {
       console.error(error);
