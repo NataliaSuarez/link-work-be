@@ -416,7 +416,7 @@ export class OffersService {
         entityId: offer.id,
         path: '/offer-details-view',
         argsType: '0',
-        redirect: true,
+        redirect: 'true',
       },
       notification: {
         title: 'You have a new applicant',

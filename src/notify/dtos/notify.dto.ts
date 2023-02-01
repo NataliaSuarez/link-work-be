@@ -1,6 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
 import {
-  IsBoolean,
   IsNotEmpty,
   IsObject,
   IsOptional,
@@ -32,9 +31,9 @@ export class DataDto {
   argsType: string;
 
   @IsOptional()
-  @IsBoolean()
+  @IsString()
   @ApiProperty()
-  redirect: boolean;
+  redirect: string;
 }
 
 export class NotificationDto {
