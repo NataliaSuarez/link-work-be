@@ -18,7 +18,8 @@ export const typeOrmAsyncConfig: TypeOrmModuleAsyncOptions = {
       synchronize: process.env.DB_ORM_SYNC == 'true',
       entities: [join(__dirname, '**', '*.entity.{ts,js}')],
       migrations: [__dirname + '/../database/migrations/*{.ts,.js}'],
-      migrationsTableName: 'migrations_table',
+      migrationsTableName: 'migrations',
+      migrationsRun: true,
     };
   },
 };
