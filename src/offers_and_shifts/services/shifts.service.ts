@@ -606,16 +606,18 @@ export class ShiftsService {
       });
       if (updatedOffer.favoritedBy.length > 0) {
         updatedOffer.favoritedBy.forEach(async (user) => {
-          await this.sendgridService.send({
-            to: user.email,
-            from: 'LinkWork Team <matias.viano@getwonder.tech>',
-            templateId: 'd-fd07b18729124e7bb6554193148649ca',
-            dynamicTemplateData: {
-              subject_msg: `An offer that you have in favorite has been closed`,
-              message_body: `Another candidate has been accepted for the job offer ${offer.title}`,
-              second_body: `Don't let this discourage you and keep applying to other available offers`,
-            },
-          });
+          if (user.id != workerUserId) {
+            await this.sendgridService.send({
+              to: user.email,
+              from: 'LinkWork Team <matias.viano@getwonder.tech>',
+              templateId: 'd-fd07b18729124e7bb6554193148649ca',
+              dynamicTemplateData: {
+                subject_msg: `An offer that you have in favorite has been closed`,
+                message_body: `Another candidate has been accepted for the job offer ${offer.title}`,
+                second_body: `Don't let this discourage you and keep applying to other available offers`,
+              },
+            });
+          }
         });
       }
       return savedShift;
