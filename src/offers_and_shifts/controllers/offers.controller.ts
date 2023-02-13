@@ -50,8 +50,12 @@ export class OffersController {
   @Get()
   @ApiOperation({ summary: 'Filtro y paginación de ofertas' })
   @CheckAbilities({ action: Action.Read, subject: Offer })
-  async getOffers(@Query() params: FilterOffersDto) {
-    return await this.offerService.findAllFiltered(params);
+  async getOffers(
+    @Query() params: FilterOffersDto,
+    @GetReqUser('id') reqUserId,
+  ) {
+    const offers = await this.offerService.findAllFiltered(params);
+    return await this.offerService.markFavorites(offers, reqUserId);
   }
 
   @Post()

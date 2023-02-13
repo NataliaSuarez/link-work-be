@@ -101,6 +101,18 @@ export class OffersService {
     }
   }
 
+  async markFavorites(offers: any[], userId: string) {
+    const favoritedOffers = await this.findFavsbyUserId(userId);
+    favoritedOffers.forEach((favorited) => {
+      offers.forEach((offer) => {
+        if (offer.id === favorited.id) {
+          offer.favorited = true;
+        }
+      });
+    });
+    return offers;
+  }
+
   async findOneById(
     id: string,
     relations?: FindOptionsRelations<Offer>,
