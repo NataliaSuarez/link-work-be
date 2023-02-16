@@ -52,6 +52,19 @@ export class ShiftsController {
     }
   }
 
+  @Get('ended')
+  @ApiOperation({ summary: 'Obtener los shifts terminados del usuario' })
+  async getEndedShifts(
+    @GetReqUser() reqUser,
+    @Query() pagination?: PaginationDto,
+  ) {
+    return await this.shiftService.findEndedShifts(
+      reqUser.id,
+      reqUser.role,
+      pagination,
+    );
+  }
+
   @Get('admin/:id')
   @CheckAbilities({ action: Action.Read, subject: Shift })
   @ApiOperation({

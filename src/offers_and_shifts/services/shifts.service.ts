@@ -20,7 +20,7 @@ import { StripeService } from '../../stripe/stripe.service';
 import { Clock } from '../entities/clock.entity';
 import * as moment from 'moment';
 import { PaginationDto } from '../../common/dto/pagination.dto';
-import { User } from '../../users/entities/user.entity';
+import { Role, User } from '../../users/entities/user.entity';
 import { UserImage, ImageType } from '../../users/entities/user_image.entity';
 import { isActiveByHours, isWaitingEnding } from '../../utils/dates';
 import { SendgridService } from '../../sendgrid/sendgrid.service';
@@ -181,6 +181,20 @@ export class ShiftsService {
     });
 
     return shift;
+  }
+
+  async findEndedShifts(
+    userId: string,
+    role: Role,
+    pagination?: PaginationDto,
+  ) {
+    if (role === Role.WORKER) {
+      const shifts = await this.findByWorkerUserId(userId, pagination);
+      return shifts.doneShifts;
+    } else if (role === Role.EMPLOYER) {
+      const shifts = await this.findByEmployerUserId(userId, pagination);
+      return shifts.doneShifts;
+    }
   }
 
   async findByWorkerUserId(workerUserId: string, pagination?: PaginationDto) {
