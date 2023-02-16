@@ -4,6 +4,7 @@ import {
   Injectable,
   NotFoundException,
   InternalServerErrorException,
+  ConflictException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
@@ -121,13 +122,9 @@ export class AuthService {
     }
     if (password) {
       if (user.registerType === RegisterType.GOOGLE) {
-        throw new BadRequestException(
-          'This user was registered using a Google account',
-        );
+        throw new ConflictException('[ERR-01-01]');
       } else if (user.registerType === RegisterType.APPLE) {
-        throw new BadRequestException(
-          'This user was registered using an Apple account',
-        );
+        throw new ConflictException('[ERR-01-02]');
       }
       const passwordMatches = await argon2.verify(user.password, password);
       if (!passwordMatches)
