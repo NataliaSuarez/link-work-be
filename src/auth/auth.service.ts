@@ -222,7 +222,10 @@ export class AuthService {
   async forgotPassword(emailDto: EmailDto) {
     const user = await this.usersService.findByEmail(emailDto.email);
     if (!user) {
-      return { message: 'An email was sent if the user exists' };
+      return {
+        message:
+          'An email has been sent to your address, please check your inbox',
+      };
     }
     try {
       const token = await this.signUser(user);
@@ -248,7 +251,10 @@ export class AuthService {
           subject_msg: subjectMsg,
         },
       });
-      return { message: 'An email was sent if the user exists' };
+      return {
+        message:
+          'An email has been sent to your address, please check your inbox',
+      };
     } catch (error) {
       console.error(error);
       throw new InternalServerErrorException(error.message);
