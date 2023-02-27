@@ -329,6 +329,7 @@ export class OffersService {
     const offer = await this.findOneById(offerId, {
       applicants: true,
       favoritedBy: true,
+      employerUser: true,
     });
     if (!offer) {
       throw new NotFoundException('Offer not found');
@@ -356,7 +357,7 @@ export class OffersService {
       }
       return { message: 'Applicant removed from offer' };
     } catch (error) {
-      throw new InternalServerErrorException();
+      throw new InternalServerErrorException(error.message);
     }
   }
 
