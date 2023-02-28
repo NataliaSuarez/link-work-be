@@ -566,4 +566,8 @@ export class OffersService {
       throw new InternalServerErrorException(error.message);
     }
   }
+
+  async cancel(offerId: string, userId: string) {
+    console.log('hola');
+  }
 }

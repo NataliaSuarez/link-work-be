@@ -14,6 +14,7 @@ import {
   ParseUUIDPipe,
   ForbiddenException,
   BadRequestException,
+  Patch,
 } from '@nestjs/common';
 import {
   ApiOperation,
@@ -187,6 +188,16 @@ export class OffersController {
       throw new NotFoundException('Offer not found');
     }
     return await this.offerService.edit(offer, payload);
+  }
+
+  @Patch('cancel/:offerId')
+  @CheckAbilities({ action: Action.Update, subject: Offer })
+  @ApiOperation({ summary: 'Cancelar oferta ' })
+  async cancelOffer(
+    @Param('id', ParseUUIDPipe) offerId: string,
+    @GetReqUser('id') reqUserId,
+  ) {
+    return await this.offerService.cancel(offerId, reqUserId);
   }
 
   @Delete(':id')
