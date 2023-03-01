@@ -92,11 +92,7 @@ export class OffersController {
     if (reqUserRole !== Role.EMPLOYER) {
       throw new ForbiddenException('Only employers can create an offer');
     }
-    if (!file) {
-      throw new BadRequestException('Must upload an offer video');
-    }
-    const createdOffer = await this.offerService.create(payload, reqUserId);
-    return await this.offerService.uploadOfferVideo(createdOffer, file);
+    return await this.offerService.create(payload, reqUserId);
   }
 
   @Get('created-by-myself')
