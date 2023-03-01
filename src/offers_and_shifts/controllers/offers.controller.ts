@@ -190,7 +190,7 @@ export class OffersController {
   @CheckAbilities({ action: Action.Update, subject: Offer })
   @ApiOperation({ summary: 'Cancelar oferta ' })
   async cancelOffer(
-    @Param('id', ParseUUIDPipe) offerId: string,
+    @Param('offerId', ParseUUIDPipe) offerId: string,
     @GetReqUser('id') reqUserId,
   ) {
     return await this.offerService.cancel(offerId, reqUserId);
