@@ -568,6 +568,60 @@ export class OffersService {
   }
 
   async cancel(offerId: string, userId: string) {
-    console.log('hola');
+    const offer = await this.findOneById(offerId);
+    if (offer.employerUser.id != userId) {
+      throw new ForbiddenException('You cannot do this');
+    }
+    if (offer.status != OfferStatus.CREATED) {
+      throw new ForbiddenException('You cannot cancel this offer');
+    }
+    if (offer.applicantsCount > 0) {
+      offer.applicants.forEach(async (applicant) => {
+        await this.sendgridService.send({
+          to: applicant.email,
+          from: 'LinkWork Team <matias.viano@getwonder.tech>',
+          templateId: 'd-fd07b18729124e7bb6554193148649ca',
+          dynamicTemplateData: {
+            subject_msg: `An offer that you applied for was canceled`,
+            message_body: `The job offer ${offer.title} was canceled by its owner`,
+            second_body: `Keep searching!`,
+          },
+        });
+        const notification: FullNotificationDto = {
+          data: {
+            entityId: offer.id,
+            path: '/offer-details-view',
+            argsType: '0',
+            redirect: 'false',
+          },
+          notification: {
+            title: 'An offer that you applied for was canceled',
+            body: `The job offer ${offer.title} was canceled by its owner`,
+          },
+          token: applicant.fcmIdentityToken,
+          android: {
+            priority: 'high',
+          },
+          apns: {
+            payload: {
+              aps: {
+                contentAvailable: true,
+              },
+            },
+            headers: {
+              'apns-push-type': 'background',
+              'apns-priority': '5',
+              'apns-topic': 'io.flutter.plugins.firebase.messaging',
+            },
+          },
+        };
+        this.notificationService.sendNotification(notification);
+        this.removeApplicant(offerId, applicant.id, offer.employerUser.id);
+        offer.applicantsCount -= 1;
+      });
+      offer.status = 3;
+      await this.offersRepo.save(offer);
+      return await this.findOneById(offer.id);
+    }
   }
 }

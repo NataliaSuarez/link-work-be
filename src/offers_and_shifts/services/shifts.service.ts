@@ -594,7 +594,7 @@ export class ShiftsService {
             dynamicTemplateData: {
               subject_msg: `Congratulations! You have been accepted on a job offer`,
               message_body: `You have been accepted in the job offer ${offer.title}`,
-              second_body: `Remember that the shit go from ${offer.from} to ${offer.to}`,
+              second_body: `Remember that the shift go from ${offer.from} to ${offer.to}`,
             },
           });
         } else {
