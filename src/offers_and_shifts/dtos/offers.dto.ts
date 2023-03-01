@@ -47,6 +47,11 @@ export class CreateOfferDto {
   @ApiProperty()
   readonly category?: number;
 
+  @IsString()
+  @IsNotEmpty()
+  @ApiProperty()
+  readonly description: string;
+
   @IsUrl()
   @IsOptional()
   @ApiProperty()
