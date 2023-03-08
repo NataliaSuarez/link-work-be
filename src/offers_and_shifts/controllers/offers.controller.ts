@@ -13,7 +13,6 @@ import {
   NotFoundException,
   ParseUUIDPipe,
   ForbiddenException,
-  BadRequestException,
   Patch,
 } from '@nestjs/common';
 import {

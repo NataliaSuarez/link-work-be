@@ -67,7 +67,7 @@ export class UpdateOfferDto extends PartialType(CreateOfferDto) {
   @IsEnum(OfferStatus)
   @IsOptional()
   @ApiProperty()
-  readonly status?: number;
+  status?: number;
 }
 
 export class FilterOffersDto extends PaginationDto {

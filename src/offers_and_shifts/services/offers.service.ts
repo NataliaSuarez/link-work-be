@@ -619,9 +619,9 @@ export class OffersService {
         this.removeApplicant(offerId, applicant.id, offer.employerUser.id);
         offer.applicantsCount -= 1;
       });
-      offer.status = 3;
-      await this.offersRepo.save(offer);
-      return await this.findOneById(offer.id);
     }
+    offer.status = 3;
+    await this.offersRepo.save(offer);
+    return await this.findOneById(offer.id);
   }
 }
