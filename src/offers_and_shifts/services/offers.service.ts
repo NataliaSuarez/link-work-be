@@ -125,6 +125,7 @@ export class OffersService {
           userImages: true,
         },
         applicants: true,
+        favoritedBy: true,
       };
     }
     const offer = await this.offersRepo.findOne({
@@ -292,18 +293,20 @@ export class OffersService {
     }
     try {
       this.offersRepo.merge(offer, changes);
-      offer.favoritedBy.forEach(async (user) => {
-        await this.sendgridService.send({
-          to: user.email,
-          from: 'LinkWork Team <matias.viano@getwonder.tech>',
-          templateId: 'd-fd07b18729124e7bb6554193148649ca',
-          dynamicTemplateData: {
-            subject_msg: `An offer that you have in favorite has been edited`,
-            message_body: `The job offer ${offer.title} has been edited by the business`,
-            second_body: `Check it out in your favorite offers`,
-          },
+      if (offer.favoritedBy.length > 0) {
+        offer.favoritedBy.forEach(async (user) => {
+          await this.sendgridService.send({
+            to: user.email,
+            from: 'LinkWork Team <matias.viano@getwonder.tech>',
+            templateId: 'd-fd07b18729124e7bb6554193148649ca',
+            dynamicTemplateData: {
+              subject_msg: `An offer that you have in favorite has been edited`,
+              message_body: `The job offer ${offer.title} has been edited by the business`,
+              second_body: `Check it out in your favorite offers`,
+            },
+          });
         });
-      });
+      }
       return await this.offersRepo.save(offer);
     } catch (error) {
       console.error(error);
