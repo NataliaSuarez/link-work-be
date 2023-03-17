@@ -98,7 +98,11 @@ export class AuthService {
         role: newUser.role,
       });
       await this.updateRefreshToken(newUser.id, tokens.refreshToken);
-      this.emailService.sendVerificationLink(newUser.email, newUser.firstName);
+      const emailResp = await this.emailService.sendVerificationLink(
+        newUser.email,
+        newUser.firstName,
+      );
+      console.dir(emailResp.response.body);
       console.log(`User ${newUser.email} registered`);
       return { message: `Email sended to ${newUser.email}` };
     } catch (error) {
@@ -243,9 +247,9 @@ export class AuthService {
       const subjectMsg = 'Password recovery request';
       await this.sendGridService.send({
         to: user.email,
-        from: 'LinkWork Team <matias.viano@getwonder.tech>',
+        from: 'Extra Team <admin@extraworks.app>',
         subject: `Forgot Password`,
-        templateId: 'd-50336614d4c24651baf4f4a44daf38e9',
+        templateId: 'd-92c1cbe506d045619a97c2c9a109b9bb',
         dynamicTemplateData: {
           first_name: user.firstName,
           url_confirm: forgotLink,

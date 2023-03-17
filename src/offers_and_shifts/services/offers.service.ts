@@ -297,8 +297,8 @@ export class OffersService {
         offer.favoritedBy.forEach(async (user) => {
           await this.sendgridService.send({
             to: user.email,
-            from: 'LinkWork Team <matias.viano@getwonder.tech>',
-            templateId: 'd-fd07b18729124e7bb6554193148649ca',
+            from: 'Extra Team <admin@extraworks.app>',
+            templateId: 'd-96f4aa8e871b44efab882206cb01e70f',
             dynamicTemplateData: {
               subject_msg: `An offer that you have in favorite has been edited`,
               message_body: `The job offer ${offer.title} has been edited by the business`,
@@ -349,8 +349,8 @@ export class OffersService {
       if (applicantUserId === userId) {
         await this.sendgridService.send({
           to: offer.employerUser.email,
-          from: 'LinkWork Team <matias.viano@getwonder.tech>',
-          templateId: 'd-fd07b18729124e7bb6554193148649ca',
+          from: 'Extra Team <admin@extraworks.app>',
+          templateId: 'd-96f4aa8e871b44efab882206cb01e70f',
           dynamicTemplateData: {
             subject_msg: `An applicant has canceled its application`,
             message_body: `We notify you that an applicant has canceled its application to the job offer ${offer.title}`,
@@ -462,8 +462,8 @@ export class OffersService {
     try {
       await this.sendgridService.send({
         to: offer.employerUser.email,
-        from: 'LinkWork Team <matias.viano@getwonder.tech>',
-        templateId: 'd-fd07b18729124e7bb6554193148649ca',
+        from: 'Extra Team <admin@extraworks.app>',
+        templateId: 'd-96f4aa8e871b44efab882206cb01e70f',
         dynamicTemplateData: {
           subject_msg: `You have a new applicant`,
           message_body: `${workerUser.firstName} ${workerUser.lastName} applied to the job offer ${offer.title}`,
@@ -582,8 +582,8 @@ export class OffersService {
       offer.applicants.forEach(async (applicant) => {
         await this.sendgridService.send({
           to: applicant.email,
-          from: 'LinkWork Team <matias.viano@getwonder.tech>',
-          templateId: 'd-fd07b18729124e7bb6554193148649ca',
+          from: 'Extra Team <admin@extraworks.app>',
+          templateId: 'd-96f4aa8e871b44efab882206cb01e70f',
           dynamicTemplateData: {
             subject_msg: `An offer that you applied for was canceled`,
             message_body: `The job offer ${offer.title} was canceled by its owner`,

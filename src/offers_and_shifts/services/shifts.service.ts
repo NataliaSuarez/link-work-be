@@ -542,8 +542,8 @@ export class ShiftsService {
       }
       await this.sendgridService.send({
         to: employer.email,
-        from: 'LinkWork Team <matias.viano@getwonder.tech>',
-        templateId: 'd-fd07b18729124e7bb6554193148649ca',
+        from: 'Extra Team <admin@extraworks.app>',
+        templateId: 'd-96f4aa8e871b44efab882206cb01e70f',
         dynamicTemplateData: {
           subject_msg: `Your payment has been taken`,
           message_body: `A total of ${offer.usdTotal} usd has been taken for the payment of your job offer ${offer.title}`,
@@ -593,8 +593,8 @@ export class ShiftsService {
         if (applicant.id === workerUserId) {
           await this.sendgridService.send({
             to: workerUser.email,
-            from: 'LinkWork Team <matias.viano@getwonder.tech>',
-            templateId: 'd-fd07b18729124e7bb6554193148649ca',
+            from: 'Extra Team <admin@extraworks.app>',
+            templateId: 'd-96f4aa8e871b44efab882206cb01e70f',
             dynamicTemplateData: {
               subject_msg: `Congratulations! You have been accepted on a job offer`,
               message_body: `You have been accepted in the job offer ${offer.title}`,
@@ -604,8 +604,8 @@ export class ShiftsService {
         } else {
           await this.sendgridService.send({
             to: applicant.email,
-            from: 'LinkWork Team <matias.viano@getwonder.tech>',
-            templateId: 'd-fd07b18729124e7bb6554193148649ca',
+            from: 'Extra Team <admin@extraworks.app>',
+            templateId: 'd-96f4aa8e871b44efab882206cb01e70f',
             dynamicTemplateData: {
               subject_msg: `Unfortunately you have not been selected`,
               message_body: `Another candidate has been accepted for the job offer ${offer.title}`,
@@ -627,8 +627,8 @@ export class ShiftsService {
           if (user.id != workerUserId) {
             await this.sendgridService.send({
               to: user.email,
-              from: 'LinkWork Team <matias.viano@getwonder.tech>',
-              templateId: 'd-fd07b18729124e7bb6554193148649ca',
+              from: 'Extra Team <admin@extraworks.app>',
+              templateId: 'd-96f4aa8e871b44efab882206cb01e70f',
               dynamicTemplateData: {
                 subject_msg: `An offer that you have in favorite has been closed`,
                 message_body: `Another candidate has been accepted for the job offer ${offer.title}`,
@@ -738,8 +738,8 @@ export class ShiftsService {
         };
         await this.sendgridService.send({
           to: shift.workerUser.email,
-          from: 'LinkWork Team <matias.viano@getwonder.tech>',
-          templateId: 'd-fd07b18729124e7bb6554193148649ca',
+          from: 'Extra Team <admin@extraworks.app>',
+          templateId: 'd-96f4aa8e871b44efab882206cb01e70f',
           dynamicTemplateData: {
             subject_msg: `We have sent a payment to your bank account`,
             message_body: `A payment of ${shift.offer.usdTotal} usd has been sent for the job offer ${shift.offer.title}`,
@@ -748,8 +748,8 @@ export class ShiftsService {
         });
         await this.sendgridService.send({
           to: shift.offer.employerUser.email,
-          from: 'LinkWork Team <matias.viano@getwonder.tech>',
-          templateId: 'd-fd07b18729124e7bb6554193148649ca',
+          from: 'Extra Team <admin@extraworks.app>',
+          templateId: 'd-96f4aa8e871b44efab882206cb01e70f',
           dynamicTemplateData: {
             subject_msg: `We have sent a payment for your job offer`,
             message_body: `We have sent a payment to ${shift.workerUser.firstName} ${shift.workerUser.lastName} for the job offer ${shift.offer.title}`,

@@ -31,7 +31,7 @@ export class SupportService {
     try {
       const sendMail = await this.sendGridService.send({
         to: suppMail,
-        from: 'LinkWork Team <matias.viano@getwonder.tech>',
+        from: 'Extra Team <admin@extraworks.app>',
         subject: `A new issue from ${user.email}`,
         html: `<div><p>${data.msg}</p></div>`,
       });
