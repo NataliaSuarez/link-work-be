@@ -98,11 +98,11 @@ export class AuthService {
         role: newUser.role,
       });
       await this.updateRefreshToken(newUser.id, tokens.refreshToken);
-      const emailResp = await this.emailService.sendVerificationLink(
+      const response = await this.emailService.sendVerificationLink(
         newUser.email,
         newUser.firstName,
       );
-      console.dir(emailResp.response.body);
+      console.dir(response);
       console.log(`User ${newUser.email} registered`);
       return { message: `Email sended to ${newUser.email}` };
     } catch (error) {
