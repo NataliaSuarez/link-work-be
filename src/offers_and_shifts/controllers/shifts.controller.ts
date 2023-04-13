@@ -1,6 +1,7 @@
 import {
   Controller,
   Get,
+  Delete,
   Param,
   Post,
   Body,
@@ -149,6 +150,34 @@ export class ShiftsController {
     }
     if (reqUser.role === Role.WORKER) {
       return await this.shiftService.clockOutByWorker(shift);
+    }
+  }
+
+  @Delete(':shiftId/range/:range')
+  @CheckAbilities({ action: Action.Delete, subject: Shift })
+  @ApiOperation({ summary: 'Cancelar turno' })
+  async cancelShift(
+    @Param('shiftId') shiftId: string,
+    @Param('range') range: string,
+    @GetReqUser() reqUser,
+  ) {
+    const shift = await this.shiftService.findOneById(shiftId);
+    if (
+      !shift ||
+      (shift.workerUser.id !== reqUser.id &&
+        shift.offer.employerUser.id !== reqUser.id)
+    ) {
+      throw new NotFoundException('Shift not found');
+    }
+    if (reqUser.role === Role.EMPLOYER) {
+      return await this.shiftService.cancelShiftByEmployer(shift, range);
+    }
+    if (reqUser.role === Role.WORKER) {
+      return await this.shiftService.cancelShiftByWorker(
+        shift,
+        range,
+        reqUser.id,
+      );
     }
   }
 }

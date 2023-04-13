@@ -26,6 +26,8 @@ import { isActiveByHours, isWaitingEnding } from '../../utils/dates';
 import { SendgridService } from '../../sendgrid/sendgrid.service';
 import { FullNotificationDto } from '../../notify/dtos/notify.dto';
 import { NotifyService } from '../../notify/services/notify.service';
+import { WorkersService } from 'src/users/services/workers.service';
+import { UsersService } from 'src/users/services/users.service';
 @Injectable()
 export class ShiftsService {
   constructor(
@@ -34,6 +36,8 @@ export class ShiftsService {
     @InjectRepository(User) private usersRepo: Repository<User>,
     @InjectRepository(UserImage) private imgRepo: Repository<UserImage>,
     private offersService: OffersService,
+    private workersService: WorkersService,
+    private usersService: UsersService,
     private stripeService: StripeService,
     private sendgridService: SendgridService,
     private notificationService: NotifyService,
@@ -820,6 +824,116 @@ export class ShiftsService {
       return await this.shiftRepo.save(shift);
     } catch (error) {
       throw new InternalServerErrorException();
+    }
+  }
+
+  async cancelShiftByEmployer(shift, range) {
+    try {
+      switch (+range) {
+        case 1:
+          // sin infracciones
+          break;
+        case 2:
+          // infracciones
+          // cobrar 20%
+          await this.cancelPolicyEmployer(shift, 20);
+          break;
+        case 3:
+          // infracciones
+          // cobrar 50%
+          await this.cancelPolicyEmployer(shift, 50);
+          break;
+        default:
+          break;
+      }
+      // avisar al worker
+      return this.remove(shift.id);
+    } catch (e) {
+      throw new InternalServerErrorException(
+        `Error with shift policy cancelation`,
+      );
+    }
+  }
+
+  async cancelShiftByWorker(shift, range, userId) {
+    switch (+range) {
+      case 1:
+        // infracciones
+        // puntuación de rating 0
+        await this.workersService.updateStars(shift.workerUser.workerData, 0);
+        console.log('GREEN worker: rating 0');
+        break;
+      case 2:
+        // infracciones
+        console.log('YELLOW worker: desactivar perfil');
+        // desactivar perfil
+        await this.usersService.desactivate(userId, true);
+        break;
+      case 3:
+        // infracciones
+        console.log('RED worker: perfil vetado');
+        // se veta a la persona
+        await this.usersService.delete(userId);
+        break;
+      default:
+        break;
+    }
+    // avisar al trabajador
+    return this.remove(shift.id);
+  }
+
+  // aux
+  async cancelPolicyEmployer(shift, percentage) {
+    try {
+      const workerUserStripeId = shift.workerUser.workerData.stripeId;
+      if (!workerUserStripeId) {
+        throw new BadRequestException(
+          `Error Worker user ID ${shift.workerUser.id} has not payment stripe ID`,
+        );
+      }
+      const totalAmount = shift.offer.usdTotal * 100;
+      const amount = totalAmount * (percentage / 100);
+
+      const description = shift.offer.title + shift.offer.from + shift.offer.to;
+      const transferData = {
+        amount: amount,
+        currency: 'usd',
+        destination: workerUserStripeId,
+        description: description,
+      };
+      const transfer = await this.stripeService.createTransfer(transferData);
+      if (transfer.created) {
+        await this.offersService.updateStatus(
+          shift.offer.id,
+          OfferStatus.CANCELED,
+        );
+        await this.sendgridService.send({
+          to: shift.workerUser.email,
+          from: 'LinkWork Team <matias.viano@getwonder.tech>',
+          templateId: 'd-fd07b18729124e7bb6554193148649ca',
+          dynamicTemplateData: {
+            subject_msg: `We have sent a compensation payment to your bank account`,
+            message_body: `A compensation payment of ${shift.offer.usdTotal} - ${percentage}% usd has been sent for the canceled job offer ${shift.offer.title}`,
+            second_body: `Check it out in your bank account`,
+          },
+        });
+        await this.sendgridService.send({
+          to: shift.offer.employerUser.email,
+          from: 'LinkWork Team <matias.viano@getwonder.tech>',
+          templateId: 'd-fd07b18729124e7bb6554193148649ca',
+          dynamicTemplateData: {
+            subject_msg: `We have sent a compensation payment for your job offer`,
+            message_body: `We have sent a compensation payment to ${shift.workerUser.firstName} ${shift.workerUser.lastName} for the job offer ${shift.offer.title}`,
+            second_body: `We hope you had a good experience`,
+          },
+        });
+        return await this.update(shift, {
+          status: ShiftStatus.CANCELED,
+        });
+      }
+    } catch (error) {
+      console.log(error);
+      throw new InternalServerErrorException(`Error with shift confirmation`);
     }
   }
 }
