@@ -3,7 +3,8 @@ import { ShiftStatus } from '../offers_and_shifts/entities/shift.entity';
 
 export function getHoursDiff(startDate, endDate) {
   const msInHour = 1000 * 60 * 60;
-  let diff = Math.round(Math.abs(endDate - startDate) / msInHour);
+  const diffDate = Math.abs(endDate - startDate);
+  let diff = diffDate / msInHour;
   if (endDate < startDate) {
     diff = diff * -1;
   }

@@ -157,7 +157,11 @@ export class UsersService {
         refreshToken: true,
         registerType: true,
       },
+      withDeleted: true,
     });
+    if (user.desactivatedAt) {
+      await this.userRepository.restore(user.id);
+    }
     return user;
   }
 
