@@ -340,7 +340,7 @@ export class WorkersService {
     }
   }
 
-  async updateStars(workerData: WorkerData, stars: number) {
+  async updateStars(workerData: WorkerData, stars: number, userId: string) {
     try {
       const newTotal = workerData.stars + stars;
       const totalReviews = workerData.totalReviews + 1;
@@ -350,7 +350,7 @@ export class WorkersService {
         totalReviews: totalReviews,
         avgStars: newAvg,
       };
-      return await this.update(workerData.user.id, changes);
+      return await this.update(userId, changes);
     } catch (error) {
       console.error(error);
       throw new InternalServerErrorException();

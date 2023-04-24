@@ -171,7 +171,11 @@ export class WorkersController {
       throw new ForbiddenException('Only employers can add reviews of workers');
     }
     const workerData = await this.workersService.findByUserId(workerUserId);
-    return await this.workersService.updateStars(workerData, payload.stars);
+    return await this.workersService.updateStars(
+      workerData,
+      payload.stars,
+      workerData.user.id,
+    );
   }
 
   @Put()

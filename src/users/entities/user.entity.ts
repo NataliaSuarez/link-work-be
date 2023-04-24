@@ -44,6 +44,7 @@ export enum ProfileStatus {
 export enum BlockedReason {
   NO_BLOCKED = 0,
   MULTIPLE_LOGIN_ATTEMPTS = 1,
+  BANNED_USER = 2,
 }
 
 @Entity('users')

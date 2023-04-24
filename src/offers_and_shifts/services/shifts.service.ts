@@ -20,7 +20,7 @@ import { StripeService } from '../../stripe/stripe.service';
 import { Clock } from '../entities/clock.entity';
 import * as moment from 'moment';
 import { PaginationDto } from '../../common/dto/pagination.dto';
-import { Role, User } from '../../users/entities/user.entity';
+import { BlockedReason, Role, User } from '../../users/entities/user.entity';
 import { UserImage, ImageType } from '../../users/entities/user_image.entity';
 import { isActiveByHours, isWaitingEnding } from '../../utils/dates';
 import { SendgridService } from '../../sendgrid/sendgrid.service';
@@ -860,7 +860,11 @@ export class ShiftsService {
       case 1:
         // infracciones
         // puntuación de rating 0
-        await this.workersService.updateStars(shift.workerUser.workerData, 0);
+        await this.workersService.updateStars(
+          shift.workerUser.workerData,
+          0,
+          userId,
+        );
         console.log('GREEN worker: rating 0');
         break;
       case 2:
@@ -872,8 +876,12 @@ export class ShiftsService {
       case 3:
         // infracciones
         console.log('RED worker: perfil vetado');
-        // se veta a la persona
-        await this.usersService.delete(userId);
+        const user = await this.usersService.findOneById(userId);
+        await this.usersService.update(user, {
+          blocked: true,
+          blockedReason: BlockedReason.BANNED_USER,
+        });
+        await this.usersService.desactivate(userId, true);
         break;
       default:
         break;
