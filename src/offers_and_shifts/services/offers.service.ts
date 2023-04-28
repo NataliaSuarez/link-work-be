@@ -141,8 +141,15 @@ export class OffersService {
   }
 
   async findAllByEmployerUserId(employerUserId: string) {
+    const now = Date.now();
     const offers = await this.offersRepo.find({
-      where: { employerUser: { id: employerUserId } },
+      where: {
+        employerUser: { id: employerUserId },
+        status: Not(
+          In([OfferStatus.CANCELED, OfferStatus.DONE, OfferStatus.ACCEPTED]),
+        ),
+        from: MoreThanOrEqual(new Date(now)),
+      },
       loadEagerRelations: false,
       relations: {
         applicants: {
