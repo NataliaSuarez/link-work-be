@@ -14,6 +14,7 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 
 import { CreateShiftDto, FilterShiftsDto } from '../dtos/shift.dto';
 import { ShiftsService } from '../services/shifts.service';
+import { OptimizedShiftsService } from '../services/optimized_shift.service';
 import { AccessTokenGuard } from '../../auth/jwt/accessToken.guard';
 import { GetReqUser } from '../../auth/get-req-user.decorator';
 import { CheckAbilities } from '../../auth/abilities/abilities.decorator';
@@ -31,7 +32,10 @@ import { AllExceptionsFilter } from '../../utils/filters/all-exceptions.filter';
 @ApiTags('shifts')
 @Controller('shifts')
 export class ShiftsController {
-  constructor(private shiftService: ShiftsService) {}
+  constructor(
+    private shiftService: ShiftsService,
+    private optimizedShiftService: OptimizedShiftsService,
+  ) {}
 
   @Get('all')
   @ApiOperation({ summary: 'Filtro y paginación de shifts' })
@@ -50,6 +54,45 @@ export class ShiftsController {
     }
     if (reqUser.role === Role.WORKER) {
       return await this.shiftService.findByWorkerUserId(reqUser.id, pagination);
+    }
+  }
+
+  @Get('next')
+  @ApiOperation({ summary: 'Obtener los shifts del usuario' })
+  async getNextShifts(
+    @GetReqUser() reqUser,
+    @Query() pagination?: PaginationDto,
+  ) {
+    if (reqUser.role === Role.EMPLOYER) {
+      return await this.optimizedShiftService.findNextShiftsByEmployerUserId(
+        reqUser.id,
+        pagination,
+      );
+    }
+    if (reqUser.role === Role.WORKER) {
+      return await this.optimizedShiftService.findNextShiftsByWorkerUserId(
+        reqUser.id,
+        pagination,
+      );
+    }
+  }
+  @Get('active')
+  @ApiOperation({ summary: 'Obtener los shifts del usuario' })
+  async getActiveShifts(
+    @GetReqUser() reqUser,
+    @Query() pagination?: PaginationDto,
+  ) {
+    if (reqUser.role === Role.EMPLOYER) {
+      return await this.optimizedShiftService.findActiveShiftsByEmployerUserId(
+        reqUser.id,
+        pagination,
+      );
+    }
+    if (reqUser.role === Role.WORKER) {
+      return await this.optimizedShiftService.findActiveShiftsByWorkerUserId(
+        reqUser.id,
+        pagination,
+      );
     }
   }
 

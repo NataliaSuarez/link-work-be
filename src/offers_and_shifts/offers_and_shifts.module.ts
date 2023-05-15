@@ -6,6 +6,7 @@ import { OffersService } from './services/offers.service';
 import { OffersController } from './controllers/offers.controller';
 import { Shift } from './entities/shift.entity';
 import { ShiftsService } from './services/shifts.service';
+import { OptimizedShiftsService } from './services/optimized_shift.service';
 import { ShiftsController } from './controllers/shifts.controller';
 import { WorkerData } from '../users/entities/worker_data.entity';
 import { EmployerData } from '../users/entities/employer_data.entity';
@@ -39,11 +40,12 @@ import { NotifyModule } from '../notify/notify.module';
   providers: [
     OffersService,
     ShiftsService,
+    OptimizedShiftsService,
     StripeService,
     DOSpacesService,
     DOSpacesServiceProvider,
     SendgridService,
   ],
-  exports: [OffersService, ShiftsService],
+  exports: [OffersService, ShiftsService, OptimizedShiftsService],
 })
 export class OffersAndShiftsModule {}

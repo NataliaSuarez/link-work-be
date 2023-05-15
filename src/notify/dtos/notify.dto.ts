@@ -76,14 +76,12 @@ export class FullNotificationDto {
   @ApiProperty()
   apns: {
     payload: {
-      aps: {
-        contentAvailable: boolean;
+      aps: { contentAvailable: boolean };
+      headers: {
+        'apns-push-type': string;
+        'apns-priority': string;
+        'apns-topic': string;
       };
-    };
-    headers: {
-      'apns-push-type': string;
-      'apns-priority': string;
-      'apns-topic': string;
     };
   };
 }
