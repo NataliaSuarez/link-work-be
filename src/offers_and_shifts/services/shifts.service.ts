@@ -576,14 +576,12 @@ export class ShiftsService {
           },
           apns: {
             payload: {
-              aps: {
-                contentAvailable: true,
+              aps: { contentAvailable: true },
+              headers: {
+                'apns-push-type': 'background',
+                'apns-priority': '5',
+                'apns-topic': 'io.flutter.plugins.firebase.messaging',
               },
-            },
-            headers: {
-              'apns-push-type': 'background',
-              'apns-priority': '5',
-              'apns-topic': 'io.flutter.plugins.firebase.messaging',
             },
           },
         };

@@ -293,15 +293,16 @@ export class OffersService {
 
   async edit(offer: Offer, changes: UpdateOfferDto) {
     if (offer.status !== OfferStatus.CREATED) {
-      throw new ForbiddenException('Cannot edit an accepted or done offer');
+      throw new ConflictException('Cannot edit an accepted or done offer');
     }
     if (offer.applicantsCount > 0) {
-      throw new ForbiddenException('Cannot edit an offer with applicants');
+      throw new ConflictException('Cannot edit an offer with applicants');
     }
     try {
       this.offersRepo.merge(offer, changes);
       if (offer.favoritedBy.length > 0) {
         offer.favoritedBy.forEach(async (user) => {
+          // send email notification
           await this.sendgridService.send({
             to: user.email,
             from: 'Extra Team <admin@extraworks.app>',
@@ -312,8 +313,39 @@ export class OffersService {
               second_body: `Check it out in your favorite offers`,
             },
           });
+          // push notification
+          // if (user.fcmIdentityToken) {
+          //   const notification: FullNotificationDto = {
+          //     data: {
+          //       entityId: offer.id,
+          //       path: '/offer-details-view',
+          //       argsType: '0',
+          //       redirect: 'true',
+          //     },
+          //     notification: {
+          //       title: 'An offer that you have in favorite has been edited',
+          //       body: 'The job offer ' + offer.title + ' has been edited ',
+          //     },
+          //     token: user.fcmIdentityToken,
+          //     android: {
+          //       priority: 'high',
+          //     },
+          //     apns: {
+          //       payload: {
+          //         aps: { contentAvailable: true },
+          //         headers: {
+          //           'apns-push-type': 'background',
+          //           'apns-priority': '5',
+          //           'apns-topic': 'io.flutter.plugins.firebase.messaging',
+          //         },
+          //       },
+          //     },
+          //   };
+          //   this.notificationService.sendNotification(notification);
+          // }
         });
       }
+
       return await this.offersRepo.save(offer);
     } catch (error) {
       console.error(error);
@@ -455,14 +487,12 @@ export class OffersService {
       },
       apns: {
         payload: {
-          aps: {
-            contentAvailable: true,
+          aps: { contentAvailable: true },
+          headers: {
+            'apns-push-type': 'background',
+            'apns-priority': '5',
+            'apns-topic': 'io.flutter.plugins.firebase.messaging',
           },
-        },
-        headers: {
-          'apns-push-type': 'background',
-          'apns-priority': '5',
-          'apns-topic': 'io.flutter.plugins.firebase.messaging',
         },
       },
     };
@@ -483,7 +513,7 @@ export class OffersService {
       return await this.offersRepo.save(offer);
     } catch (error) {
       console.error(error);
-      throw new InternalServerErrorException(error.message);
+      throw new ConflictException(error.message);
     }
   }
 
@@ -614,14 +644,12 @@ export class OffersService {
           },
           apns: {
             payload: {
-              aps: {
-                contentAvailable: true,
+              aps: { contentAvailable: true },
+              headers: {
+                'apns-push-type': 'background',
+                'apns-priority': '5',
+                'apns-topic': 'io.flutter.plugins.firebase.messaging',
               },
-            },
-            headers: {
-              'apns-push-type': 'background',
-              'apns-priority': '5',
-              'apns-topic': 'io.flutter.plugins.firebase.messaging',
             },
           },
         };
