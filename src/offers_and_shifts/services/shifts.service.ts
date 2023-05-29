@@ -659,7 +659,41 @@ export class ShiftsService {
       };
       const newClock = this.clocksRepo.create(clockHistory);
       await this.clocksRepo.save(newClock);
-      return await this.shiftRepo.save(shift);
+      const savedShift = await this.shiftRepo.save(shift);
+      // send push notification to worker
+      if (shift.workerUser.fcmIdentityToken) {
+        const notification: FullNotificationDto = {
+          data: {
+            entityId: shift.id,
+            path: '/shift-details-view',
+            argsType: '0',
+            redirect: 'true',
+          },
+          notification: {
+            title: 'The shift was updated',
+            body:
+              'The employer ' +
+              shift.offer.employerUser.employerData.businessName +
+              ' has clocked in. ',
+          },
+          token: shift.workerUser.fcmIdentityToken,
+          android: {
+            priority: 'high',
+          },
+          apns: {
+            payload: {
+              aps: { contentAvailable: true },
+              headers: {
+                'apns-push-type': 'background',
+                'apns-priority': '5',
+                'apns-topic': 'io.flutter.plugins.firebase.messaging',
+              },
+            },
+          },
+        };
+        this.notificationService.sendNotification(notification);
+      }
+      return savedShift;
     } catch (error) {
       throw new InternalServerErrorException();
     }
@@ -679,7 +713,42 @@ export class ShiftsService {
       };
       const newClock = this.clocksRepo.create(clockHistory);
       await this.clocksRepo.save(newClock);
-      return await this.shiftRepo.save(shift);
+      const savedShift = await this.shiftRepo.save(shift);
+      // send push notification to employer
+      if (shift.offer.employerUser.fcmIdentityToken) {
+        const notification: FullNotificationDto = {
+          data: {
+            entityId: shift.id,
+            path: '/shift-details-view',
+            argsType: '0',
+            redirect: 'true',
+          },
+          notification: {
+            title: 'The shift was updated',
+            body:
+              'The worker ' +
+              shift.workerUser.firstName +
+              shift.workerUser.lastName +
+              ' has clocked in.',
+          },
+          token: shift.offer.employerUser.fcmIdentityToken,
+          android: {
+            priority: 'high',
+          },
+          apns: {
+            payload: {
+              aps: { contentAvailable: true },
+              headers: {
+                'apns-push-type': 'background',
+                'apns-priority': '5',
+                'apns-topic': 'io.flutter.plugins.firebase.messaging',
+              },
+            },
+          },
+        };
+        this.notificationService.sendNotification(notification);
+      }
+      return savedShift;
     } catch (error) {
       throw new InternalServerErrorException();
     }
@@ -701,7 +770,42 @@ export class ShiftsService {
       };
       const newClock = this.clocksRepo.create(clockHistory);
       await this.clocksRepo.save(newClock);
-      return await this.shiftRepo.save(shift);
+      const savedShift = await this.shiftRepo.save(shift);
+      // send push notification to employer
+      if (shift.offer.employerUser.fcmIdentityToken) {
+        const notification: FullNotificationDto = {
+          data: {
+            entityId: shift.id,
+            path: '/shift-details-view',
+            argsType: '0',
+            redirect: 'true',
+          },
+          notification: {
+            title: 'The shift was updated',
+            body:
+              'The worker ' +
+              shift.workerUser.firstName +
+              shift.workerUser.lastName +
+              ' has clocked out.',
+          },
+          token: shift.offer.employerUser.fcmIdentityToken,
+          android: {
+            priority: 'high',
+          },
+          apns: {
+            payload: {
+              aps: { contentAvailable: true },
+              headers: {
+                'apns-push-type': 'background',
+                'apns-priority': '5',
+                'apns-topic': 'io.flutter.plugins.firebase.messaging',
+              },
+            },
+          },
+        };
+        this.notificationService.sendNotification(notification);
+      }
+      return savedShift;
     } catch (error) {
       throw new InternalServerErrorException(error.message);
     }
@@ -756,6 +860,39 @@ export class ShiftsService {
         });
         const newClock = this.clocksRepo.create(clockHistory);
         await this.clocksRepo.save(newClock);
+        // send push notification to worker
+        if (shift.workerUser.fcmIdentityToken) {
+          const notification: FullNotificationDto = {
+            data: {
+              entityId: shift.id,
+              path: '/shift-details-view',
+              argsType: '0',
+              redirect: 'true',
+            },
+            notification: {
+              title: 'The shift was updated',
+              body:
+                'The employer ' +
+                shift.offer.employerUser.employerData.businessName +
+                ' has clocked out. ',
+            },
+            token: shift.workerUser.fcmIdentityToken,
+            android: {
+              priority: 'high',
+            },
+            apns: {
+              payload: {
+                aps: { contentAvailable: true },
+                headers: {
+                  'apns-push-type': 'background',
+                  'apns-priority': '5',
+                  'apns-topic': 'io.flutter.plugins.firebase.messaging',
+                },
+              },
+            },
+          };
+          this.notificationService.sendNotification(notification);
+        }
         return await this.update(shift, {
           status: ShiftStatus.DONE,
           confirmedClockOut: true,
