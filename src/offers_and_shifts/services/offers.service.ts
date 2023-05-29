@@ -63,14 +63,18 @@ export class OffersService {
       if (minUsdHour) {
         where.usdHour = MoreThanOrEqual(minUsdHour);
       }
-      if (status) {
+      if (Object.values(OfferStatus).includes(status)) {
         where.status = Equal(status);
       }
       if (category) {
         where.category = Equal(category);
       }
       if (fromDate) {
-        where.from = MoreThanOrEqual(new Date(fromDate));
+        const now = new Date();
+        const fromFullDate = new Date(fromDate);
+        fromFullDate.setHours(now.getHours());
+        fromFullDate.setMinutes(now.getMinutes());
+        where.from = MoreThanOrEqual(fromFullDate);
       }
       return await this.offersRepo.find({
         where,
