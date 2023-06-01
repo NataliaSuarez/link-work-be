@@ -32,12 +32,12 @@ export class EmailConfirmationService {
     const secondMsg =
       'Please verify your email address to access a huge network of job offers.';
     const buttonMsg = 'Verify Email Now';
-    const subjectMsg = `Welcome to LinkWork, ${userName}`;
+    const subjectMsg = `Welcome to ExtraWorks, ${userName}`;
 
     return this.sendGridService.send({
       to: email,
       from: 'Extra Team <admin@extraworks.app>',
-      subject: `Welcome to LinkWork!`,
+      subject: `Welcome to ExtraWorks!`,
       templateId: 'd-92c1cbe506d045619a97c2c9a109b9bb',
       dynamicTemplateData: {
         first_name: userName,
