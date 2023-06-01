@@ -661,41 +661,37 @@ export class ShiftsService {
       await this.clocksRepo.save(newClock);
       const savedShift = await this.shiftRepo.save(shift);
       // send push notification to worker
-      try {
-        if (shift.workerUser.fcmIdentityToken) {
-          const notification: FullNotificationDto = {
-            data: {
-              entityId: shift.id,
-              path: '/shift-details-view',
-              argsType: '0',
-              redirect: 'true',
-            },
-            notification: {
-              title: 'The shift was updated',
-              body:
-                'The employer ' +
-                shift.offer.employerUser.employerData.businessName +
-                ' has clocked in. ',
-            },
-            token: shift.workerUser.fcmIdentityToken,
-            android: {
-              priority: 'high',
-            },
-            apns: {
-              payload: {
-                aps: { contentAvailable: true },
-                headers: {
-                  'apns-push-type': 'background',
-                  'apns-priority': '5',
-                  'apns-topic': 'io.flutter.plugins.firebase.messaging',
-                },
+      if (shift.workerUser.fcmIdentityToken) {
+        const notification: FullNotificationDto = {
+          data: {
+            entityId: shift.offer.id,
+            path: '/offer-details-view',
+            argsType: '0',
+            redirect: 'true',
+          },
+          notification: {
+            title: 'The shift was updated',
+            body:
+              'The employer ' +
+              shift.offer.employerUser.employerData.businessName +
+              ' has clocked in. ',
+          },
+          token: shift.workerUser.fcmIdentityToken,
+          android: {
+            priority: 'high',
+          },
+          apns: {
+            payload: {
+              aps: { contentAvailable: true },
+              headers: {
+                'apns-push-type': 'background',
+                'apns-priority': '5',
+                'apns-topic': 'io.flutter.plugins.firebase.messaging',
               },
             },
-          };
-          this.notificationService.sendNotification(notification);
-        }
-      } catch (e) {
-        throw new ConflictException('Shift saved, worker notification fails.');
+          },
+        };
+        this.notificationService.sendNotification(notification);
       }
       return savedShift;
     } catch (error) {
