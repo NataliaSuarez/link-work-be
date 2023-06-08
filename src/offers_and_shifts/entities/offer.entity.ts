@@ -53,6 +53,7 @@ export class Offer {
   @Column({
     type: 'enum',
     enum: OfferCategory,
+    default: OfferCategory.OTHER,
   })
   category: OfferCategory;
 

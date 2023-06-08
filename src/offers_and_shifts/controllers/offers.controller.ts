@@ -24,6 +24,7 @@ import {
 } from '@nestjs/swagger';
 import { Express } from 'express';
 import {
+  AdminAddOfferDto,
   CreateOfferDto,
   FilterOffersDto,
   UpdateOfferDto,
@@ -92,6 +93,19 @@ export class OffersController {
       throw new ForbiddenException('Only employers can create an offer');
     }
     return await this.offerService.create(payload, reqUserId);
+  }
+
+  @Post('add')
+  @CheckAbilities({ action: Action.Create, subject: Offer })
+  @ApiOperation({ summary: 'Crear una oferta desde admin' })
+  async addFromAdmin(
+    @Body() payload: AdminAddOfferDto,
+    @GetReqUser('role') reqUserRole,
+  ) {
+    if (reqUserRole !== Role.ADMIN) {
+      throw new ForbiddenException('Only admin can create an offer');
+    }
+    return await this.offerService.addAdminOffer(payload);
   }
 
   @Get('created-by-myself')

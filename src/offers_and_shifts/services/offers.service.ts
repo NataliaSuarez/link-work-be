@@ -21,11 +21,12 @@ import {
 import * as moment from 'moment';
 
 import {
+  AdminAddOfferDto,
   CreateOfferDto,
   FilterOffersDto,
   UpdateOfferDto,
 } from '../dtos/offers.dto';
-import { Offer, OfferStatus } from '../entities/offer.entity';
+import { Offer, OfferCategory, OfferStatus } from '../entities/offer.entity';
 import { Shift, ShiftStatus } from '../entities/shift.entity';
 import { PaginationDto } from '../../common/dto/pagination.dto';
 import { DOSpacesService } from '../../spaces/services/doSpacesService';
@@ -665,5 +666,65 @@ export class OffersService {
     offer.status = 3;
     await this.offersRepo.save(offer);
     return await this.findOneById(offer.id);
+  }
+
+  // ADMIN
+  async addAdminOffer(data: AdminAddOfferDto) {
+    const usdTotal = data.usdHour * getHoursDiff(data.from, data.to);
+    const employer = await this.employerRepo.findOne({
+      where: {
+        user: {
+          id: data.employerId,
+        },
+      },
+    });
+    if (!employer.customerId) {
+      throw new ConflictException('Cannot create an offer without stripe user');
+    }
+    const user = await this.usersRepo.findOne({
+      where: {
+        id: data.employerId,
+      },
+      loadEagerRelations: false,
+      relations: { address: true },
+    });
+    const stripeData = await this.stripeService.retrieveCustomer(
+      employer.customerId,
+    );
+    if (!stripeData.invoice_settings.default_payment_method) {
+      throw new ConflictException(
+        'Cannot create an offer without payment method',
+      );
+    }
+    if (moment(data.from) < moment().add(2, 'hours')) {
+      throw new BadRequestException(
+        'Offer starting time has to be at least 2 hours from now',
+      );
+    }
+    const datesHoursDiff = moment(data.to).diff(data.from, 'hours');
+    if (datesHoursDiff < 0.5 || datesHoursDiff > 16) {
+      throw new BadRequestException(
+        'Offer time cannot be less than 30 minutes or longer than 16 hours',
+      );
+    }
+
+    const addressId = user.address[0].id;
+    const address = await this.addressRepo.findBy({ id: addressId });
+    if (!address) {
+      throw new NotFoundException('Address not found');
+    }
+    try {
+      const newOffer = this.offersRepo.create({
+        ...data,
+        usdTotal: usdTotal,
+        category: OfferCategory.OTHER,
+        employerUser: { id: user.id },
+        address: { id: addressId },
+      });
+      return await this.offersRepo.save(newOffer);
+    } catch (error) {
+      console.error(error);
+      throw new InternalServerErrorException(error.message);
+    }
   }
 }

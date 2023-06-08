@@ -15,6 +15,38 @@ import { ApiProperty, PartialType } from '@nestjs/swagger';
 import { PaginationDto } from '../../common/dto/pagination.dto';
 import { OfferCategory, OfferStatus } from '../entities/offer.entity';
 
+export class AdminAddOfferDto {
+  @IsString()
+  @IsNotEmpty()
+  @Length(3, 255)
+  @ApiProperty()
+  readonly title: string;
+
+  @IsDate()
+  @ApiProperty()
+  readonly from: Date;
+
+  @IsDate()
+  @ApiProperty()
+  readonly to: Date;
+
+  @IsNumber()
+  @IsNotEmpty()
+  @IsPositive()
+  @ApiProperty()
+  readonly usdHour: number;
+
+  @IsString()
+  @IsOptional()
+  @ApiProperty()
+  readonly description: string;
+
+  @IsUUID()
+  @IsNotEmpty()
+  @ApiProperty()
+  readonly employerId: string;
+}
+
 export class CreateOfferDto {
   @IsString()
   @IsNotEmpty()
